@@ -11,7 +11,6 @@ local TEAL		= "|cFF00FF9A"
 local GOLD		= "|cFFFFD700"
 
 function addon:OnInitialize()
-	-- declare defaults to be used in the DB
 	local DB_defaults = {
 		char = {
 			debug = false
@@ -21,26 +20,16 @@ function addon:OnInitialize()
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
-	self.db.factionrealm.backup = self.db.factionrealm.item_account
 	
 	self.db.char.debug = true
 	
-	--[[
-		Fine Thread = 510
-		Greater Magic Essence = 120000
-		Simple Kilt = 5913
-		Bolt of Linen Cloth = 5672
-	]]
-	
 	self:RegisterOptions()
-	
-	self:Debug("Hello, world! OnInitialize")
 	
 	self:RegisterEvent("MAIL_SHOW")
 	self:WatchBags()
 end
 
-function IA_tcount(tab)
+local function IA_tcount(tab)
    local n = #tab
    if (n == 0) then
       for _ in pairs(tab) do
@@ -91,8 +80,6 @@ function addon:RegisterOptions()
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ItemAuditor", "ItemAuditor")
 	
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", options, {"ia"})
-
-	self:RegisterChatCommand("fuck", "ChatCommand")
 end
 
 function addon:GetMessage(info)
@@ -243,15 +230,12 @@ function addon:MAIL_SHOW()
 	self:RegisterEvent("MAIL_CLOSED")
 	self:RegisterEvent("MAIL_INBOX_UPDATE")
 	self:Debug("MAIL_SHOW complete")
-	-- the mail scanner will handle everything
-	-- self:UnwatchBags()
 end
 
 function addon:MAIL_CLOSED()
 	addon:UnregisterEvent("MAIL_CLOSED")
 	self:UnregisterEvent("MAIL_INBOX_UPDATE")
 	self:RegisterEvent("MAIL_SHOW")
-	-- self:WatchBags()
 end
 
 function addon:MAIL_INBOX_UPDATE()
@@ -360,9 +344,6 @@ function addon:UpdateAudit()
 	
 	self.lastInventory = currentInventory
 end
--- /run ItemAuditor.db.factionrealm.item_account["Tiger Lily"] = -586625
--- /run ItemAuditor.db.factionrealm.item_account["Icy Pigment"] = -12303
--- /run ItemAuditor.db.factionrealm.item_account["Azure Pigment"] = -258357
 
 function addon:GetItemCost(itemName, countModifier)
 	local invested = abs(self.db.factionrealm.item_account[itemName] or 0)
