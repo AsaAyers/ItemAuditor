@@ -1,0 +1,11 @@
+## Interface: 30200
+## Title: Item Auditor
+## Notes: This will keep track of how much you have paid per item in your inventory
+## Author: Asa Ayers <Asa.Ayers@Gmail.com>
+## Version: 0.1
+## SavedVariables: ItemAuditorDB
+## Dependencies: Postal, Altoholic, DevTools
+
+embeds.xml
+
+Core.lua
