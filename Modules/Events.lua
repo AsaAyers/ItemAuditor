@@ -5,6 +5,7 @@ local utils = addonTable.utils
 
 function addon:PLAYER_ENTERING_WORLD()
 	self:RegisterEvent("MAIL_SHOW")
+	self:RegisterEvent("UNIT_SPELLCAST_START")
 	self:WatchBags()
 end
  
@@ -41,14 +42,37 @@ function addon:MAIL_INBOX_UPDATE()
 	self.lastMailScan = newScan
 end
 
-function addon:UNIT_SPELLCAST_SENT(target, spell)
-	if target == "player" and spell = "Milling" then
-	
+function addon:UNIT_SPELLCAST_START(event, target, spell)
+	if target == "player" and spell == "Milling" then
+		self:UnwatchBags()
+		self:UpdateCurrentInventory()
+		self:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+		self:RegisterEvent("LOOT_CLOSED")
 	end
 end
 
-function addon:UNIT_SPELLCAST_INTERRUPTED(target, spell)
+--[[ 
+	The item should be destroyed before this point, so the last inventory check
+	needs to be kept so it can be combined with the up coming loot.
+ ]]
+function addon:LOOT_CLOSED()
+	self:UnregisterEvent("LOOT_CLOSED")
+	self:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+	local inventory = self.lastInventory
+	self:WatchBags()
+	self.lastInventory = inventory 
+end
 
+function addon:UNIT_SPELLCAST_INTERRUPTED(event, target, spell)
+	if target == "player" and spell == "Milling" then
+		self:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+		self:UnregisterEvent("LOOT_CLOSED")
+		self:WatchBags()
+	end
+end
+
+function addon:UpdateCurrentInventory()
+	self.lastInventory = self:GetCurrentInventory()
 end
 
 function addon:UpdateAudit()
@@ -102,4 +126,5 @@ function addon:UpdateAudit()
 	end
 	
 	self.lastInventory = currentInventory
+	addon:WatchBags()
 end

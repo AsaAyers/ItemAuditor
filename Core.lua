@@ -131,22 +131,28 @@ function addon:SaveValue(item, value)
 	end
 end
 
+local defaultBagDelay = 0.2
+
 function addon:WatchBags(delay)
-   if self.watch_handle == nil then
-	delay = delay or 0.2
-	self.lastInventory = self:GetCurrentInventory()
-	self.watch_handle = self:RegisterBucketEvent({"BAG_UPDATE", "PLAYER_MONEY"}, delay, "UpdateAudit")
-   end
+	delay = delay or defaultBagDelay
+	if delay ~= self.currentBagDelay  then
+		self:UnwatchBags()
+	end
+
+	if self.watch_handle == nil then
+		self.currentBagDelay = delay
+		self:Debug("currentBagDelay = " .. delay)
+		addon:UpdateCurrentInventory()
+		self.watch_handle = self:RegisterBucketEvent({"BAG_UPDATE", "PLAYER_MONEY"}, self.currentBagDelay, "UpdateAudit")
+	end
 end
 
 function addon:UnwatchBags()
-   if self.watch_handle ~= nil then
-      self:UnregisterBucket(self.watch_handle)
-      self.watch_handle = nil
-   end
+	if self.watch_handle ~= nil then
+		self:UnregisterBucket(self.watch_handle)
+		self.watch_handle = nil
+	end
 end
-
-
 
 function addon:GetItemCost(itemName, countModifier)
 	local invested = abs(self.db.factionrealm.item_account[itemName] or 0)
