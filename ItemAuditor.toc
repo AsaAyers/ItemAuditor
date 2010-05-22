@@ -8,4 +8,12 @@
 
 embeds.xml
 
+Modules\Utils.lua
+
 Core.lua
+
+Modules\Events.lua
+Modules\Tooltip.lua
+Modules\Options.lua
+
+Modules\Debug.lua

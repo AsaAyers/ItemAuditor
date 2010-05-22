@@ -1,0 +1,105 @@
+local addonName, addonTable = ...; 
+local addon = _G[addonName]
+
+local utils = addonTable.utils
+
+function addon:PLAYER_ENTERING_WORLD()
+	self:RegisterEvent("MAIL_SHOW")
+	self:WatchBags()
+end
+ 
+ function addon:MAIL_SHOW()
+	self:Debug("MAIL_SHOW")
+	self.lastMailScan = self:ScanMail()
+	self:UnregisterEvent("MAIL_SHOW")
+	self:RegisterEvent("MAIL_CLOSED")
+	self:RegisterEvent("MAIL_INBOX_UPDATE")
+	self:Debug("MAIL_SHOW complete")
+end
+
+function addon:MAIL_CLOSED()
+	addon:UnregisterEvent("MAIL_CLOSED")
+	self:UnregisterEvent("MAIL_INBOX_UPDATE")
+	self:RegisterEvent("MAIL_SHOW")
+end
+
+function addon:MAIL_INBOX_UPDATE()
+	local newScan = addon:ScanMail()
+	local diff
+	for item, total in pairs(self.lastMailScan) do
+
+		if newScan[item] == nil then
+			newScan[item] = 0
+		end
+		diff = total - newScan[item]
+		if diff ~= 0 then
+			self:SaveValue(item, diff)
+		end
+
+	end
+
+	self.lastMailScan = newScan
+end
+
+function addon:UNIT_SPELLCAST_SENT(target, spell)
+	if target == "player" and spell = "Milling" then
+	
+	end
+end
+
+function addon:UNIT_SPELLCAST_INTERRUPTED(target, spell)
+
+end
+
+function addon:UpdateAudit()
+	self:Debug("UpdateAudit")
+	local currentInventory = self:GetCurrentInventory()
+	local diff =  addon:GetInventoryDiff(self.lastInventory, currentInventory)
+	-- this is only here for debugging
+	self.lastdiff = diff
+	
+	if abs(diff.money) > 0 and utils:tcount(diff.items) == 1 then
+		self:Debug("purchase or sale")
+		
+		for itemName, count in pairs(diff.items) do
+			self:SaveValue(itemName, diff.money)
+		end
+	elseif utils:tcount(diff.items) > 1 then
+		local positive, negative = {}, {}
+		local positiveCount, negativeCount = 0, 0
+		for item, count in pairs(diff.items) do
+			if count > 0 then
+				positive[item] = count
+				positiveCount = positiveCount + count
+			elseif count < 0 then
+				negative[item] = count
+				negativeCount = negativeCount + abs(count)
+			end
+		end
+		
+		if utils:tcount(positive) > 0 and utils:tcount(negative) > 0 then
+			-- we must have created/converted something
+			self:Debug("conversion")
+			local totalChange = 0
+			for itemName, change in pairs(negative) do
+				local _, itemCost, count = self:GetItemCost(itemName, change)
+				self:SaveValue(itemName, abs(itemCost * change))
+				
+				totalChange = totalChange + abs(itemCost * change)
+			end
+			
+			self:Debug("totalChange")
+			self:Debug(totalChange)
+			
+			local valuePerItem = totalChange / positiveCount
+			self:Debug(valuePerItem )
+			for itemName, change in pairs(positive) do
+				self:Debug(itemName)
+				self:Debug(0-abs(valuePerItem * change))
+				self:SaveValue(itemName, 0-abs(valuePerItem * change))
+			end
+		end
+	end
+	
+	self.lastInventory = currentInventory
+end
