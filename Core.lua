@@ -85,14 +85,18 @@ function addon:GetInventoryDiff(pastInventory, current)
 end
 
 
+
 function addon:ScanMail()
 	local results = {}
 	for mailIndex = 1, GetInboxNumItems() or 0 do
 		local sender, msgSubject, msgMoney, msgCOD, _, msgItem, _, _, msgText, _, isGM = select(3, GetInboxHeaderInfo(mailIndex))
-		local mailType = Postal:GetMailType(msgSubject)
-
+		local mailType = utils:GetMailType(msgSubject)
+		
+		results[mailType] = (results[mailType] or {})
+		
 		if mailType == "NonAHMail" and msgCOD > 0 then
-			-- Don't know how to handle these yet
+			mailType = 'COD'
+			results[mailType] = (results[mailType] or {})
 			
 			local itemTypes = {}
 			for itemIndex = 1, ATTACHMENTS_MAX_RECEIVE do
@@ -104,20 +108,23 @@ function addon:ScanMail()
 			
 			if utils:tcount(itemTypes) == 1 then
 				for itemName, count in pairs(itemTypes) do
-					results[itemName] = (results[itemName] or 0) - msgCOD
+					results[mailType][itemName] = (results[mailType][itemName] or 0) - msgCOD
 				end
 			else
 				self:Debug("Don't know what to do with more than one item type on COD mail.")
 			end
+		elseif mailType == "CODPayment" then	
+			itemName = msgSubject:gsub(utils.SubjectPatterns[mailType], function(item) return item end)
 			
+			results[mailType][itemName] = (results[mailType][itemName] or 0) + msgMoney
 			
 		elseif mailType == "AHSuccess" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
-			results[itemName] = (results[itemName] or 0) + deposit + buyout - consignment
+			results[mailType][itemName] = (results[mailType][itemName] or 0) + deposit + buyout - consignment
 
 		elseif mailType == "AHWon" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
-			results[itemName] = (results[itemName] or 0) - bid
+			results[mailType][itemName] = (results[mailType][itemName] or 0) - bid
 		elseif mailType == "AHExpired" or mailType == "AHCancelled" or mailType == "AHOutbid" then
 			-- These should be handled when you pay the deposit at the AH
 		else
@@ -131,12 +138,13 @@ end
 
 function addon:SaveValue(item, value)
 	local item_account = self.db.factionrealm.item_account
-	if item_account[item] == nil then
-		item_account[item] = 0
-	end
-	item_account[item] = item_account[item] + value
+	
+	item_account[item] = (item_account[item] or 0) + value
+	
+	self:Debug("Updated price of " .. item .. " to " .. utils:FormatMoney(item_account[item]) .. "(change: " .. utils:FormatMoney(value) .. ")")
 	
 	if item_account[item] >= 0 then
+		self:Debug("Updated price of " .. item .. " to " .. utils:FormatMoney(0))
 		item_account[item] = nil
 	end
 end

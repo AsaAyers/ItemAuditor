@@ -7,7 +7,29 @@ AceConsole:Embed(addon)
 addonTable.utils = addon
 
 function addon:FormatMoney(money)
-    return Altoholic:GetMoneyString(money, WHITE, false)
+	local prefix = ""
+	if money < 0 then
+		prefix = "-"
+	end
+	return prefix .. Altoholic:GetMoneyString(abs(money), WHITE, false)
+end
+
+local SubjectPatterns = {
+	AHCancelled = gsub(AUCTION_REMOVED_MAIL_SUBJECT, "%%s", ".*"),
+	AHExpired = gsub(AUCTION_EXPIRED_MAIL_SUBJECT, "%%s", ".*"),
+	AHOutbid = gsub(AUCTION_OUTBID_MAIL_SUBJECT, "%%s", ".*"),
+	AHSuccess = gsub(AUCTION_SOLD_MAIL_SUBJECT, "%%s", ".*"),
+	AHWon = gsub(AUCTION_WON_MAIL_SUBJECT, "%%s", ".*"),
+	CODPayment = gsub(COD_PAYMENT, "%%s", "(.*)"),
+}
+
+function addon:GetMailType(msgSubject)
+	if msgSubject then
+		for k, v in pairs(SubjectPatterns) do
+			if msgSubject:find(v) then return k end
+		end
+	end
+	return "NonAHMail"
 end
 
 function addon:tcount(tab)

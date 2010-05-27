@@ -27,16 +27,15 @@ end
 function addon:MAIL_INBOX_UPDATE()
 	local newScan = addon:ScanMail()
 	local diff
-	for item, total in pairs(self.lastMailScan) do
+	for mailType, collection in pairs(self.lastMailScan) do
+		for item, total in pairs(collection) do
 
-		if newScan[item] == nil then
-			newScan[item] = 0
-		end
-		diff = total - newScan[item]
-		if diff ~= 0 then
-			self:SaveValue(item, diff)
-		end
+			diff = total - (newScan[mailType][item] or 0)
+			if diff ~= 0 then
+				self:SaveValue(item, diff)
+			end
 
+		end
 	end
 
 	self.lastMailScan = newScan
