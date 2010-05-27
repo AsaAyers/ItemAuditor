@@ -24,8 +24,6 @@ function addon:OnInitialize()
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
 	
-	self.db.char.debug = true
-	
 	self:RegisterOptions()
 	
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -93,22 +91,34 @@ function addon:ScanMail()
 		local sender, msgSubject, msgMoney, msgCOD, _, msgItem, _, _, msgText, _, isGM = select(3, GetInboxHeaderInfo(mailIndex))
 		local mailType = Postal:GetMailType(msgSubject)
 
-		if mailType == "NonAHMail" then
+		if mailType == "NonAHMail" and msgCOD > 0 then
 			-- Don't know how to handle these yet
+			
+			local itemTypes = {}
+			for itemIndex = 1, ATTACHMENTS_MAX_RECEIVE do
+				local itemName, _, count, _, _= GetInboxItem(mailIndex, itemIndex)
+				if itemName ~= nil then
+					itemTypes[itemName] = (itemTypes[itemName] or 0) + count
+				end
+			end
+			
+			if utils:tcount(itemTypes) == 1 then
+				for itemName, count in pairs(itemTypes) do
+					results[itemName] = (results[itemName] or 0) - msgCOD
+				end
+			else
+				self:Debug("Don't know what to do with more than one item type on COD mail.")
+			end
+			
+			
 		elseif mailType == "AHSuccess" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
-			if results[itemName] == nil then
-				results[itemName] = 0
-			end
-			results[itemName] = results[itemName] + deposit + buyout - consignment
+			results[itemName] = (results[itemName] or 0) + deposit + buyout - consignment
 
 		elseif mailType == "AHWon" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
-			if results[itemName] == nil then
-				results[itemName] = 0
-			end
-			results[itemName] = results[itemName] - bid
-		elseif mailType == "AHExpired" or mailType == "AHCancelled" then
+			results[itemName] = (results[itemName] or 0) - bid
+		elseif mailType == "AHExpired" or mailType == "AHCancelled" or mailType == "AHOutbid" then
 			-- These should be handled when you pay the deposit at the AH
 		else
 			self:Debug("Unhandled mail type: " .. mailType)

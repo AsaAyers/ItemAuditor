@@ -43,7 +43,7 @@ function addon:MAIL_INBOX_UPDATE()
 end
 
 function addon:UNIT_SPELLCAST_START(event, target, spell)
-	if target == "player" and spell == "Milling" then
+	if target == "player" and spell == "Milling" or spell == "Prospecting" or spell == "Disenchanting" then
 		self:UnwatchBags()
 		self:UpdateCurrentInventory()
 		self:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
@@ -64,7 +64,7 @@ function addon:LOOT_CLOSED()
 end
 
 function addon:UNIT_SPELLCAST_INTERRUPTED(event, target, spell)
-	if target == "player" and spell == "Milling" then
+	if target == "player" and spell == "Milling" or spell == "Prospecting" or spell == "Disenchanting" then
 		self:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
 		self:UnregisterEvent("LOOT_CLOSED")
 		self:WatchBags()
@@ -82,24 +82,27 @@ function addon:UpdateAudit()
 	-- this is only here for debugging
 	self.lastdiff = diff
 	
-	if abs(diff.money) > 0 and utils:tcount(diff.items) == 1 then
+	local positive, negative = {}, {}
+	local positiveCount, negativeCount = 0, 0
+	for item, count in pairs(diff.items) do
+		if count > 0 then
+			positive[item] = count
+			positiveCount = positiveCount + count
+		elseif count < 0 then
+			negative[item] = count
+			negativeCount = negativeCount + abs(count)
+		end
+	end
+	
+	if diff.money > 0 and utils:tcount(positive) > 0 and utils:tcount(negative) == 0 then
+		self:Debug("loot")
+	elseif abs(diff.money) > 0 and utils:tcount(diff.items) == 1 then
 		self:Debug("purchase or sale")
 		
 		for itemName, count in pairs(diff.items) do
 			self:SaveValue(itemName, diff.money)
 		end
 	elseif utils:tcount(diff.items) > 1 then
-		local positive, negative = {}, {}
-		local positiveCount, negativeCount = 0, 0
-		for item, count in pairs(diff.items) do
-			if count > 0 then
-				positive[item] = count
-				positiveCount = positiveCount + count
-			elseif count < 0 then
-				negative[item] = count
-				negativeCount = negativeCount + abs(count)
-			end
-		end
 		
 		if utils:tcount(positive) > 0 and utils:tcount(negative) > 0 then
 			-- we must have created/converted something
