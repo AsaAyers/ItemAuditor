@@ -62,20 +62,20 @@ function addon:GetInventoryDiff(pastInventory, current)
    for name, count in pairs(current.items) do
       if pastInventory.items[name] == nil then
          diff[name] = count
-         self:Debug("1 diff[" .. name .. "]=" .. diff[name])
+         -- self:Debug("1 diff[" .. name .. "]=" .. diff[name])
       elseif count - pastInventory.items[name] ~= 0 then
          diff[name] = count - pastInventory.items[name]
-         self:Debug("2 diff[" .. name .. "]=" .. diff[name])        
+         -- self:Debug("2 diff[" .. name .. "]=" .. diff[name])        
       end    
    end
    
    for name, count in pairs(pastInventory.items) do
       if current.items[name] == nil then
          diff[name] = -count
-         self:Debug("3 diff[" .. name .. "]=" .. diff[name])                
+         -- self:Debug("3 diff[" .. name .. "]=" .. diff[name])                
       elseif current.items[name] - count ~= 0 then
          diff[name] = current.items[name] - pastInventory.items[name]
-         self:Debug("4 diff[" .. name .. "]=" .. diff[name])        
+         -- self:Debug("4 diff[" .. name .. "]=" .. diff[name])        
       end
    end
    
@@ -102,7 +102,7 @@ function addon:ScanMail()
 			for itemIndex = 1, ATTACHMENTS_MAX_RECEIVE do
 				local itemName, _, count, _, _= GetInboxItem(mailIndex, itemIndex)
 				if itemName ~= nil then
-					itemTypes[itemName] = (itemTypes[itemName] or 0) + count
+					itemTypdes[itemName] = (itemTypes[itemName] or 0) + count
 				end
 			end
 			
@@ -141,11 +141,15 @@ function addon:SaveValue(item, value)
 	
 	item_account[item] = (item_account[item] or 0) + value
 	
-	self:Debug("Updated price of " .. item .. " to " .. utils:FormatMoney(item_account[item]) .. "(change: " .. utils:FormatMoney(value) .. ")")
+	if abs(value) > 0 then
+		self:Debug("Updated price of " .. item .. " to " .. utils:FormatMoney(item_account[item]) .. "(change: " .. utils:FormatMoney(value) .. ")")
+	end
 	
-	if item_account[item] >= 0 then
+	if item_account[item] > 0 then
 		self:Debug("Updated price of " .. item .. " to " .. utils:FormatMoney(0))
 		item_account[item] = nil
+	elseif item_account[item] < 0 then
+		addon:GetItemCost(itemName)
 	end
 end
 
@@ -176,18 +180,21 @@ function addon:GetItemCost(itemName, countModifier)
 	local invested = abs(self.db.factionrealm.item_account[itemName] or 0)
 	
 	if invested > 0 then
-		local _, itemLink = GetItemInfo (itemName);
-		local _, _, _, _, Id = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
-		local count = Altoholic:GetItemCount(tonumber(Id))
-		if countModifier ~= nil then
-			count = count - countModifier
+		local ItemID = utils:GetItemID(itemName)
+		if ItemID ~= nil then
+			local count = Altoholic:GetItemCount(tonumber(ItemID))
+			if count == 0 then 
+				self.db.factionrealm.item_account[itemName] = nil
+				self:Print("You ran out of " .. itemName .. " and never recovered " .. utils:FormatMoney(invested))
+			end
+			
+			if countModifier ~= nil then
+				count = count - countModifier
+			end
+			if count > 0 then 
+				return ceil(invested), ceil(invested/count), count
+			end
 		end
-		if count == 0 then 
-			self.db.factionrealm.item_account[itemName] = nil
-			self:Print("You ran out of " .. itemName .. "and never recovered " .. utils:FormatMoney(invested))
-			return 0, 0, 0
-		end
-		return ceil(invested), ceil(invested/count), count
 	end
 	return 0, 0, 0
 end

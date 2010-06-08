@@ -37,12 +37,26 @@ function addon:RegisterOptions()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", options, {"ia"})
 end
 
-function addon:DumpInfo()
-	self:Print("self.db.char")
-	DevTools_Dump(self.db.char)
-	self:Print("self.db.factionrealm")
-	DevTools_Dump(self.db.factionrealm)
+local function pairsByKeys (t, f)
+	local a = {}
+		for n in pairs(t) do table.insert(a, n) end
+		table.sort(a, f)
+		local i = 0      -- iterator variable
+		local iter = function ()   -- iterator function
+			i = i + 1
+			if a[i] == nil then return nil
+			else return a[i], t[a[i]]
+			end
+		end
+	return iter
 end
+
+function addon:DumpInfo()
+	for itemName, value in pairsByKeys(self.db.factionrealm.item_account) do
+		self:Print(itemName .. ": " .. utils:FormatMoney(value))
+	end
+end
+
 
 function addon:ShowOptionsGUI()
 	InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)

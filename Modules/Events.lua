@@ -12,6 +12,7 @@ end
  function addon:MAIL_SHOW()
 	self:Debug("MAIL_SHOW")
 	self.lastMailScan = self:ScanMail()
+	
 	self:UnregisterEvent("MAIL_SHOW")
 	self:RegisterEvent("MAIL_CLOSED")
 	self:RegisterEvent("MAIL_INBOX_UPDATE")
@@ -20,6 +21,7 @@ end
 
 function addon:MAIL_CLOSED()
 	addon:UnregisterEvent("MAIL_CLOSED")
+	self:MAIL_INBOX_UPDATE()
 	self:UnregisterEvent("MAIL_INBOX_UPDATE")
 	self:RegisterEvent("MAIL_SHOW")
 end
@@ -28,6 +30,7 @@ function addon:MAIL_INBOX_UPDATE()
 	local newScan = addon:ScanMail()
 	local diff
 	for mailType, collection in pairs(self.lastMailScan) do
+		newScan[mailType] = (newScan[mailType] or {})
 		for item, total in pairs(collection) do
 
 			diff = total - (newScan[mailType][item] or 0)
@@ -75,7 +78,7 @@ function addon:UpdateCurrentInventory()
 end
 
 function addon:UpdateAudit()
-	self:Debug("UpdateAudit")
+	-- self:Debug("UpdateAudit")
 	local currentInventory = self:GetCurrentInventory()
 	local diff =  addon:GetInventoryDiff(self.lastInventory, currentInventory)
 	-- this is only here for debugging
@@ -94,9 +97,9 @@ function addon:UpdateAudit()
 	end
 	
 	if diff.money > 0 and utils:tcount(positive) > 0 and utils:tcount(negative) == 0 then
-		self:Debug("loot")
-	elseif abs(diff.money) > 0 and utils:tcount(diff.items) == 1 then
-		self:Debug("purchase or sale")
+		-- self:Debug("loot")
+	elseif utils:tcount(diff.items) == 1 then
+		-- self:Debug("purchase or sale")
 		
 		for itemName, count in pairs(diff.items) do
 			self:SaveValue(itemName, diff.money)
@@ -105,7 +108,7 @@ function addon:UpdateAudit()
 		
 		if utils:tcount(positive) > 0 and utils:tcount(negative) > 0 then
 			-- we must have created/converted something
-			self:Debug("conversion")
+			-- self:Debug("conversion")
 			local totalChange = 0
 			for itemName, change in pairs(negative) do
 				local _, itemCost, count = self:GetItemCost(itemName, change)
@@ -114,14 +117,9 @@ function addon:UpdateAudit()
 				totalChange = totalChange + abs(itemCost * change)
 			end
 			
-			self:Debug("totalChange")
-			self:Debug(totalChange)
-			
 			local valuePerItem = totalChange / positiveCount
-			self:Debug(valuePerItem )
+			
 			for itemName, change in pairs(positive) do
-				self:Debug(itemName)
-				self:Debug(0-abs(valuePerItem * change))
 				self:SaveValue(itemName, 0-abs(valuePerItem * change))
 			end
 		end

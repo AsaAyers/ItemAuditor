@@ -14,6 +14,35 @@ function addon:FormatMoney(money)
 	return prefix .. Altoholic:GetMoneyString(abs(money), WHITE, false)
 end
 
+                   -- This is only here to make sure this doesn't blow up if ReplaceItemCache is never called
+local item_db = {}
+
+function addon:ReplaceItemCache(new_cache)
+	item_db  = new_cache
+end
+
+-- This will be reset every session
+local tmp_item_cache = {}
+function addon:GetItemID(itemName)
+	if item_db[itemName] ~= nil then
+		return item_db[itemName]
+	end
+	
+	if tmp_item_cache[itemName] == nil then
+		local _, itemLink = GetItemInfo (itemName);
+		if itemLink ~= nil then
+			local _, _, _, _, itemID = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+			tmp_item_cache[itemName] = tonumber(itemID)
+		end
+	end
+	
+	return tmp_item_cache[itemName]
+end
+
+function addon:SaveItemID(itemName, id)
+	item_db[itemName] = tonumber(id)
+end
+
 local SubjectPatterns = {
 	AHCancelled = gsub(AUCTION_REMOVED_MAIL_SUBJECT, "%%s", ".*"),
 	AHExpired = gsub(AUCTION_EXPIRED_MAIL_SUBJECT, "%%s", ".*"),
