@@ -4,6 +4,9 @@ local addon = _G[addonName]
 local utils = addonTable.utils
 
 function addon:PLAYER_ENTERING_WORLD()
+	addon:ConvertItems()
+	DevTools_Dump(ItemAuditor.db.factionrealm.items)
+
 	self:RegisterEvent("MAIL_SHOW")
 	self:RegisterEvent("UNIT_SPELLCAST_START")
 	self:WatchBags()
@@ -99,7 +102,7 @@ function addon:UpdateAudit()
 	if diff.money > 0 and utils:tcount(positive) > 0 and utils:tcount(negative) == 0 then
 		-- self:Debug("loot")
 	elseif utils:tcount(diff.items) == 1 then
-		-- self:Debug("purchase or sale")
+		self:Debug("purchase or sale")
 		
 		for itemName, count in pairs(diff.items) do
 			self:SaveValue(itemName, diff.money)

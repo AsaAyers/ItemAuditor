@@ -8,10 +8,10 @@ local function ShowTipWithPricing(tip, link, num)
 		return;
 	end
 
-	local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, _, _, _, _, itemVendorPrice = GetItemInfo (link);
+	-- local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, _, _, _, _, itemVendorPrice = GetItemInfo (link);
 	-- local _, _, Color, Ltype, Id, Enchant, Gem1, Gem2, Gem3, Gem4, Suffix, Unique, LinkLvl, Name = string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
 
-	local investedTotal, investedPerItem, count = ItemAuditor:GetItemCost(itemName)
+	local investedTotal, investedPerItem, count = ItemAuditor:GetItemCost(link)
 	
 	local AHCut = 0.05
 	local keep = 1 - AHCut

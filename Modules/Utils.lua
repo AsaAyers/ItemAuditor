@@ -14,7 +14,7 @@ function addon:FormatMoney(money)
 	return prefix .. Altoholic:GetMoneyString(abs(money), WHITE, false)
 end
 
-                   -- This is only here to make sure this doesn't blow up if ReplaceItemCache is never called
+-- This is only here to make sure this doesn't blow up if ReplaceItemCache is never called
 local item_db = {}
 
 function addon:ReplaceItemCache(new_cache)
@@ -71,6 +71,17 @@ function addon:tcount(tab)
    return n
 end
 
+function addon:GetSafeLink(link)
+	if link ~= string.match(link, '.-:[-0-9]+[:0-9]*') then
+		link = link and string.match(link, "|H(.-):([-0-9]+):([0-9]+)|h")
+	end
+	return link and string.gsub(link, ":0:0:0:0:0:0", "")
+end
+
+function addon:GetIDFromLink(link)
+	local _, _, _, _, Id = string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+	return tonumber(Id)
+end
 
 function addon:GetDebug(info)
 	return true

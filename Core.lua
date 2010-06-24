@@ -19,69 +19,86 @@ function addon:OnInitialize()
 			debug = false
 		},
 		factionrealm = {
-			item_account = {}
+			item_account = {},
+			
+			items = {},
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
+	addonTable.db= self.db
+	self.items = self.db.factionrealm.items
 	
 	self:RegisterOptions()
 	
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
 
+function addon:ConvertItems()
+	for itemName, value in pairs(self.db.factionrealm.item_account) do
+		local itemID = utils:GetItemID(itemName)
+		if itemID ~= nil then
+			self:GetItem('item:' .. itemID)
+		end
+		if value == 0 then
+			self.db.factionrealm.item_account[itemName] = nil
+		end
+	end
+	
+	for link, data in pairs(self.db.factionrealm.items) do
+		if self:GetItem(link).count == 0 or self:GetItem(link).invested == 0 then
+			self:RemoveItem(link)
+		end
+	end
+end
+
 function addon:GetCurrentInventory()
-   local i = {}
-   local link
-   
-   for bagID = 0, NUM_BAG_SLOTS do
-      bagSize=GetContainerNumSlots(bagID)
-      for slotID = 0, bagSize do
-         itemID = GetContainerItemID(bagID, slotID);
-         
-         if itemID ~= nil then
-            _, itemCount, _, _, _= GetContainerItemInfo(bagID, slotID);
-            name = GetItemInfo(itemID)
-            if i[name] == nil then
-               i[name] = 0
-            end
-            i[name] = i[name] + (itemCount or 0)
-         end
-         
-      end
-      
-   end
-   return {items = i, money = GetMoney()}
+	local i = {}
+	local bagID
+	local slotID
+	
+	for bagID = 0, NUM_BAG_SLOTS do
+		bagSize=GetContainerNumSlots(bagID)
+		for slotID = 0, bagSize do
+			local link= GetContainerItemLink(bagID, slotID);
+
+			if link ~= nil and i[link] == nil then
+				i[link] = GetItemCount(link);
+			end
+		end
+
+	end
+	return {items = i, money = GetMoney()}
 end
 
 function addon:GetInventoryDiff(pastInventory, current)
-   if current == nil then
-      current = self:GetCurrentInventory()
-   end
-   local diff = {}
-   
-   for name, count in pairs(current.items) do
-      if pastInventory.items[name] == nil then
-         diff[name] = count
-         -- self:Debug("1 diff[" .. name .. "]=" .. diff[name])
-      elseif count - pastInventory.items[name] ~= 0 then
-         diff[name] = count - pastInventory.items[name]
-         -- self:Debug("2 diff[" .. name .. "]=" .. diff[name])        
-      end    
-   end
-   
-   for name, count in pairs(pastInventory.items) do
-      if current.items[name] == nil then
-         diff[name] = -count
-         -- self:Debug("3 diff[" .. name .. "]=" .. diff[name])                
-      elseif current.items[name] - count ~= 0 then
-         diff[name] = current.items[name] - pastInventory.items[name]
-         -- self:Debug("4 diff[" .. name .. "]=" .. diff[name])        
-      end
-   end
-   
-   local moneyDiff = current.money - pastInventory.money
-   
-   return {items = diff, money = moneyDiff}
+	if current == nil then
+		current = self:GetCurrentInventory()
+	end
+	local diff = {}
+
+	for link, count in pairs(current.items) do
+		if pastInventory.items[link] == nil then
+			diff[link] = count
+			-- self:Debug("1 diff[" .. name .. "]=" .. diff[name])
+		elseif count - pastInventory.items[link] ~= 0 then
+			diff[link] = count - pastInventory.items[link]
+			-- self:Debug("2 diff[" .. name .. "]=" .. diff[name])        
+		end    
+	end
+
+	for link, count in pairs(pastInventory.items) do
+		if current.items[link] == nil then
+			diff[link] = -count
+			-- self:Debug("3 diff[" .. name .. "]=" .. diff[name])                
+		elseif current.items[link] - count ~= 0 then
+			diff[link] = current.items[link] - pastInventory.items[link]
+			-- self:Debug("4 diff[" .. name .. "]=" .. diff[name])        
+		end
+	end
+
+	local moneyDiff = current.money - pastInventory.money
+
+	return {items = diff, money = moneyDiff}
 end
 
 
@@ -136,20 +153,47 @@ function addon:ScanMail()
 	return results   
 end
 
-function addon:SaveValue(item, value)
-	local item_account = self.db.factionrealm.item_account
+function addon:GetItem(link)
+	link = utils:GetSafeLink(link)
+	DevTools_Dump(link)
+	if self.items[link] == nil then
+		local itemName = GetItemInfo(link)
 	
-	item_account[item] = (item_account[item] or 0) + value
-	
-	if abs(value) > 0 then
-		self:Debug("Updated price of " .. item .. " to " .. utils:FormatMoney(item_account[item]) .. "(change: " .. utils:FormatMoney(value) .. ")")
+		self.items[link] = {
+			count = Altoholic:GetItemCount(utils:GetIDFromLink(link)),
+			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
+		}
+		self.db.factionrealm.item_account[itemName] = nil
 	end
 	
-	if item_account[item] > 0 then
-		self:Debug("Updated price of " .. item .. " to " .. utils:FormatMoney(0))
-		item_account[item] = nil
-	elseif item_account[item] < 0 then
-		addon:GetItemCost(itemName)
+	return self.items[link]
+end
+
+function addon:RemoveItem(link)
+	link = utils:GetSafeLink(link)
+	self.items[link] = nil
+end
+
+function addon:SaveValue(link, value)
+	local item_account = self.db.factionrealm.item_account
+	
+	local item = self:GetItem(link)
+	
+	item.invested = item.invested + value
+	
+	local itemName = GetItemInfo(link)
+	if abs(value) > 0 then
+		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(item.invested) .. "(change: " .. utils:FormatMoney(value) .. ")")
+	end
+	
+	if item.invested > 0 then
+		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(0))
+		self:RemoveItem(link)
+	end
+	
+	if item.count == 0 then 
+		self:Print("You ran out of " .. itemName .. " and never recovered " .. utils:FormatMoney(item.invested))
+		self:RemoveItem(link)
 	end
 end
 
@@ -176,17 +220,15 @@ function addon:UnwatchBags()
 	end
 end
 
-function addon:GetItemCost(itemName, countModifier)
-	local invested = abs(self.db.factionrealm.item_account[itemName] or 0)
+function addon:GetItemCost(link, countModifier)
+	local item = self:GetItem(link)
+
+	local invested = item.invested
 	
 	if invested > 0 then
-		local ItemID = utils:GetItemID(itemName)
+		local ItemID = utils:GetIDFromLink(link)
 		if ItemID ~= nil then
-			local count = Altoholic:GetItemCount(tonumber(ItemID))
-			if count == 0 then 
-				self.db.factionrealm.item_account[itemName] = nil
-				self:Print("You ran out of " .. itemName .. " and never recovered " .. utils:FormatMoney(invested))
-			end
+			local count = self:GetItem(link).count
 			
 			if countModifier ~= nil then
 				count = count - countModifier
