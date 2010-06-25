@@ -4,12 +4,11 @@ local addon = _G[addonName]
 local utils = addonTable.utils
 
 function addon:PLAYER_ENTERING_WORLD()
-	addon:ConvertItems()
-	DevTools_Dump(ItemAuditor.db.factionrealm.items)
-
 	self:RegisterEvent("MAIL_SHOW")
 	self:RegisterEvent("UNIT_SPELLCAST_START")
 	self:WatchBags()
+	
+	addon:ConvertItems()
 end
  
  function addon:MAIL_SHOW()
@@ -81,7 +80,7 @@ function addon:UpdateCurrentInventory()
 end
 
 function addon:UpdateAudit()
-	-- self:Debug("UpdateAudit")
+	self:Debug("UpdateAudit")
 	local currentInventory = self:GetCurrentInventory()
 	local diff =  addon:GetInventoryDiff(self.lastInventory, currentInventory)
 	-- this is only here for debugging
@@ -104,8 +103,8 @@ function addon:UpdateAudit()
 	elseif utils:tcount(diff.items) == 1 then
 		self:Debug("purchase or sale")
 		
-		for itemName, count in pairs(diff.items) do
-			self:SaveValue(itemName, diff.money)
+		for link, count in pairs(diff.items) do
+			self:SaveValue(link, 0 - diff.money)
 		end
 	elseif utils:tcount(diff.items) > 1 then
 		
@@ -113,17 +112,17 @@ function addon:UpdateAudit()
 			-- we must have created/converted something
 			-- self:Debug("conversion")
 			local totalChange = 0
-			for itemName, change in pairs(negative) do
-				local _, itemCost, count = self:GetItemCost(itemName, change)
-				self:SaveValue(itemName, abs(itemCost * change))
+			for link, change in pairs(negative) do
+				local _, itemCost, count = self:GetItemCost(link, change)
+				self:SaveValue(link, itemCost * change)
 				
-				totalChange = totalChange + abs(itemCost * change)
+				totalChange = totalChange + (itemCost * abs(change))
 			end
 			
 			local valuePerItem = totalChange / positiveCount
 			
-			for itemName, change in pairs(positive) do
-				self:SaveValue(itemName, 0-abs(valuePerItem * change))
+			for link, change in pairs(positive) do
+				self:SaveValue(link, valuePerItem * change)
 			end
 		end
 	end

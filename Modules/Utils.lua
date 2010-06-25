@@ -5,6 +5,7 @@ local AceConsole = LibStub("AceConsole-3.0")
 AceConsole:Embed(addon)
 
 addonTable.utils = addon
+IAUtils = addon
 
 function addon:FormatMoney(money)
 	local prefix = ""
@@ -36,7 +37,28 @@ function addon:GetItemID(itemName)
 		end
 	end
 	
+	if tmp_item_cache[itemName] == nil then
+		for link, data in pairs(ItemAuditor.db.factionrealm.items) do
+			local name, itemLink = GetItemInfo (link);
+			if name == itemName then
+				local _, _, _, _, itemID = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+				tmp_item_cache[itemName] = tonumber(itemID)
+			end
+		end
+		
+	end
+	
 	return tmp_item_cache[itemName]
+end
+
+function addon:GetLinkFromName(itemName)
+	local itemID = self:GetItemID(itemName)
+	local itemLink
+	if itemID ~= nil then
+		_, itemLink = GetItemInfo(itemID)
+	end
+	
+	return itemLink
 end
 
 function addon:SaveItemID(itemName, id)
@@ -71,17 +93,7 @@ function addon:tcount(tab)
    return n
 end
 
-function addon:GetSafeLink(link)
-	if link ~= string.match(link, '.-:[-0-9]+[:0-9]*') then
-		link = link and string.match(link, "|H(.-):([-0-9]+):([0-9]+)|h")
-	end
-	return link and string.gsub(link, ":0:0:0:0:0:0", "")
-end
 
-function addon:GetIDFromLink(link)
-	local _, _, _, _, Id = string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
-	return tonumber(Id)
-end
 
 function addon:GetDebug(info)
 	return true

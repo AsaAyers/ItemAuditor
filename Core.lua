@@ -1,6 +1,7 @@
 local addonName, addonTable = ...; 
 _G[addonName] = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceBucket-3.0")
 local addon = _G[addonName]
+addonTable.ItemAuditor = addon
 
 local utils = addonTable.utils
 
@@ -112,6 +113,7 @@ function addon:ScanMail()
 		results[mailType] = (results[mailType] or {})
 		
 		if mailType == "NonAHMail" and msgCOD > 0 then
+			--[[
 			mailType = 'COD'
 			results[mailType] = (results[mailType] or {})
 			
@@ -130,18 +132,19 @@ function addon:ScanMail()
 			else
 				self:Debug("Don't know what to do with more than one item type on COD mail.")
 			end
+			]]
 		elseif mailType == "CODPayment" then	
 			itemName = msgSubject:gsub(utils.SubjectPatterns[mailType], function(item) return item end)
 			
-			results[mailType][itemName] = (results[mailType][itemName] or 0) + msgMoney
+			results[mailType][itemName] = (results[mailType][itemName] or 0) - msgMoney
 			
 		elseif mailType == "AHSuccess" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
-			results[mailType][itemName] = (results[mailType][itemName] or 0) + deposit + buyout - consignment
+			results[mailType][itemName] = (results[mailType][itemName] or 0) - deposit - buyout + consignment
 
 		elseif mailType == "AHWon" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
-			results[mailType][itemName] = (results[mailType][itemName] or 0) - bid
+			results[mailType][itemName] = (results[mailType][itemName] or 0) + bid
 		elseif mailType == "AHExpired" or mailType == "AHCancelled" or mailType == "AHOutbid" then
 			-- These should be handled when you pay the deposit at the AH
 		else
@@ -153,12 +156,20 @@ function addon:ScanMail()
 	return results   
 end
 
-function addon:GetItem(link)
-	link = utils:GetSafeLink(link)
-	DevTools_Dump(link)
-	if self.items[link] == nil then
-		local itemName = GetItemInfo(link)
+function addon:GetItem(link, viewOnly)
+	if viewOnly == nil then
+		viewOnly = false
+	end
 	
+	local itemName = nil
+	if self:GetSafeLink(link) == nil then
+		itemName = link
+	else
+		link = self:GetSafeLink(link)
+		itemName = GetItemInfo(link)
+	end
+	
+	if self.db.factionrealm.item_account[itemName] ~= nil then
 		self.items[link] = {
 			count = Altoholic:GetItemCount(utils:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
@@ -166,32 +177,67 @@ function addon:GetItem(link)
 		self.db.factionrealm.item_account[itemName] = nil
 	end
 	
+	if viewOnly == false and self.items[link] == nil then
+		local itemName = GetItemInfo(link)
+	
+		self.items[link] = {
+			count = Altoholic:GetItemCount(self:GetIDFromLink(link)),
+			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
+		}
+		
+	end
+	
+	
+	
+	if viewOnly == true and self.items[link] == nil then
+		return {count = 0, invested = 0}
+	elseif viewOnly == true then
+		return {count = self.items[link].count, invested = self.items[link].invested}
+	end
 	return self.items[link]
 end
 
 function addon:RemoveItem(link)
-	link = utils:GetSafeLink(link)
-	self.items[link] = nil
+	self.db.factionrealm.item_account[link] = nil
+	link = self:GetSafeLink(link)
+	if link ~= nil then
+		self.items[link] = nil
+	end
 end
+--[[
+ItemAuditor:SaveValue('Scroll of Enchant Weapon - Exceptional Spellpower', 1)
 
+ DevTools_Dump(ItemAuditor.db.factionrealm.item_account)
+ 
+ = ItemAuditor:GetItem('Scroll of Enchant Weapon - Exceptional Spellpower', true).invested
+]]
 function addon:SaveValue(link, value)
-	local item_account = self.db.factionrealm.item_account
+	local item = nil
+	local realLink = self:GetSafeLink(link)
+	local itemName = nil
+	if realLink == nil then
+		itemName = link
+		
+		self.db.factionrealm.item_account[itemName] = (self.db.factionrealm.item_account[itemName] or 0) + value
+		
+		item = {invested = self.db.factionrealm.item_account[itemName], count = 1}
+	else
 	
-	local item = self:GetItem(link)
+		item = self:GetItem(realLink)
 	
-	item.invested = item.invested + value
+		item.invested = item.invested + value
+		
+		itemName = GetItemInfo(realLink)
+	end
 	
-	local itemName = GetItemInfo(link)
 	if abs(value) > 0 then
 		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(item.invested) .. "(change: " .. utils:FormatMoney(value) .. ")")
 	end
 	
-	if item.invested > 0 then
+	if item.invested <= 0 then
 		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(0))
 		self:RemoveItem(link)
-	end
-	
-	if item.count == 0 then 
+	elseif item.count == 0 then 
 		self:Print("You ran out of " .. itemName .. " and never recovered " .. utils:FormatMoney(item.invested))
 		self:RemoveItem(link)
 	end
@@ -220,23 +266,44 @@ function addon:UnwatchBags()
 	end
 end
 
-function addon:GetItemCost(link, countModifier)
-	local item = self:GetItem(link)
+function addon:GetItemID(itemName)
+	return utils:GetItemID(itemName)
+end
 
-	local invested = item.invested
-	
-	if invested > 0 then
-		local ItemID = utils:GetIDFromLink(link)
-		if ItemID ~= nil then
-			local count = self:GetItem(link).count
-			
-			if countModifier ~= nil then
-				count = count - countModifier
-			end
-			if count > 0 then 
-				return ceil(invested), ceil(invested/count), count
-			end
+function addon:GetSafeLink(link)
+	local newLink = nil
+
+	if link ~= string.match(link, '.-:[-0-9]+[:0-9]*') then
+		newLink = link and string.match(link, "|H(.-):([-0-9]+):([0-9]+)|h")
+	end
+	if newLink == nil then
+		local itemID = self:GetItemID(link)
+		if itemID ~= nil then
+			_, newLink = GetItemInfo(itemID)
+			return self:GetSafeLink(newLink)
 		end
+	end
+	return newLink and string.gsub(newLink, ":0:0:0:0:0:0", "")
+end
+
+function addon:GetIDFromLink(link)
+	local _, _, _, _, Id = string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+	return tonumber(Id)
+end
+
+function addon:GetItemCost(link, countModifier)
+	local item = self:GetItem(link, true)
+
+	if item.invested > 0 then
+		local count = item.count
+		
+		if countModifier ~= nil then
+			count = count - countModifier
+		end
+		if count > 0 then 
+			return ceil(item.invested), ceil(item.invested/item.count), count
+		end
+		
 	end
 	return 0, 0, 0
 end
