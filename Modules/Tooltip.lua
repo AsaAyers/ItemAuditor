@@ -13,7 +13,7 @@ local function ShowTipWithPricing(tip, link, num)
 
 	local investedTotal, investedPerItem, count = ItemAuditor:GetItemCost(link)
 	
-	local AHCut = 0.05
+	local AHCut = ItemAuditor.db.factionrealm.AHCut
 	local keep = 1 - AHCut
 
 	if investedTotal > 0 then

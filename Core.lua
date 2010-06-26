@@ -21,8 +21,8 @@ function addon:OnInitialize()
 		},
 		factionrealm = {
 			item_account = {},
-			
 			items = {},
+			AHCut = 0.05,
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
@@ -49,6 +49,11 @@ function addon:ConvertItems()
 		if self:GetItem(link).count == 0 or self:GetItem(link).invested == 0 then
 			self:RemoveItem(link)
 		end
+		-- addon:UpdateQAThreshold(link)
+	end
+	
+	for groupName in pairs(QAAPI:GetGroups()) do
+		self:UpdateQAGroup(groupName)
 	end
 end
 
@@ -61,6 +66,7 @@ function addon:GetCurrentInventory()
 		bagSize=GetContainerNumSlots(bagID)
 		for slotID = 0, bagSize do
 			local link= GetContainerItemLink(bagID, slotID);
+			link = link and self:GetSafeLink(link)
 
 			if link ~= nil and i[link] == nil then
 				i[link] = GetItemCount(link);
@@ -181,7 +187,7 @@ function addon:GetItem(link, viewOnly)
 		local itemName = GetItemInfo(link)
 	
 		self.items[link] = {
-			count = Altoholic:GetItemCount(self:GetIDFromLink(link)),
+			count =  Altoholic:GetItemCount(self:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
 		}
 		
@@ -194,6 +200,7 @@ function addon:GetItem(link, viewOnly)
 	elseif viewOnly == true then
 		return {count = self.items[link].count, invested = self.items[link].invested}
 	end
+	self.items[link].count =  Altoholic:GetItemCount(self:GetIDFromLink(link))
 	return self.items[link]
 end
 
@@ -217,16 +224,11 @@ function addon:SaveValue(link, value)
 	local itemName = nil
 	if realLink == nil then
 		itemName = link
-		
 		self.db.factionrealm.item_account[itemName] = (self.db.factionrealm.item_account[itemName] or 0) + value
-		
 		item = {invested = self.db.factionrealm.item_account[itemName], count = 1}
 	else
-	
 		item = self:GetItem(realLink)
-	
 		item.invested = item.invested + value
-		
 		itemName = GetItemInfo(realLink)
 	end
 	
@@ -234,12 +236,51 @@ function addon:SaveValue(link, value)
 		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(item.invested) .. "(change: " .. utils:FormatMoney(value) .. ")")
 	end
 	
-	if item.invested <= 0 then
+	if abs(value) > 0 and item.invested <= 0 then
 		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(0))
 		self:RemoveItem(link)
-	elseif item.count == 0 then 
+	elseif item.count == 0 and ItemAuditor:GetCurrentInventory() > 0 then 
 		self:Print("You ran out of " .. itemName .. " and never recovered " .. utils:FormatMoney(item.invested))
 		self:RemoveItem(link)
+	end
+	
+	if realLink ~= nil then
+		addon:UpdateQAThreshold(realLink)
+	end
+end
+--[[
+	
+	ItemAuditor:UpdateQAThreshold("item:42646")
+]]
+function addon:UpdateQAThreshold(link)
+	_, link= GetItemInfo(link)
+	
+	self:UpdateQAGroup(QAAPI:GetItemGroup(link))
+end
+
+function addon:UpdateQAGroup(groupName)
+	if groupName then
+		local threshold = 10000
+		
+		for link in pairs(QAAPI:GetItemsInGroup(groupName)) do
+			local totalCost, itemCost, itemCount = ItemAuditor:GetItemCost(link, 0)
+			
+			if itemCost > threshold then
+				threshold = itemCost 
+			end
+		end
+		
+		-- Adding the cost of mailing every item once.
+		threshold = threshold + 30
+		
+		-- add my minimum profit margin 15%
+		threshold = threshold * 1.15
+		
+		-- add AH Cut
+		local keep = 1 - self.db.factionrealm.AHCut
+		threshold = threshold/keep
+		
+		QAAPI:SetGroupThreshold(groupName, ceil(threshold))
 	end
 end
 
@@ -273,7 +314,7 @@ end
 function addon:GetSafeLink(link)
 	local newLink = nil
 
-	if link ~= string.match(link, '.-:[-0-9]+[:0-9]*') then
+	if link and link ~= string.match(link, '.-:[-0-9]+[:0-9]*') then
 		newLink = link and string.match(link, "|H(.-):([-0-9]+):([0-9]+)|h")
 	end
 	if newLink == nil then

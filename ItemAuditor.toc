@@ -1,10 +1,10 @@
-## Interface: 30200
+## Interface: 30300
 ## Title: Item Auditor
 ## Notes: This will keep track of how much you have paid per item in your inventory
 ## Author: Asa Ayers <Asa.Ayers@Gmail.com>
 ## Version: 0.1
 ## SavedVariables: ItemAuditorDB
-## Dependencies: Altoholic, DevTools
+## Dependencies: Altoholic, DevTools, QuickAuctions
 
 embeds.xml
 

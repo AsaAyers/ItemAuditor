@@ -80,7 +80,7 @@ function addon:UpdateCurrentInventory()
 end
 
 function addon:UpdateAudit()
-	self:Debug("UpdateAudit")
+	-- self:Debug("UpdateAudit")
 	local currentInventory = self:GetCurrentInventory()
 	local diff =  addon:GetInventoryDiff(self.lastInventory, currentInventory)
 	-- this is only here for debugging
@@ -101,7 +101,7 @@ function addon:UpdateAudit()
 	if diff.money > 0 and utils:tcount(positive) > 0 and utils:tcount(negative) == 0 then
 		-- self:Debug("loot")
 	elseif utils:tcount(diff.items) == 1 then
-		self:Debug("purchase or sale")
+		-- self:Debug("purchase or sale")
 		
 		for link, count in pairs(diff.items) do
 			self:SaveValue(link, 0 - diff.money)
@@ -111,6 +111,7 @@ function addon:UpdateAudit()
 		if utils:tcount(positive) > 0 and utils:tcount(negative) > 0 then
 			-- we must have created/converted something
 			-- self:Debug("conversion")
+			
 			local totalChange = 0
 			for link, change in pairs(negative) do
 				local _, itemCost, count = self:GetItemCost(link, change)
