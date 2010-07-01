@@ -8,11 +8,10 @@ local options = {
 	handler = addon,
 	type = 'group',
 	args = {
-		debug = {
+		dbg = {
 			type = "toggle",
 			name = "Debug",
 			desc = "Toggles debug messages in chat",
-			handler = utils,
 			get = "GetDebug",
 			set = "SetDebug"
 		},
@@ -21,6 +20,12 @@ local options = {
 			name = "dump",
 			desc = "dumps IA database",
 			func = "DumpInfo",
+		},
+		refresh_qa = {
+			type = "execute",
+			name = "Refresh QA Thresholds",
+			desc = "Resets all Quick Auctions thresholds",
+			func = "RefreshQAGroups",
 		},
 		options = {
 			type = "execute",

@@ -52,6 +52,10 @@ function addon:ConvertItems()
 		-- addon:UpdateQAThreshold(link)
 	end
 	
+	self:RefreshQAGroups()
+end
+
+function addon:RefreshQAGroups()
 	for groupName in pairs(QAAPI:GetGroups()) do
 		self:UpdateQAGroup(groupName)
 	end
@@ -118,8 +122,10 @@ function addon:ScanMail()
 		
 		results[mailType] = (results[mailType] or {})
 		
-		if mailType == "NonAHMail" and msgCOD > 0 then
+		if mailType == "NonAHMail" then
 			--[[
+			and msgCOD > 0 
+			
 			mailType = 'COD'
 			results[mailType] = (results[mailType] or {})
 			
@@ -170,14 +176,16 @@ function addon:GetItem(link, viewOnly)
 	local itemName = nil
 	if self:GetSafeLink(link) == nil then
 		itemName = link
+		link = self:GetSafeLink(link)
 	else
 		link = self:GetSafeLink(link)
 		itemName = GetItemInfo(link)
 	end
 	
+	
 	if self.db.factionrealm.item_account[itemName] ~= nil then
 		self.items[link] = {
-			count = Altoholic:GetItemCount(utils:GetIDFromLink(link)),
+			count = Altoholic:GetItemCount(self:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
 		}
 		self.db.factionrealm.item_account[itemName] = nil
@@ -211,13 +219,7 @@ function addon:RemoveItem(link)
 		self.items[link] = nil
 	end
 end
---[[
-ItemAuditor:SaveValue('Scroll of Enchant Weapon - Exceptional Spellpower', 1)
 
- DevTools_Dump(ItemAuditor.db.factionrealm.item_account)
- 
- = ItemAuditor:GetItem('Scroll of Enchant Weapon - Exceptional Spellpower', true).invested
-]]
 function addon:SaveValue(link, value)
 	local item = nil
 	local realLink = self:GetSafeLink(link)
@@ -234,24 +236,24 @@ function addon:SaveValue(link, value)
 	
 	if abs(value) > 0 then
 		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(item.invested) .. "(change: " .. utils:FormatMoney(value) .. ")")
-	end
-	
-	if abs(value) > 0 and item.invested <= 0 then
-		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(0))
-		self:RemoveItem(link)
-	elseif item.count == 0 and ItemAuditor:GetCurrentInventory() > 0 then 
-		self:Print("You ran out of " .. itemName .. " and never recovered " .. utils:FormatMoney(item.invested))
-		self:RemoveItem(link)
+		
+		if item.invested <= 0 then
+			self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(0))
+			self:RemoveItem(link)
+		-- This doesn't work when you mail the only copy of an item you have to another character.
+		--[[
+		elseif item.count == 0 and realLink and Altoholic:GetItemCount(self:GetIDFromLink(realLink)) then 
+			self:Print("You ran out of " .. itemName .. " and never recovered " .. utils:FormatMoney(item.invested))
+			self:RemoveItem(link)
+		]]
+		end
 	end
 	
 	if realLink ~= nil then
 		addon:UpdateQAThreshold(realLink)
 	end
 end
---[[
-	
-	ItemAuditor:UpdateQAThreshold("item:42646")
-]]
+
 function addon:UpdateQAThreshold(link)
 	_, link= GetItemInfo(link)
 	
@@ -260,21 +262,23 @@ end
 
 function addon:UpdateQAGroup(groupName)
 	if groupName then
-		local threshold = 10000
+		local threshold = 0
 		
 		for link in pairs(QAAPI:GetItemsInGroup(groupName)) do
-			local totalCost, itemCost, itemCount = ItemAuditor:GetItemCost(link, 0)
+			local _, itemCost= ItemAuditor:GetItemCost(link, 0)
 			
-			if itemCost > threshold then
-				threshold = itemCost 
-			end
+			threshold = max(threshold, itemCost)
 		end
+		
+		if threshold == 0 then
+			threshold = 10000
+		end
+		
+		-- add my minimum profit margin
+		threshold = threshold * 1.10
 		
 		-- Adding the cost of mailing every item once.
 		threshold = threshold + 30
-		
-		-- add my minimum profit margin 15%
-		threshold = threshold * 1.15
 		
 		-- add AH Cut
 		local keep = 1 - self.db.factionrealm.AHCut
