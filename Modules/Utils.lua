@@ -93,19 +93,16 @@ function addon:tcount(tab)
    return n
 end
 
-
-
 function addon:GetDebug(info)
-	return true
-	-- return self.db.char.debug
+	return self.db.char.debug
 end
 
 function addon:SetDebug(info, input)
-	self:Print("Debugging is now: " .. value)
-	self.db.char.debug = input
+	
+	ItemAuditor.db.char.debug = input
 	local value = "off"
 	if input then
 		value = "on"
 	end
-	
+	self:Print("Debugging is now: " .. value)
 end
