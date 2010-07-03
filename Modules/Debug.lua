@@ -5,9 +5,22 @@ local utils = addonTable.utils
 
 
 function addon:Debug(msg)
-	if self.db.char.debug then
+	if self.db.profile.messages.debug then
 		self:Print(msg)
 	end
+end
+
+function addon:GetDebug(info)
+       return self.db.profile.messages.debug
+end
+
+function addon:SetDebug(info, input)
+       self.db.profile.messages.debug = input
+       local value = "off"
+       if input then
+               value = "on"
+       end
+       self:Print("Debugging is now: " .. value)
 end
 
 local function DebugEventRegistration()

@@ -1,5 +1,5 @@
 local addonName, addonTable = ...; 
-_G[addonName] = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceBucket-3.0")
+_G[addonName] = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceBucket-3.0")
 local addon = _G[addonName]
 addonTable.ItemAuditor = addon
 
@@ -17,9 +17,14 @@ local GOLD		= "|cFFFFD700"
 function addon:OnInitialize()
 	local DB_defaults = {
 		char = {
-			debug = false,
 			ah = 1,
 			use_quick_auctions = false,
+		},
+		profile = {
+			messages = {
+				debug = false,
+				cost_updates = true,
+			}
 		},
 		factionrealm = {
 			item_account = {},
@@ -53,6 +58,11 @@ function addon:ConvertItems()
 	end
 	
 	self:RefreshQAGroups()
+end
+
+function addon:Print(message)
+	local prefix = "|cFFA3CEFF"..tostring( self ).."|r: "
+	DEFAULT_CHAT_FRAME:AddMessage( prefix .. message)
 end
 
 function addon:GetCurrentInventory()
@@ -229,10 +239,10 @@ function addon:SaveValue(link, value)
 	end
 	
 	if abs(value) > 0 then
-		self:Debug("Updated price of " .. itemName .. " to " .. self:FormatMoney(item.invested) .. "(change: " .. self:FormatMoney(value) .. ")")
-		
-		if item.invested <= 0 then
-			self:Debug("Updated price of " .. itemName .. " to " ..self:FormatMoney(0))
+		if  item.invested <= 0 then
+			if self.db.profile.messages.cost_updates then
+				self:Print(format("Updated price of %s from %s to %s. %sYou just made a profit of %s.", itemName, self:FormatMoney(item.invested - value), self:FormatMoney(0), GREEN, self:FormatMoney(abs(item.invested))))
+			end
 			self:RemoveItem(link)
 		-- This doesn't work when you mail the only copy of an item you have to another character.
 		--[[
@@ -240,6 +250,10 @@ function addon:SaveValue(link, value)
 			self:Print("You ran out of " .. itemName .. " and never recovered " .. self:FormatMoney(item.invested))
 			self:RemoveItem(link)
 		]]
+		else
+			if self.db.profile.messages.cost_updates then
+				self:Print(format("Updated price of %s from %s to %s. (total change:%s)", itemName, self:FormatMoney(item.invested - value), self:FormatMoney(item.invested), self:FormatMoney(value)))
+			end
 		end
 	end
 	

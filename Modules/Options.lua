@@ -39,6 +39,14 @@ local options = {
 					desc = "Toggles debug messages in chat",
 					get = "GetDebug",
 					set = "SetDebug",
+					order = 100,
+				},
+				item_cost = {
+					type = "toggle",
+					name = "Item Cost",
+					desc = "Shows a message every time an item's cost changes",
+					get = function() return ItemAuditor.db.profile.messages.cost_updates end,
+					set = function(info, value) ItemAuditor.db.profile.messages.cost_updates = value end,
 					order = 0,
 				},
 			},
@@ -136,15 +144,4 @@ function addon:ShowOptionsGUI()
 	InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
 end
 
-function addon:GetDebug(info)
-       return self.db.char.debug
-end
 
-function addon:SetDebug(info, input)
-       self.db.char.debug = input
-       local value = "off"
-       if input then
-               value = "on"
-       end
-       self:Print("Debugging is now: " .. value)
-end

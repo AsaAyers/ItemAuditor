@@ -4,12 +4,33 @@ local addon = _G[addonName]
 addonTable.utils = addon
 IAUtils = addon
 
-function addon:FormatMoney(money)
+function addon:FormatMoney(copper)
+	color = "|cFFFFFFFF"
 	local prefix = ""
-	if money < 0 then
+	if copper < 0 then
 		prefix = "-"
+		copper = abs(copper)
 	end
-	return prefix .. Altoholic:GetMoneyString(abs(money), WHITE, false)
+
+	local gold = floor( copper / 10000 );
+	copper = mod(copper, 10000)
+	local silver = floor( copper / 100 );
+	copper = mod(copper, 100)
+	
+	
+	copper = color..format(COPPER_AMOUNT_TEXTURE, copper, 13, 13)
+	if silver > 0 or gold > 0 then
+		silver = color..format(SILVER_AMOUNT_TEXTURE, silver, 13, 13) .. ' '
+	else
+		silver = ""
+	end
+	if gold > 0 then
+		gold = color..format(GOLD_AMOUNT_TEXTURE, gold, 13, 13) .. ' '
+	else
+		gold = ""
+	end
+	
+	return format("%s%s%s%s", prefix, gold, silver, copper)
 end
 
 -- This is only here to make sure this doesn't blow up if ReplaceItemCache is never called
