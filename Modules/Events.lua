@@ -98,19 +98,19 @@ function addon:UpdateAudit()
 		end
 	end
 	
-	if diff.money > 0 and utils:tcount(positive) > 0 and utils:tcount(negative) == 0 then
-		-- self:Debug("loot")
-	elseif utils:tcount(diff.items) == 1 then
-		-- self:Debug("purchase or sale")
+	if diff.money > 0 and self:tcount(positive) > 0 and self:tcount(negative) == 0 then
+		self:Debug("loot")
+	elseif self:tcount(diff.items) == 1 then
+		self:Debug("purchase or sale")
 		
 		for link, count in pairs(diff.items) do
 			self:SaveValue(link, 0 - diff.money)
 		end
-	elseif utils:tcount(diff.items) > 1 then
+	elseif self:tcount(diff.items) > 1 then
 		
-		if utils:tcount(positive) > 0 and utils:tcount(negative) > 0 then
+		if self:tcount(positive) > 0 and self:tcount(negative) > 0 then
 			-- we must have created/converted something
-			-- self:Debug("conversion")
+			self:Debug("conversion")
 			
 			local totalChange = 0
 			for link, change in pairs(negative) do

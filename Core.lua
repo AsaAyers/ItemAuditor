@@ -37,7 +37,7 @@ end
 
 function addon:ConvertItems()
 	for itemName, value in pairs(self.db.factionrealm.item_account) do
-		local itemID = utils:GetItemID(itemName)
+		local itemID = self:GetItemID(itemName)
 		if itemID ~= nil then
 			self:GetItem('item:' .. itemID)
 		end
@@ -112,7 +112,7 @@ function addon:ScanMail()
 	local results = {}
 	for mailIndex = 1, GetInboxNumItems() or 0 do
 		local sender, msgSubject, msgMoney, msgCOD, _, msgItem, _, _, msgText, _, isGM = select(3, GetInboxHeaderInfo(mailIndex))
-		local mailType = utils:GetMailType(msgSubject)
+		local mailType = self:GetMailType(msgSubject)
 		
 		results[mailType] = (results[mailType] or {})
 		
@@ -131,7 +131,7 @@ function addon:ScanMail()
 				end
 			end
 			
-			if utils:tcount(itemTypes) == 1 then
+			if self:tcount(itemTypes) == 1 then
 				for itemName, count in pairs(itemTypes) do
 					results[mailType][itemName] = (results[mailType][itemName] or 0) - msgCOD
 				end
@@ -229,15 +229,15 @@ function addon:SaveValue(link, value)
 	end
 	
 	if abs(value) > 0 then
-		self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(item.invested) .. "(change: " .. utils:FormatMoney(value) .. ")")
+		self:Debug("Updated price of " .. itemName .. " to " .. self:FormatMoney(item.invested) .. "(change: " .. self:FormatMoney(value) .. ")")
 		
 		if item.invested <= 0 then
-			self:Debug("Updated price of " .. itemName .. " to " .. utils:FormatMoney(0))
+			self:Debug("Updated price of " .. itemName .. " to " ..self:FormatMoney(0))
 			self:RemoveItem(link)
 		-- This doesn't work when you mail the only copy of an item you have to another character.
 		--[[
 		elseif item.count == 0 and realLink and Altoholic:GetItemCount(self:GetIDFromLink(realLink)) then 
-			self:Print("You ran out of " .. itemName .. " and never recovered " .. utils:FormatMoney(item.invested))
+			self:Print("You ran out of " .. itemName .. " and never recovered " .. self:FormatMoney(item.invested))
 			self:RemoveItem(link)
 		]]
 		end
@@ -272,9 +272,6 @@ function addon:UnwatchBags()
 	end
 end
 
-function addon:GetItemID(itemName)
-	return utils:GetItemID(itemName)
-end
 
 function addon:GetSafeLink(link)
 	local newLink = nil

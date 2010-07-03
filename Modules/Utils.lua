@@ -1,8 +1,5 @@
 local addonName, addonTable = ...; 
-local addon = {}
-
-local AceConsole = LibStub("AceConsole-3.0")
-AceConsole:Embed(addon)
+local addon = _G[addonName]
 
 addonTable.utils = addon
 IAUtils = addon

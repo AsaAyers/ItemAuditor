@@ -127,7 +127,7 @@ end
 
 function addon:DumpInfo()
 	for itemName, value in pairsByKeys(self.db.factionrealm.item_account) do
-		self:Print(itemName .. ": " .. utils:FormatMoney(value))
+		self:Print(itemName .. ": " .. self:FormatMoney(value))
 	end
 end
 

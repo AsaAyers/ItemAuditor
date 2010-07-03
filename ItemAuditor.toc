@@ -10,10 +10,9 @@
 
 embeds.xml
 
-Modules\Utils.lua
 
 Core.lua
-
+Modules\Utils.lua
 Modules\QuickAuctions.lua
 Modules\Events.lua
 Modules\Tooltip.lua
