@@ -5,7 +5,7 @@
 ## Version: 0.1
 ## SavedVariables: ItemAuditorDB
 ## Dependencies: Altoholic
-## OptionalDeps: QuickAuctions, DevTools
+## OptionalDeps: QuickAuctions, Skillet, LilSparkysWorkshop, DevTools
 
 
 embeds.xml

@@ -92,6 +92,15 @@ local options = {
 			func = "ShowOptionsGUI",
 			guiHidden = true,
 		},
+		queue = {
+			type = "execute",
+			name = "queue",
+			desc = "Queue",
+			func = "Queue",
+			guiHidden = true,
+		},
+		
+		
 	},
 }
 

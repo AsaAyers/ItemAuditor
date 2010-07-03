@@ -34,4 +34,5 @@ required-dependencies:
     - Altoholic
 optional-dependencies:
     - QuickAuctions
-
+    - Skillet
+    - LilSparkysWorkshop
