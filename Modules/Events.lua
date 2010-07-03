@@ -8,7 +8,7 @@ function addon:PLAYER_ENTERING_WORLD()
 	self:RegisterEvent("UNIT_SPELLCAST_START")
 	self:WatchBags()
 	
-	addon:ConvertItems()
+	-- addon:ConvertItems()
 end
  
  function addon:MAIL_SHOW()

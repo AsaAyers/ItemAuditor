@@ -3,29 +3,79 @@ local addon = _G[addonName]
 
 local utils = addonTable.utils
 
+local currentFaction = UnitFactionGroup("player")
+local AHFactions = { currentFaction, 'Neutral' }
+
 local options = {
-	name = "ItemAuditor",
 	handler = addon,
+	name = "ItemAuditor",
 	type = 'group',
 	args = {
-		dbg = {
-			type = "toggle",
-			name = "Debug",
-			desc = "Toggles debug messages in chat",
-			get = "GetDebug",
-			set = "SetDebug"
+		prices = {
+			name = "Prices",
+			desc = "Control how your minimum price is calculated.",
+			type = 'group',
+			args = {
+				auction_house = {
+					type = "select",
+					name = "Auction House",
+					desc = "",
+					values = { currentFaction, 'Neutral' },
+					get = 'GetAH',
+					set = 'SetAH',
+				},
+			},
 		},
-		dump = {
-			type = "execute",
-			name = "dump",
-			desc = "dumps IA database",
-			func = "DumpInfo",
+		
+		
+		messages = {
+			name = "Messages",
+			desc = "Control which messages display in your chat window.",
+			type = 'group',
+			args = {
+				dbg = {
+					type = "toggle",
+					name = "Debug",
+					desc = "Toggles debug messages in chat",
+					get = "GetDebug",
+					set = "SetDebug",
+					order = 0,
+				},
+			},
 		},
-		refresh_qa = {
-			type = "execute",
-			name = "Refresh QA Thresholds",
-			desc = "Resets all Quick Auctions thresholds",
-			func = "RefreshQAGroups",
+		
+		qa_options = {
+			name = "QA Options",
+			desc = "Control how ItemAuditor integrates with QuickAuctions",
+			type = 'group',
+			-- disabled = (not addon.QA_compatibile),
+			disabled = function() return not ItemAuditor:IsQACompatible() end,
+			args = {
+				toggle_qa = {
+					type = "toggle",
+					name = "Enable Quick Auctions",
+					desc = "This will enable or disable Quick Auctions integration",
+					get = "IsQAEnabled",
+					set = "SetQAEnabled",
+					order = 0,
+				},
+				--[[
+				add_mail = {
+					type = "toggle",
+					name = "Add mail cost to QA Threshold",
+					get = "IsQAEnabled",
+					set = "SetQAEnabled",
+					order = 1,
+				},
+				]]
+				refresh_qa = {
+					type = "execute",
+					name = "Refresh QA Thresholds",
+					desc = "Resets all Quick Auctions thresholds",
+					func = "RefreshQAGroups",
+					disabled = 'IsQADisabled',
+				},
+			}
 		},
 		options = {
 			type = "execute",
@@ -54,6 +104,25 @@ local function pairsByKeys (t, f)
 			end
 		end
 	return iter
+end
+
+function addon:GetAH()
+	return ItemAuditor.db.char.ah
+end
+
+function addon:SetAH(info, value)
+	ItemAuditor.db.char.ah = value
+end
+
+function addon:GetAHCut()
+	if ItemAuditor.db.char.ah == 1 then
+		return 0.05
+	end
+	return 0.15
+end
+
+function addon:GetAHFaction()
+	return AHFactions[ItemAuditor.db.char.ah]
 end
 
 function addon:DumpInfo()

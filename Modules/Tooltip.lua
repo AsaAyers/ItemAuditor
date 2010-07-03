@@ -13,22 +13,24 @@ local function ShowTipWithPricing(tip, link, num)
 
 	local investedTotal, investedPerItem, count = ItemAuditor:GetItemCost(link)
 	
-	local AHCut = ItemAuditor.db.factionrealm.AHCut
-	local keep = 1 - AHCut
+	local keep = 1 - addon:GetAHCut()
 	local show = false
 
 	if investedTotal > 0 then
 		tip:AddDoubleLine("\124cffffffffIA: Total Invested", utils:FormatMoney(investedTotal));
 		tip:AddDoubleLine("\124cffffffffIA: Invested/Item (" .. count .. ")", utils:FormatMoney(ceil(investedPerItem)));
-		tip:AddDoubleLine("\124cffffffffIA: Minimum faction AH Price: ", utils:FormatMoney(ceil(investedPerItem/keep)))
+		tip:AddDoubleLine("\124cffffffffIA: Minimum " .. addon:GetAHFaction() .. " AH Price: ", utils:FormatMoney(ceil(investedPerItem/keep)))
 		show = true
 		
 	end
-	local groupName = QAAPI:GetItemGroup(link)
-	if groupName then
-		local threshold = QAAPI:GetGroupThreshold(groupName)
-		tip:AddDoubleLine("\124cffffffffIA: QA Threshold: ", utils:FormatMoney(threshold))
-		show = true
+	
+	if addon:IsQAEnabled() then
+		local groupName = QAAPI:GetItemGroup(link)
+		if groupName then
+			local threshold = QAAPI:GetGroupThreshold(groupName)
+			tip:AddDoubleLine("\124cffffffffIA: QA Threshold: ", utils:FormatMoney(threshold))
+			show = true
+		end
 	end
 	
 	if show then 

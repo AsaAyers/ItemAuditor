@@ -4,7 +4,9 @@
 ## Author: Asa Ayers <Asa.Ayers@Gmail.com>
 ## Version: 0.1
 ## SavedVariables: ItemAuditorDB
-## Dependencies: Altoholic, QuickAuctions
+## Dependencies: Altoholic, 
+## OptionalDeps: QuickAuctions
+
 
 embeds.xml
 
@@ -12,6 +14,7 @@ Modules\Utils.lua
 
 Core.lua
 
+Modules\QuickAuctions.lua
 Modules\Events.lua
 Modules\Tooltip.lua
 Modules\Options.lua

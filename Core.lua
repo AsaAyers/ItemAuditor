@@ -17,12 +17,13 @@ local GOLD		= "|cFFFFD700"
 function addon:OnInitialize()
 	local DB_defaults = {
 		char = {
-			debug = false
+			debug = false,
+			ah = 1,
+			use_quick_auctions = false,
 		},
 		factionrealm = {
 			item_account = {},
 			items = {},
-			AHCut = 0.05,
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
@@ -49,16 +50,9 @@ function addon:ConvertItems()
 		if self:GetItem(link).count == 0 or self:GetItem(link).invested == 0 then
 			self:RemoveItem(link)
 		end
-		-- addon:UpdateQAThreshold(link)
 	end
 	
 	self:RefreshQAGroups()
-end
-
-function addon:RefreshQAGroups()
-	for groupName in pairs(QAAPI:GetGroups()) do
-		self:UpdateQAGroup(groupName)
-	end
 end
 
 function addon:GetCurrentInventory()
@@ -254,39 +248,6 @@ function addon:SaveValue(link, value)
 	end
 end
 
-function addon:UpdateQAThreshold(link)
-	_, link= GetItemInfo(link)
-	
-	self:UpdateQAGroup(QAAPI:GetItemGroup(link))
-end
-
-function addon:UpdateQAGroup(groupName)
-	if groupName then
-		local threshold = 0
-		
-		for link in pairs(QAAPI:GetItemsInGroup(groupName)) do
-			local _, itemCost= ItemAuditor:GetItemCost(link, 0)
-			
-			threshold = max(threshold, itemCost)
-		end
-		
-		if threshold == 0 then
-			threshold = 10000
-		end
-		
-		-- add my minimum profit margin
-		threshold = threshold * 1.10
-		
-		-- Adding the cost of mailing every item once.
-		threshold = threshold + 30
-		
-		-- add AH Cut
-		local keep = 1 - self.db.factionrealm.AHCut
-		threshold = threshold/keep
-		
-		QAAPI:SetGroupThreshold(groupName, ceil(threshold))
-	end
-end
 
 local defaultBagDelay = 0.2
 
