@@ -18,7 +18,7 @@ local function ShowTipWithPricing(tip, link, num)
 
 	if investedTotal > 0 then
 		tip:AddDoubleLine("\124cffffffffIA: Total Invested", addon:FormatMoney(investedTotal));
-		tip:AddDoubleLine("\124cffffffffIA: Invested/Item (" .. count .. ")", addon:FormatMoney(ceil(investedPerItem)));
+		tip:AddDoubleLine("\124cffffffffIA: Invested per Item (own: " .. count .. ")", addon:FormatMoney(ceil(investedPerItem)));
 		tip:AddDoubleLine("\124cffffffffIA: Minimum " .. addon:GetAHFaction() .. " AH Price: ", addon:FormatMoney(ceil(investedPerItem/keep)))
 		show = true
 		
