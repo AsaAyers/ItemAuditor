@@ -34,7 +34,7 @@ externals:
         tag: latest
 
 required-dependencies:
-    - Postal
     - Altoholic
-    - DevTools
+optional-dependencies:
+    - QuickAuctions
 

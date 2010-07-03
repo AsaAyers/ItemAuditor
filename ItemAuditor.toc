@@ -4,7 +4,7 @@
 ## Author: Asa Ayers <Asa.Ayers@Gmail.com>
 ## Version: 0.1
 ## SavedVariables: ItemAuditorDB
-## Dependencies: Altoholic, 
+## Dependencies: Altoholic
 ## OptionalDeps: QuickAuctions
 
 
