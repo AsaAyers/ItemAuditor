@@ -6,6 +6,14 @@ local utils = addonTable.utils
 local currentFaction = UnitFactionGroup("player")
 local AHFactions = { currentFaction, 'Neutral' }
 
+local craftingThresholds = {5000, 10000, 50000}
+local craftingThresholdsDisplay = {}
+
+for key, value in pairs(craftingThresholds) do
+	craftingThresholdsDisplay[key] = addon:FormatMoney(value, '', true)
+	-- craftingThresholdsDisplay[key] = value
+end
+
 local options = {
 	handler = addon,
 	name = "ItemAuditor",
@@ -33,14 +41,7 @@ local options = {
 			desc = "Control which messages display in your chat window.",
 			type = 'group',
 			args = {
-				dbg = {
-					type = "toggle",
-					name = "Debug",
-					desc = "Toggles debug messages in chat",
-					get = "GetDebug",
-					set = "SetDebug",
-					order = 100,
-				},
+				
 				item_cost = {
 					type = "toggle",
 					name = "Item Cost",
@@ -48,6 +49,23 @@ local options = {
 					get = function() return ItemAuditor.db.profile.messages.cost_updates end,
 					set = function(info, value) ItemAuditor.db.profile.messages.cost_updates = value end,
 					order = 0,
+				},
+				queue_skip = {
+					type = "toggle",
+					name = "Queue Skip",
+					desc = "Displays a message when an item is excluded from the queue.",
+					get = function() return ItemAuditor.db.profile.messages.queue_skip end,
+					set = function(info, value) ItemAuditor.db.profile.messages.queue_skip = value end,
+					disabled = 'IsQADisabled',
+					order = 1,
+				},
+				dbg = {
+					type = "toggle",
+					name = "Debug",
+					desc = "Toggles debug messages in chat",
+					get = "GetDebug",
+					set = "SetDebug",
+					order = 100,
 				},
 			},
 		},
@@ -76,13 +94,44 @@ local options = {
 					order = 1,
 				},
 				]]
+				auction_threshold = {
+					type = "range",
+					name = "Auction Threshold",
+					desc = "Don't create items that will make less than this amount of profit",
+					min = 0.0,
+					max = 1.0,
+					isPercent = true,
+					get = function() return ItemAuditor.db.char.auction_threshold end,
+					set = function(info, value) ItemAuditor.db.char.auction_threshold = value end,
+					disabled = 'IsQADisabled',
+					order = 1,
+				},
 				refresh_qa = {
 					type = "execute",
 					name = "Refresh QA Thresholds",
 					desc = "Resets all Quick Auctions thresholds",
 					func = "RefreshQAGroups",
 					disabled = 'IsQADisabled',
+					order = 9,
 				},
+				
+				queue_header = {
+					type = "header",
+					name = "Skillet Queue Options",
+					order = 10,
+				},
+				
+				crafting_threshold = {
+					type = "select",
+					name = "Crafting Threshold",
+					desc = "Don't create items that will make less than this amount of profit",
+					values = craftingThresholdsDisplay,
+					get = function() return ItemAuditor.db.char.crafting_threshold end,
+					set = function(info, value) ItemAuditor.db.char.crafting_threshold = value end,
+					disabled = 'IsQADisabled',
+					order = 11,
+				},
+				
 			}
 		},
 		options = {
@@ -121,6 +170,15 @@ local function pairsByKeys (t, f)
 			end
 		end
 	return iter
+end
+
+function addon:GetCraftingThreshold()
+	local key = ItemAuditor.db.char.crafting_threshold
+	return craftingThresholds[key]
+end
+
+function addon:GetAuctionThreshold()
+	return ItemAuditor.db.char.auction_threshold
 end
 
 function addon:GetAH()

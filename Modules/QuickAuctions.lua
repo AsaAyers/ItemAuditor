@@ -36,7 +36,6 @@ function addon:UpdateQAThreshold(link)
 end
 
 addon.profit_margin = 1.15
-addon.minimum_profit = 50000
 
 local function calculateQAThreshold(copper)
 	if copper == 0 then
@@ -44,7 +43,8 @@ local function calculateQAThreshold(copper)
 	end
 	
 	-- add my minimum profit margin
-	copper = copper * addon.profit_margin 
+	-- GetAuctionThreshold returns a percent as a whole number. This will convert 25 to 1.25
+	copper = copper *  (1+addon:GetAuctionThreshold())
 	
 	-- Adding the cost of mailing every item once.
 	copper = copper + 30
@@ -85,6 +85,8 @@ function addon:Queue()
 		self:Print("This feature requires LilSparky's Workshop.")
 		return
 	end
+	self:Debug(format("Auction Threshold: %d%%", self:GetAuctionThreshold()*100 ))
+	self:Debug(format("Crafting Threshold: %s", self:FormatMoney(self:GetCraftingThreshold())))
 	
 	for i = 1, GetNumTradeSkills() do
 		local itemLink = GetTradeSkillItemLink(i)
@@ -135,15 +137,15 @@ function addon:Queue()
 				
 				-- bonus?
 				
-				if newThreshold < currentPrice and (currentPrice - newThreshold) > addon.minimum_profit then
+				if newThreshold < currentPrice and (currentPrice - newCost) > self:GetCraftingThreshold() then
 					self:Debug(format("Adding %s x%s to skillet queue. Profit: %s", 
 						itemLink, 
 						toQueue, 
 						addon:FormatMoney(currentPrice - newThreshold)
 					))
 					self:AddToQueue(skillId,i, toQueue)
-				else
-					self:Debug(format("Skipping %s x%s. Would lose %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newThreshold)))
+				elseif ItemAuditor.db.profile.messages.queue_skip then
+					self:Debug(format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newCost)))
 				end
 			end
 		  end

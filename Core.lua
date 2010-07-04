@@ -19,11 +19,14 @@ function addon:OnInitialize()
 		char = {
 			ah = 1,
 			use_quick_auctions = false,
+			crafting_threshold = 1,
+			auction_threshold = 0.15,
 		},
 		profile = {
 			messages = {
 				debug = false,
 				cost_updates = true,
+				queue_skip = false,
 			}
 		},
 		factionrealm = {

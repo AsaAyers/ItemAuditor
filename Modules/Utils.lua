@@ -4,12 +4,21 @@ local addon = _G[addonName]
 addonTable.utils = addon
 IAUtils = addon
 
-function addon:FormatMoney(copper)
-	color = "|cFFFFFFFF"
+function addon:FormatMoney(copper, color, textOnly)
+	color = color or "|cFFFFFFFF"
 	local prefix = ""
 	if copper < 0 then
 		prefix = "-"
 		copper = abs(copper)
+	end
+	
+	local copperTexture = COPPER_AMOUNT_TEXTURE
+	local silverTexture = SILVER_AMOUNT_TEXTURE
+	local goldTexture = GOLD_AMOUNT_TEXTURE
+	if textOnly then
+		copperTexture = '%dc'
+		silverTexture = '%ds'
+		goldTexture = '%dg'
 	end
 
 	local gold = floor( copper / 10000 );
@@ -18,14 +27,14 @@ function addon:FormatMoney(copper)
 	copper = mod(copper, 100)
 	
 	
-	copper = color..format(COPPER_AMOUNT_TEXTURE, copper, 13, 13)
+	copper = color .. format(copperTexture, copper, 13, 13)
 	if silver > 0 or gold > 0 then
-		silver = color..format(SILVER_AMOUNT_TEXTURE, silver, 13, 13) .. ' '
+		silver = color.. format(silverTexture, silver, 13, 13) .. ' '
 	else
 		silver = ""
 	end
 	if gold > 0 then
-		gold = color..format(GOLD_AMOUNT_TEXTURE, gold, 13, 13) .. ' '
+		gold = color.. format(goldTexture, gold, 13, 13) .. ' '
 	else
 		gold = ""
 	end

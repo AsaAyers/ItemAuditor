@@ -100,7 +100,7 @@ function addon:UpdateAudit()
 	
 	if diff.money > 0 and self:tcount(positive) > 0 and self:tcount(negative) == 0 then
 		self:Debug("loot")
-	elseif self:tcount(diff.items) == 1 then
+	elseif abs(diff.money) > 0 and self:tcount(diff.items) == 1 then
 		self:Debug("purchase or sale")
 		
 		for link, count in pairs(diff.items) do
