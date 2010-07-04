@@ -62,7 +62,7 @@ end
 
 function addon:Print(message)
 	local prefix = "|cFFA3CEFF"..tostring( self ).."|r: "
-	DEFAULT_CHAT_FRAME:AddMessage( prefix .. message)
+	DEFAULT_CHAT_FRAME:AddMessage( prefix .. tostring(message))
 end
 
 function addon:GetCurrentInventory()

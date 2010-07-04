@@ -35,6 +35,25 @@ function addon:UpdateQAThreshold(link)
 	self:UpdateQAGroup(QAAPI:GetItemGroup(link))
 end
 
+addon.profit_margin = 1.15
+addon.minimum_profit = 50000
+
+local function calculateQAThreshold(copper)
+	if copper == 0 then
+		copper = 1
+	end
+	
+	-- add my minimum profit margin
+	copper = copper * addon.profit_margin 
+	
+	-- Adding the cost of mailing every item once.
+	copper = copper + 30
+	
+	-- add AH Cut
+	local keep = 1 - addon:GetAHCut()
+	return copper/keep
+end
+
 function addon:UpdateQAGroup(groupName)
 	if not addon.IsQAEnabled() then
 		return
@@ -48,19 +67,7 @@ function addon:UpdateQAGroup(groupName)
 			threshold = max(threshold, itemCost)
 		end
 		
-		if threshold == 0 then
-			threshold = 1
-		end
-		
-		-- add my minimum profit margin
-		threshold = threshold * 1.10
-		
-		-- Adding the cost of mailing every item once.
-		threshold = threshold + 30
-		
-		-- add AH Cut
-		local keep = 1 - addon:GetAHCut()
-		threshold = threshold/keep
+		threshold = calculateQAThreshold(threshold)
 		
 		QAAPI:SetGroupThreshold(groupName, ceil(threshold))
 	end
@@ -92,40 +99,51 @@ function addon:Queue()
 
 		local skillName, skillType, numAvailable, isExpanded, altVerb = GetTradeSkillInfo(i)
 		local recipeLink = GetTradeSkillRecipeLink(i)
-		local stackSize  = 0
+		local stackSize  = 1
 		if recipeLink ~= nil then
 			_, itemLink= GetItemInfo(itemId)
 			local QAGroup = QAAPI:GetItemGroup(itemLink)
 			if QAGroup ~= nil then
 				stackSize = QAAPI:GetGroupPostCap(QAGroup) * QAAPI:GetGroupPerAuction(QAGroup)
 				stackSize = stackSize / GetTradeSkillNumMade(i)
+				
+				-- bonus
+				stackSize = ceil(stackSize *1.25)
 			end
 
 			local count = Altoholic:GetItemCount(itemId)
 			
-			if count < stackSize then
+			if count < stackSize and itemLink ~= nil then
 				local found, _, skillString = string.find(recipeLink, "^|%x+|H(.+)|h%[.+%]")
 				local _, skillId = strsplit(":", skillString )
 				
-				
-				local totalCost = 0
+				local toQueue = stackSize - count
+				local newCost = 0
 				for reagentId = 1, GetTradeSkillNumReagents(i) do
 					_, _, reagentCount = GetTradeSkillReagentInfo(i, reagentId);
 					reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
-					
-					totalCost = totalCost + addon:GetReagentCost(reagentLink, reagentCount)  
+					newCost = newCost + addon:GetReagentCost(reagentLink, reagentCount)  
 				end
 				
+				local currentInvested, _, currentCount = addon:GetItemCost(itemLink)
+				local newThreshold = (newCost + currentInvested) / (currentCount + toQueue)
+				
+				
+				newThreshold = calculateQAThreshold(newThreshold)
 				local currentPrice = GetAuctionBuyout(itemLink) or 0
 				
-				local toQueue = stackSize - count
+				
 				-- bonus?
 				
-				if totalCost < currentPrice then
-					self:Debug(format("Adding %s x%s to skillet queue.", itemLink, toQueue))
+				if newThreshold < currentPrice and (currentPrice - newThreshold) > addon.minimum_profit then
+					self:Debug(format("Adding %s x%s to skillet queue. Profit: %s", 
+						itemLink, 
+						toQueue, 
+						addon:FormatMoney(currentPrice - newThreshold)
+					))
 					self:AddToQueue(skillId,i, toQueue)
 				else
-					self:Debug(format("Skipping %s. Would cost %s to craft and sell for %s", itemLink, addon:FormatMoney(totalCost), addon:FormatMoney(currentPrice)))
+					self:Debug(format("Skipping %s x%s. Would lose %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newThreshold)))
 				end
 			end
 		  end
@@ -136,6 +154,14 @@ end
 
 function addon:GetReagentCost(link, total)
 	local totalCost = 0
+	
+	if Skillet:VendorSellsReagent(link) then
+		local _, _, _, _, _, _, _, _, _, _, itemVendorPrice = GetItemInfo (link);
+		totalCost = itemVendorPrice * total
+		total = 0
+	end
+
+	
 	local investedTotal, investedPerItem, count = addon:GetItemCost(link)
 	
 	if count > 0 then
