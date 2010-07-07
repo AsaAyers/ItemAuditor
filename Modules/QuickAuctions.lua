@@ -77,16 +77,29 @@ end
 	This is based on KTQ
 ]]
 function addon:Queue()
-	if not addon.IsQAEnabled() then
-		self:Debug("Refusing to run :Queue() QA is disabled")
-		return
-	end
 	if LSW == nil then
 		self:Print("This feature requires LilSparky's Workshop.")
 		return
 	end
-	self:Debug(format("Auction Threshold: %d%%", self:GetAuctionThreshold()*100 ))
+	if Skillet == nil then
+		self:Print("This feature requires Skillet.")
+		return
+	end
+	if GetAuctionBuyout ~= nil then
+	elseif AucAdvanced and AucAdvanced.Version then
+	else
+		self:Print("This feature requires Auctionator, Auctioneer, AuctionLite, or AuctionMaster.")
+		return
+	end
+	
+	
+	if addon.IsQAEnabled() then
+		self:Debug(format("Auction Threshold: %d%%", self:GetAuctionThreshold()*100 ))
+	end
 	self:Debug(format("Crafting Threshold: %s", self:FormatMoney(self:GetCraftingThreshold())))
+	local profitableItems = {}
+	local profitableIndex = 1
+	local numChecked = 0
 	
 	for i = 1, GetNumTradeSkills() do
 		local itemLink = GetTradeSkillItemLink(i)
@@ -104,15 +117,21 @@ function addon:Queue()
 		local stackSize  = 1
 		if recipeLink ~= nil then
 			_, itemLink= GetItemInfo(itemId)
-			local QAGroup = QAAPI:GetItemGroup(itemLink)
-			if QAGroup ~= nil then
-				stackSize = QAAPI:GetGroupPostCap(QAGroup) * QAAPI:GetGroupPerAuction(QAGroup)
-				stackSize = stackSize / GetTradeSkillNumMade(i)
-				
-				-- bonus
-				stackSize = ceil(stackSize *1.25)
+			
+			
+			-- if QA isn't enabled, this will just return nil
+			local QAGroup = nil
+			if addon.IsQAEnabled() then
+				QAGroup = QAAPI:GetItemGroup(itemLink)
+				if QAGroup ~= nil then
+					stackSize = QAAPI:GetGroupPostCap(QAGroup) * QAAPI:GetGroupPerAuction(QAGroup)
+					stackSize = stackSize / GetTradeSkillNumMade(i)
+					
+					-- bonus
+					stackSize = ceil(stackSize *1.25)
+				end
 			end
-
+			
 			local count = Altoholic:GetItemCount(itemId)
 			
 			if count < stackSize and itemLink ~= nil then
@@ -130,28 +149,45 @@ function addon:Queue()
 				local currentInvested, _, currentCount = addon:GetItemCost(itemLink)
 				local newThreshold = (newCost + currentInvested) / (currentCount + toQueue)
 				
-				
-				newThreshold = calculateQAThreshold(newThreshold)
-				local currentPrice = GetAuctionBuyout(itemLink) or 0
-				
-				
-				-- bonus?
+				if addon.IsQAEnabled() then
+					newThreshold = calculateQAThreshold(newThreshold)
+				else
+					-- if quick auctions isn't enabled, this will cause the decision to rely
+					-- completly on the crafting threshold
+					newThreshold = 0
+				end
+				local currentPrice = addon:GetAuctionPrice(itemLink) or 0
+				numChecked = numChecked  + 1
 				
 				if newThreshold < currentPrice and (currentPrice - newCost) > self:GetCraftingThreshold() then
-					self:Debug(format("Adding %s x%s to skillet queue. Profit: %s", 
-						itemLink, 
-						toQueue, 
-						addon:FormatMoney(currentPrice - newThreshold)
-					))
-					self:AddToQueue(skillId,i, toQueue)
+					
+					profitableItems[profitableIndex] = {
+						itemLink = itemLink,
+						SkillID = skillId,
+						Index = i,
+						toQueue = toQueue,
+						profit = (currentPrice - newCost) * toQueue
+					}
+					profitableIndex = profitableIndex + 1
 				elseif ItemAuditor.db.profile.messages.queue_skip then
-					self:Debug(format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newCost)))
+					self:Print(format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newCost)))
 				end
 			end
-		  end
+		end
 	end
-	
-	
+	local numAdded = 0
+	table.sort(profitableItems, function(a, b) return a.profit > b.profit end)
+	for key, data in pairs(profitableItems) do
+		self:Print(format("Adding %s x%s to skillet queue. Profit: %s", 
+			data.itemLink, 
+			data.toQueue, 
+			self:FormatMoney(data.profit)
+		))
+		self:AddToQueue(data.SkillID, data.Index, data.toQueue)
+		numAdded = numAdded +1
+	end
+	self:Print(format("%d items checked", numChecked))
+	self:Print(format("%d queued", numAdded))
 end
 
 function addon:GetReagentCost(link, total)
@@ -178,14 +214,26 @@ function addon:GetReagentCost(link, total)
 	
 	-- If there is none on the auction house, this uses a large enough number
 	-- to prevent us from trying to make the item.
-	local ahPrice = (GetAuctionBuyout(link) or 99990000)
+	local ahPrice = (self:GetAuctionPrice(link) or 99990000)
+	-- local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, _, _, _, _, itemVendorPrice = GetItemInfo (link);
 	
 	return totalCost + (ahPrice * total)
+end
+
+function addon:GetAuctionPrice(itemLink)
+	if GetAuctionBuyout ~= nil then
+		return GetAuctionBuyout(itemLink)
+	elseif AucAdvanced and AucAdvanced.Version then
+		local _, _, _, _, _, lowBuy= AucAdvanced.Modules.Util.SimpleAuction.Private.GetItems(itemLink)
+		return lowBuy
+	end
+	return nil
 end
 
 function addon:AddToQueue(skillId,skillIndex, toQueue)
 	if Skillet == nil then
 		self:Print("Skillet not loaded")
+		return
 	end
 	if Skillet.QueueCommandIterate ~= nil then
 		local queueCommand = Skillet:QueueCommandIterate(tonumber(skillId), toQueue)

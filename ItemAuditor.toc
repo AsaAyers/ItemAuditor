@@ -1,11 +1,11 @@
 ## Interface: 30300
 ## Title: Item Auditor
-## Notes: This will keep track of how much you have paid per item in your inventory
+## Notes: This will keep track of how much you have paid per item in your inventory. Only one of (Auctionator, Auctioneer, AuctionLite, AuctionMaster) is needed to determine which items are profitable to craft.
 ## Author: Asa Ayers <Asa.Ayers@Gmail.com>
 ## Version: 0.1
 ## SavedVariables: ItemAuditorDB
 ## Dependencies: Altoholic
-## OptionalDeps: QuickAuctions, Skillet, LilSparkysWorkshop, DevTools
+## OptionalDeps: QuickAuctions, Skillet, LilSparkysWorkshop, Auctionator, Auctioneer, AuctionLite, AuctionMaster, DevTools
 
 
 embeds.xml

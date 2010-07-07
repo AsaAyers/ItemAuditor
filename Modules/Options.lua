@@ -102,7 +102,10 @@ local options = {
 					max = 1.0,
 					isPercent = true,
 					get = function() return ItemAuditor.db.char.auction_threshold end,
-					set = function(info, value) ItemAuditor.db.char.auction_threshold = value end,
+					set = function(info, value)
+						ItemAuditor.db.char.auction_threshold = value
+						ItemAuditor:RefreshQAGroups()
+					end,
 					disabled = 'IsQADisabled',
 					order = 1,
 				},
@@ -114,13 +117,14 @@ local options = {
 					disabled = 'IsQADisabled',
 					order = 9,
 				},
-				
-				queue_header = {
-					type = "header",
-					name = "Skillet Queue Options",
-					order = 10,
-				},
-				
+			}
+		},
+		crafting_options = {
+			name = "Crafting with Skillet",
+			desc = "/ia queue",
+			type = 'group',
+			disabled = function() return Skillet == nil end,
+			args = {
 				crafting_threshold = {
 					type = "select",
 					name = "Crafting Threshold",
@@ -128,11 +132,9 @@ local options = {
 					values = craftingThresholdsDisplay,
 					get = function() return ItemAuditor.db.char.crafting_threshold end,
 					set = function(info, value) ItemAuditor.db.char.crafting_threshold = value end,
-					disabled = 'IsQADisabled',
 					order = 11,
 				},
-				
-			}
+			},
 		},
 		options = {
 			type = "execute",

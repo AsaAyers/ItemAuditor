@@ -216,6 +216,7 @@ function addon:GetItem(link, viewOnly)
 		return {count = self.items[link].count, invested = self.items[link].invested}
 	end
 	self.items[link].count =  Altoholic:GetItemCount(self:GetIDFromLink(link))
+	self.items[link].invested = tonumber(self.items[link].invested)
 	return self.items[link]
 end
 
