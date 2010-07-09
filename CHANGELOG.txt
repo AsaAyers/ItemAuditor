@@ -3,6 +3,8 @@
 - Added a (hopefully) more readable changelog.
 - I have removed the ability to show debug messages in the chat window and have replaced it with a new debug frame. /ia debug will show all of the debug messages and everything that IA has printed.
 - Fix a small bug so that if you sell something for your exact cost you don't get a message that says you made a profit of 0c.
+- Added more debug messages
+- The debug window will scroll with the scroll wheel
 
 2010-07-06  Asa Ayers  <Asa.Ayers@Gmail.com>
 

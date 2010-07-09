@@ -169,8 +169,13 @@ function addon:Queue()
 						profit = (currentPrice - newCost) * toQueue
 					}
 					profitableIndex = profitableIndex + 1
-				elseif ItemAuditor.db.profile.messages.queue_skip then
-					self:Print(format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newCost)))
+				else
+					local skipMessage = format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newCost))
+					if ItemAuditor.db.profile.messages.queue_skip then
+						self:Print(skipMessage)
+					else
+						self:Debug(format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newCost)))
+					end
 				end
 			end
 		end

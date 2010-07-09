@@ -18,10 +18,10 @@ end
 	self:UnregisterEvent("MAIL_SHOW")
 	self:RegisterEvent("MAIL_CLOSED")
 	self:RegisterEvent("MAIL_INBOX_UPDATE")
-	self:Debug("MAIL_SHOW complete")
 end
 
 function addon:MAIL_CLOSED()
+	self:Debug("MAIL_CLOSED")
 	addon:UnregisterEvent("MAIL_CLOSED")
 	self:MAIL_INBOX_UPDATE()
 	self:UnregisterEvent("MAIL_INBOX_UPDATE")
@@ -29,6 +29,7 @@ function addon:MAIL_CLOSED()
 end
 
 function addon:MAIL_INBOX_UPDATE()
+	self:Debug("MAIL_INBOX_UPDATE")
 	local newScan = addon:ScanMail()
 	local diff
 	for mailType, collection in pairs(self.lastMailScan) do
@@ -48,6 +49,7 @@ end
 
 function addon:UNIT_SPELLCAST_START(event, target, spell)
 	if target == "player" and spell == "Milling" or spell == "Prospecting" or spell == "Disenchanting" then
+		self:Debug(event .. " " .. spell)
 		self:UnwatchBags()
 		self:UpdateCurrentInventory()
 		self:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
@@ -60,6 +62,7 @@ end
 	needs to be kept so it can be combined with the up coming loot.
  ]]
 function addon:LOOT_CLOSED()
+	self:Debug("LOOT_CLOSED")
 	self:UnregisterEvent("LOOT_CLOSED")
 	self:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
 	local inventory = self.lastInventory
@@ -69,6 +72,7 @@ end
 
 function addon:UNIT_SPELLCAST_INTERRUPTED(event, target, spell)
 	if target == "player" and spell == "Milling" or spell == "Prospecting" or spell == "Disenchanting" then
+		self:Debug(event .. " " .. spell)
 		self:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
 		self:UnregisterEvent("LOOT_CLOSED")
 		self:WatchBags()
@@ -80,11 +84,9 @@ function addon:UpdateCurrentInventory()
 end
 
 function addon:UpdateAudit()
-	-- self:Debug("UpdateAudit")
+	-- self:Debug("UpdateAudit " .. event)
 	local currentInventory = self:GetCurrentInventory()
 	local diff =  addon:GetInventoryDiff(self.lastInventory, currentInventory)
-	-- this is only here for debugging
-	self.lastdiff = diff
 	
 	local positive, negative = {}, {}
 	local positiveCount, negativeCount = 0, 0
@@ -98,6 +100,10 @@ function addon:UpdateAudit()
 		end
 	end
 	
+	if positiveCount + negativeCount == 0 then
+		return
+	end
+	
 	if diff.money > 0 and self:tcount(positive) > 0 and self:tcount(negative) == 0 then
 		self:Debug("loot")
 	elseif abs(diff.money) > 0 and self:tcount(diff.items) == 1 then
@@ -106,26 +112,25 @@ function addon:UpdateAudit()
 		for link, count in pairs(diff.items) do
 			self:SaveValue(link, 0 - diff.money)
 		end
-	elseif self:tcount(diff.items) > 1 then
+	elseif self:tcount(diff.items) > 1 and self:tcount(positive) > 0 and self:tcount(negative) > 0 then
+		-- we must have created/converted something
+		self:Debug("conversion")
 		
-		if self:tcount(positive) > 0 and self:tcount(negative) > 0 then
-			-- we must have created/converted something
-			self:Debug("conversion")
+		local totalChange = 0
+		for link, change in pairs(negative) do
+			local _, itemCost, count = self:GetItemCost(link, change)
+			self:SaveValue(link, itemCost * change)
 			
-			local totalChange = 0
-			for link, change in pairs(negative) do
-				local _, itemCost, count = self:GetItemCost(link, change)
-				self:SaveValue(link, itemCost * change)
-				
-				totalChange = totalChange + (itemCost * abs(change))
-			end
-			
-			local valuePerItem = totalChange / positiveCount
-			
-			for link, change in pairs(positive) do
-				self:SaveValue(link, valuePerItem * change)
-			end
+			totalChange = totalChange + (itemCost * abs(change))
 		end
+		
+		local valuePerItem = totalChange / positiveCount
+		
+		for link, change in pairs(positive) do
+			self:SaveValue(link, valuePerItem * change)
+		end
+	else
+		self:Debug("No match in UpdateAudit.")
 	end
 	
 	self.lastInventory = currentInventory

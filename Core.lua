@@ -26,7 +26,9 @@ function addon:OnInitialize()
 			messages = {
 				cost_updates = true,
 				queue_skip = false,
-			}
+			},
+			-- This is for development, so I have no plans to turn it into an option.
+			show_debug_frame_on_startup = false,
 		},
 		factionrealm = {
 			item_account = {},
@@ -40,6 +42,11 @@ function addon:OnInitialize()
 	self:RegisterOptions()
 	
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
+	
+	-- /run ItemAuditor.db.profile.show_debug_frame_on_startup = true
+	if self.db.profile.show_debug_frame_on_startup then
+		ItemAuditor_DebugFrame:Show()
+	end
 end
 
 function addon:ConvertItems()
@@ -97,24 +104,27 @@ function addon:GetInventoryDiff(pastInventory, current)
 	for link, count in pairs(current.items) do
 		if pastInventory.items[link] == nil then
 			diff[link] = count
-			-- self:Debug("1 diff[" .. name .. "]=" .. diff[name])
+			self:Debug("1 diff[" .. link .. "]=" .. diff[link])
 		elseif count - pastInventory.items[link] ~= 0 then
 			diff[link] = count - pastInventory.items[link]
-			-- self:Debug("2 diff[" .. name .. "]=" .. diff[name])        
+			self:Debug("2 diff[" .. link .. "]=" .. diff[link])        
 		end    
 	end
 
 	for link, count in pairs(pastInventory.items) do
 		if current.items[link] == nil then
 			diff[link] = -count
-			-- self:Debug("3 diff[" .. name .. "]=" .. diff[name])                
+			self:Debug("3 diff[" .. link .. "]=" .. diff[link])                
 		elseif current.items[link] - count ~= 0 then
 			diff[link] = current.items[link] - pastInventory.items[link]
-			-- self:Debug("4 diff[" .. name .. "]=" .. diff[name])        
+			self:Debug("4 diff[" .. link .. "]=" .. diff[link])        
 		end
 	end
 
 	local moneyDiff = current.money - pastInventory.money
+	if abs(moneyDiff) > 0 then
+		self:Debug("moneyDiff: " .. moneyDiff)
+	end
 
 	return {items = diff, money = moneyDiff}
 end
@@ -172,6 +182,13 @@ function addon:ScanMail()
 		end
 
 	end
+	
+	for mailType, collection in pairs(results) do
+		for item, total in pairs(collection) do
+			self:Debug(format("|cFF00FF00MailScan|r: %s - %s - %s", mailType, item, total))
+		end
+	end
+	
 	return results   
 end
 
@@ -229,14 +246,17 @@ function addon:RemoveItem(link)
 end
 
 function addon:SaveValue(link, value)
+	self:Debug(format("SaveValue(%s, %s)", tostring(link), value))
 	local item = nil
 	local realLink = self:GetSafeLink(link)
 	local itemName = nil
 	if realLink == nil then
+		self:Debug('SaveValue: GetSafeLink failed, falling back to storing by name: ' .. tostring(itemName))
 		itemName = link
 		self.db.factionrealm.item_account[itemName] = (self.db.factionrealm.item_account[itemName] or 0) + value
 		item = {invested = self.db.factionrealm.item_account[itemName], count = 1}
 	else
+		
 		item = self:GetItem(realLink)
 		item.invested = item.invested + value
 		itemName = GetItemInfo(realLink)
@@ -267,19 +287,10 @@ function addon:SaveValue(link, value)
 end
 
 
-local defaultBagDelay = 0.2
-
-function addon:WatchBags(delay)
-	delay = delay or defaultBagDelay
-	if delay ~= self.currentBagDelay  then
-		self:UnwatchBags()
-	end
-
+function addon:WatchBags()
 	if self.watch_handle == nil then
-		self.currentBagDelay = delay
-		self:Debug("currentBagDelay = " .. delay)
 		addon:UpdateCurrentInventory()
-		self.watch_handle = self:RegisterBucketEvent({"BAG_UPDATE", "PLAYER_MONEY"}, self.currentBagDelay, "UpdateAudit")
+		self.watch_handle = self:RegisterBucketEvent({"BAG_UPDATE", "PLAYER_MONEY"}, 0.3, "UpdateAudit")
 	end
 end
 
