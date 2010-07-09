@@ -1,0 +1,59 @@
+2010-07-08  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Added a (hopefully) more readable changelog.
+- I have removed the ability to show debug messages in the chat window and have replaced it with a new debug frame. /ia debug will show all of the debug messages and everything that IA has printed.
+- Fix a small bug so that if you sell something for your exact cost you don't get a message that says you made a profit of 0c.
+
+2010-07-06  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Changed QA to be an option part of /ia queue. If QA is there, IA will queue enough of an item to be created to have 1.25x QA auctino count x QA stack size (rounded up) items. If it is not there, it will create 1 on every profitable item. This commit also adds support for Auctioneer.
+
+2010-07-04  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Added options for the crafting threshold and auction threshold. I also fixed the queue to use the item cost to determine if there is enough profit instead of the auction (QA) threshold which already has profit built in.
+- Expanded the queue system to calculate what the new QA threshold would be and to consider buying items from vendors. It also sets a threshold so that items with less than 5g profit will not be crafted. I will turn this into an option later.
+
+2010-07-03  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Added the missing QuickAuctions module. I've also added integration with Skillet and LilSparkysWorkshop. IA and queue any item set up in QuickAuctions where the reagent cost is less than the current price of the item. This is based on KevTool Queue.
+- Changed tooltip to be less confusing on the price per item.
+- Cleaned up the messages. You can turn the notifications of price changes off and those messages will only show gold or silver if they are more than 0. I have also removed the dependency on AceConsole because it doesn't allow changing the color of the addon name when I print messages.
+- Merged utils into ItemAuditor.
+- updated the toc and .pkgmeta info
+
+2010-07-02  Asa Ayers  <Asa.Ayers@Gmail.com>
+- OPTIONS! QuickAuctions is now an optional dependency. I have also added some configuration options for it. If you have QA but don't want IA to update your thresholds you can shut off the integration. I have also added other options so you can select your faction or the neutral AH and it will update the tooltip.
+
+2010-06-30  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Removed dependency on DevTools, completed chaning over the database to use links instead of names, Added integration with my version of QuickAuctions3 (I need to make this optional soon)
+- Fixed the ability to toggle debug
+
+2010-06-25  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Updated version and added a dependency on my modified API for QuickAuctions. Next I need to make that dependency optional
+- Changed the way things are stored so that items known only by name, usually from AH mail, will be stored by their name, but will get converted if the link is discovered through a tooltip. This version is funcioning again
+
+2010-06-23  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Working on converting the database to store items as links instead of names.
+
+2010-06-08  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Removed some of the extra debugging that isn't neccessary any more and abtracted out the item ids so they can be cached.
+
+2010-05-26  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Removed dependency on postal. It was only being used to determine the mail type which has been moved into ItemAuditor so I can support CODPayments. Paying for COD items works, but getting the payments back can't reliably associate the payment with an item yet.
+- work in progress: I added Prospecting and Disenchanting and AHOutbid mail and I also changed the initialization to quit forcing debug every time ItemAuditor loads and have begun to implement the COD mail scanning.
+
+2010-05-22  Asa Ayers  <Asa.Ayers@Gmail.com>
+- Fixed Milling. Disenchating will probably have to be fixed the same way
+- Code cleanup.
+
+2010-05-20  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Removing libs from my repo so I can use externals instead
+- comment/debugging code cleanup
+- First public revision.
+- At this point ItemAuditor watches mail for auctions sold or purchased, watches for buy/sell (money and 1 item type change) and conversions/tradeskills. Milling isn't working yet because there is too much time between the first event and the last event.

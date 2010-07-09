@@ -59,14 +59,6 @@ local options = {
 					disabled = 'IsQADisabled',
 					order = 1,
 				},
-				dbg = {
-					type = "toggle",
-					name = "Debug",
-					desc = "Toggles debug messages in chat",
-					get = "GetDebug",
-					set = "SetDebug",
-					order = 100,
-				},
 			},
 		},
 		
@@ -150,8 +142,13 @@ local options = {
 			func = "Queue",
 			guiHidden = true,
 		},
-		
-		
+		debug = {
+			type = "execute",
+			name = "debug",
+			desc = "Shows the debug frame",
+			func = function() ItemAuditor_DebugFrame:Show() end,
+			guiHidden = true,
+		}
 	},
 }
 

@@ -5,9 +5,12 @@ local utils = addonTable.utils
 
 
 function addon:Debug(msg)
-	if self.db.profile.messages.debug then
-		self:Print(msg)
-	end
+	self:Log(msg, " |cffffff00DEBUG")
+end
+
+function addon:Log(message, prefix)
+	prefix = prefix or ""
+	ItemAuditor_DebugFrameTxt:AddMessage(format("%d%s|r: %s", time(), prefix, tostring(message)))
 end
 
 function addon:GetDebug(info)

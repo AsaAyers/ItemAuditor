@@ -24,7 +24,6 @@ function addon:OnInitialize()
 		},
 		profile = {
 			messages = {
-				debug = false,
 				cost_updates = true,
 				queue_skip = false,
 			}
@@ -66,6 +65,7 @@ end
 function addon:Print(message)
 	local prefix = "|cFFA3CEFF"..tostring( self ).."|r: "
 	DEFAULT_CHAT_FRAME:AddMessage( prefix .. tostring(message))
+	self:Log(message)
 end
 
 function addon:GetCurrentInventory()
@@ -243,7 +243,7 @@ function addon:SaveValue(link, value)
 	end
 	
 	if abs(value) > 0 then
-		if  item.invested <= 0 then
+		if  item.invested < 0 then
 			if self.db.profile.messages.cost_updates then
 				self:Print(format("Updated price of %s from %s to %s. %sYou just made a profit of %s.", itemName, self:FormatMoney(item.invested - value), self:FormatMoney(0), GREEN, self:FormatMoney(abs(item.invested))))
 			end

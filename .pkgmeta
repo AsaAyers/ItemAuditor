@@ -32,7 +32,10 @@ externals:
 
 required-dependencies:
     - Altoholic
+
 optional-dependencies:
     - QuickAuctions
     - Skillet
     - LilSparkysWorkshop
+
+manual-changelog: CHANGELOG.txt
