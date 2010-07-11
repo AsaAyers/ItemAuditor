@@ -4,7 +4,8 @@ local addon = _G[addonName]
 local utils = addonTable.utils
 
 
-function addon:Debug(msg)
+function addon:Debug(msg, ...)
+	msg = format(msg, ...)
 	self:Log(msg, " |cffffff00DEBUG")
 end
 

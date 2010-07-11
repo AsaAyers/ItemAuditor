@@ -69,9 +69,10 @@ function addon:ConvertItems()
 	self:RefreshQAGroups()
 end
 
-function addon:Print(message)
-	local prefix = "|cFFA3CEFF"..tostring( self ).."|r: "
-	DEFAULT_CHAT_FRAME:AddMessage( prefix .. tostring(message))
+local printPrefix = "|cFFA3CEFFItemAuditor|r: "
+function addon:Print(message, ...)
+	message = format(message, ...)
+	DEFAULT_CHAT_FRAME:AddMessage( printPrefix .. tostring(message))
 	self:Log(message)
 end
 
@@ -177,8 +178,8 @@ function addon:ScanMail()
 		elseif mailType == "AHExpired" or mailType == "AHCancelled" or mailType == "AHOutbid" then
 			-- These should be handled when you pay the deposit at the AH
 		else
-			self:Debug("Unhandled mail type: " .. mailType)
-			self:Debug(msgSubject)
+			-- self:Debug("Unhandled mail type: " .. mailType)
+			-- self:Debug(msgSubject)
 		end
 
 	end
@@ -200,7 +201,6 @@ function addon:GetItem(link, viewOnly)
 	local itemName = nil
 	if self:GetSafeLink(link) == nil then
 		itemName = link
-		link = self:GetSafeLink(link)
 	else
 		link = self:GetSafeLink(link)
 		itemName = GetItemInfo(link)
@@ -216,8 +216,7 @@ function addon:GetItem(link, viewOnly)
 	end
 	
 	if viewOnly == false and self.items[link] == nil then
-		local itemName = GetItemInfo(link)
-	
+		
 		self.items[link] = {
 			count =  Altoholic:GetItemCount(self:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
@@ -242,6 +241,8 @@ function addon:RemoveItem(link)
 	link = self:GetSafeLink(link)
 	if link ~= nil then
 		self.items[link] = nil
+	else
+		self:Debug('Failed to convert link' .. tostring(link))
 	end
 end
 
@@ -305,7 +306,9 @@ end
 function addon:GetSafeLink(link)
 	local newLink = nil
 
-	if link and link ~= string.match(link, '.-:[-0-9]+[:0-9]*') then
+	if link and link == string.match(link, '.-:[-0-9]+[:0-9]*') then
+		newLink = link
+	elseif link then
 		newLink = link and string.match(link, "|H(.-):([-0-9]+):([0-9]+)|h")
 	end
 	if newLink == nil then

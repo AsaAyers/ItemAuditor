@@ -94,7 +94,7 @@ function addon:Queue()
 	
 	
 	if addon.IsQAEnabled() then
-		self:Debug(format("Auction Threshold: %d%%", self:GetAuctionThreshold()*100 ))
+		self:Debug("Auction Threshold: %d%%", self:GetAuctionThreshold()*100 )
 	end
 	self:Debug(format("Crafting Threshold: %s", self:FormatMoney(self:GetCraftingThreshold())))
 	local profitableItems = {}

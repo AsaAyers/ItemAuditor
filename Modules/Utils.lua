@@ -92,7 +92,7 @@ function addon:SaveItemID(itemName, id)
 	item_db[itemName] = tonumber(id)
 end
 
-local SubjectPatterns = {
+addon.SubjectPatterns = {
 	AHCancelled = gsub(AUCTION_REMOVED_MAIL_SUBJECT, "%%s", ".*"),
 	AHExpired = gsub(AUCTION_EXPIRED_MAIL_SUBJECT, "%%s", ".*"),
 	AHOutbid = gsub(AUCTION_OUTBID_MAIL_SUBJECT, "%%s", ".*"),
@@ -103,7 +103,7 @@ local SubjectPatterns = {
 
 function addon:GetMailType(msgSubject)
 	if msgSubject then
-		for k, v in pairs(SubjectPatterns) do
+		for k, v in pairs(self.SubjectPatterns) do
 			if msgSubject:find(v) then return k end
 		end
 	end

@@ -1,3 +1,8 @@
+2010-07-11  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed a bug with the mail where items get recorded by the mail scanner and the bag scanner.
+- Fixed some minor issues not visible to the user.
+
 2010-07-08  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Added a (hopefully) more readable changelog.

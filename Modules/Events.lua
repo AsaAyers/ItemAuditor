@@ -6,6 +6,7 @@ local utils = addonTable.utils
 function addon:PLAYER_ENTERING_WORLD()
 	self:RegisterEvent("MAIL_SHOW")
 	self:RegisterEvent("UNIT_SPELLCAST_START")
+	addon:UpdateCurrentInventory()
 	self:WatchBags()
 	
 	-- addon:ConvertItems()
@@ -13,6 +14,7 @@ end
  
  function addon:MAIL_SHOW()
 	self:Debug("MAIL_SHOW")
+	addon:UpdateCurrentInventory()
 	self.lastMailScan = self:ScanMail()
 	
 	self:UnregisterEvent("MAIL_SHOW")
