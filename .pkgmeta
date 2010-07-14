@@ -39,3 +39,5 @@ optional-dependencies:
     - LilSparkysWorkshop
 
 manual-changelog: CHANGELOG.txt
+
+enable-nolib-creation: no

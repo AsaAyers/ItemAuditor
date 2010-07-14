@@ -30,17 +30,29 @@ function addon:MAIL_CLOSED()
 	self:RegisterEvent("MAIL_SHOW")
 end
 
+local storedCountDiff
 function addon:MAIL_INBOX_UPDATE()
 	self:Debug("MAIL_INBOX_UPDATE")
 	local newScan = addon:ScanMail()
 	local diff
 	for mailType, collection in pairs(self.lastMailScan) do
 		newScan[mailType] = (newScan[mailType] or {})
-		for item, total in pairs(collection) do
-
-			diff = total - (newScan[mailType][item] or 0)
-			if diff ~= 0 then
-				self:SaveValue(item, diff)
+		for itemName, data in pairs(collection) do
+			newScan[mailType][itemName] = (newScan[mailType][itemName] or {total=0,count=0})
+			local totalDiff = data.total - newScan[mailType][itemName].total
+			local countDiff = data.count - newScan[mailType][itemName].count
+			--[[
+				In one update the item will be taken and in the following update the invoice
+				will be gone. I need to store the item difference in order ot pass it into
+				SaveValue.
+			]]
+			if countDiff ~= 0 then
+				storedCountDiff = countDiff
+			end
+			
+			if totalDiff ~= 0 then
+				self:SaveValue(itemName, totalDiff, storedCountDiff)
+				storedCountDiff = 0
 			end
 
 		end
@@ -112,7 +124,7 @@ function addon:UpdateAudit()
 		self:Debug("purchase or sale")
 		
 		for link, count in pairs(diff.items) do
-			self:SaveValue(link, 0 - diff.money)
+			self:SaveValue(link, 0 - diff.money, count)
 		end
 	elseif self:tcount(diff.items) > 1 and self:tcount(positive) > 0 and self:tcount(negative) > 0 then
 		-- we must have created/converted something
@@ -121,7 +133,7 @@ function addon:UpdateAudit()
 		local totalChange = 0
 		for link, change in pairs(negative) do
 			local _, itemCost, count = self:GetItemCost(link, change)
-			self:SaveValue(link, itemCost * change)
+			self:SaveValue(link, itemCost * change, change)
 			
 			totalChange = totalChange + (itemCost * abs(change))
 		end
@@ -129,7 +141,7 @@ function addon:UpdateAudit()
 		local valuePerItem = totalChange / positiveCount
 		
 		for link, change in pairs(positive) do
-			self:SaveValue(link, valuePerItem * change)
+			self:SaveValue(link, valuePerItem * change, change)
 		end
 	else
 		self:Debug("No match in UpdateAudit.")
