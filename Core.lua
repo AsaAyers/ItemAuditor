@@ -166,15 +166,22 @@ function addon:ScanMail()
 		elseif mailType == "CODPayment" then	
 			itemName = msgSubject:gsub(utils.SubjectPatterns[mailType], function(item) return item end)
 			
-			results[mailType][itemName] = (results[mailType][itemName] or 0) - msgMoney
+			results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
+			results[mailType][itemName].total = results[mailType][itemName].total - msgMoney
 			
 		elseif mailType == "AHSuccess" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
-			results[mailType][itemName] = (results[mailType][itemName] or 0) - deposit - buyout + consignment
+			results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
+			results[mailType][itemName].total = results[mailType][itemName].total - deposit - buyout + consignment
+			
 
 		elseif mailType == "AHWon" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
-			results[mailType][itemName] = (results[mailType][itemName] or 0) + bid
+			results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
+			results[mailType][itemName].total = results[mailType][itemName].total + bid
+			
+			local count = select(3, GetInboxItem(1,1))
+			results[mailType][itemName].count = results[mailType][itemName].count + count
 		elseif mailType == "AHExpired" or mailType == "AHCancelled" or mailType == "AHOutbid" then
 			-- These should be handled when you pay the deposit at the AH
 		else
@@ -185,8 +192,8 @@ function addon:ScanMail()
 	end
 	
 	for mailType, collection in pairs(results) do
-		for item, total in pairs(collection) do
-			self:Debug(format("|cFF00FF00MailScan|r: %s - %s - %s", mailType, item, total))
+		for item, data in pairs(collection) do
+			self:Debug(format("|cFF00FF00MailScan|r: %s - %s - %s x %s", mailType, item, data.total, data.count))
 		end
 	end
 	
@@ -246,14 +253,15 @@ function addon:RemoveItem(link)
 	end
 end
 
-function addon:SaveValue(link, value)
-	self:Debug(format("SaveValue(%s, %s)", tostring(link), value))
+function addon:SaveValue(link, value, countChange)
+	self:Debug("SaveValue(%s, %s, %s)", tostring(link), value, (countChange or 'default'))
+	countChange = countChange or 0
 	local item = nil
 	local realLink = self:GetSafeLink(link)
 	local itemName = nil
 	if realLink == nil then
-		self:Debug('SaveValue: GetSafeLink failed, falling back to storing by name: ' .. tostring(itemName))
 		itemName = link
+		self:Debug('SaveValue: GetSafeLink failed, falling back to storing by name: ' .. tostring(itemName))
 		self.db.factionrealm.item_account[itemName] = (self.db.factionrealm.item_account[itemName] or 0) + value
 		item = {invested = self.db.factionrealm.item_account[itemName], count = 1}
 	else
@@ -261,6 +269,13 @@ function addon:SaveValue(link, value)
 		item = self:GetItem(realLink)
 		item.invested = item.invested + value
 		itemName = GetItemInfo(realLink)
+	end
+	
+	if value > 0 and countChange > 0 and item.invested == value and item.count ~= countChange then
+		local costPerItem = value / countChange
+		value = costPerItem * item.count
+		item.invested = value
+		self:Print("You already owned %s %s with an unknown price, so they have also been updated to %s each", (item.count - countChange), itemName, self:FormatMoney(costPerItem))
 	end
 	
 	if abs(value) > 0 then

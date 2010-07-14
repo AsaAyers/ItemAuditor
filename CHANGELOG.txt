@@ -1,3 +1,7 @@
+2010-07-14  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed Bug #9 - If existing items have 0c invested, increase them all to match the first transaction that changes their price.
+
 2010-07-11  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed a bug with the mail where items get recorded by the mail scanner and the bag scanner.
