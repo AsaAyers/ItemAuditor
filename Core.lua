@@ -232,12 +232,6 @@ function addon:GetItem(link, viewOnly)
 		
 	end
 	
-	if self.items[link] ~= nil then
-		if self.items[link].invested  == nil or self.items[link].invested <= 0 then
-			self.items[link] = nil
-		end
-	end
-	
 	if viewOnly == true and self.items[link] == nil then
 		return {count = 0, invested = 0}
 	elseif viewOnly == true then

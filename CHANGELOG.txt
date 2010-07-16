@@ -1,6 +1,7 @@
 2010-07-16  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Added an interface to be able to view what you have invested in. I still need to build a way to modify this information,
+- Bug fix
 
 2010-07-14  Asa Ayers  <Asa.Ayers@Gmail.com>
 
