@@ -20,3 +20,4 @@ Modules\Tooltip.lua
 Modules\Options.lua
 
 Modules\Debug.lua
+Modules\DisplayInvested.lua

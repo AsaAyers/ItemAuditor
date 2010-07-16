@@ -29,6 +29,9 @@ externals:
     Libs/AceTimer-3.0:
         url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTimer-3.0
         tag: latest
+    Libs/lib-st: 
+        url: svn://svn.wowace.com/wow/lib-st/mainline/trunk
+        tag: latest
 
 required-dependencies:
     - Altoholic

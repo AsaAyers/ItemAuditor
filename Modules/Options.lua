@@ -1,4 +1,4 @@
- local addonName, addonTable = ...; 
+local addonName, addonTable = ...; 
 local addon = _G[addonName]
 
 local utils = addonTable.utils
@@ -148,7 +148,14 @@ local options = {
 			desc = "Shows the debug frame",
 			func = function() ItemAuditor_DebugFrame:Show() end,
 			guiHidden = true,
-		}
+		},
+		invested = {
+			type = "execute",
+			name = "invested",
+			desc = "Shows what you have invested in",
+			func = "CreateFrames",
+			guiHidden = false,
+		},
 	},
 }
 
