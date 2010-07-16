@@ -33,8 +33,7 @@ externals:
         url: svn://svn.wowace.com/wow/lib-st/mainline/trunk
         tag: latest
 
-required-dependencies:
-    - Altoholic
+required-dependencies: Altoholic
 
 optional-dependencies:
     - QuickAuctions
