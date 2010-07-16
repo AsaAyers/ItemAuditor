@@ -27,7 +27,7 @@ local investedCols = {
 			end
 		end,
 	},
-	{ name= "Count", width = 50, defaultsort = "asc", },
+	{ name= "# owned", width = 50, align = "RIGHT", defaultsort = "asc", },
 }
 
 local investedTable = false
