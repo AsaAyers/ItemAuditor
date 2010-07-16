@@ -1,3 +1,7 @@
+2010-07-16  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Added an interface to be able to view what you have invested in. I still need to build a way to modify this information,
+
 2010-07-14  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed Bug #9 - If existing items have 0c invested, increase them all to match the first transaction that changes their price.
