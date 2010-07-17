@@ -1,7 +1,12 @@
+2010-07-17  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed a bug that occurs if you take a flight point and the first thing you kill only has one item. ItemAuditor was incorrectly attaching the cost fo the flight to the cost of that item.
+
 2010-07-16  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Added an interface to be able to view what you have invested in. I still need to build a way to modify this information,
 - Bug fix
+- Changed 'Count' to '# Owned' and made it right aligned.
 
 2010-07-14  Asa Ayers  <Asa.Ayers@Gmail.com>
 

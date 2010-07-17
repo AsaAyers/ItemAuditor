@@ -115,10 +115,11 @@ function addon:UpdateAudit()
 	end
 	
 	if positiveCount + negativeCount == 0 then
-		return
-	end
-	
-	if diff.money > 0 and self:tcount(positive) > 0 and self:tcount(negative) == 0 then
+		--[[
+			Nothing needs to be done, but this will prevent mistakenly attributing
+			the cost of flights to the first item you pick up.
+		]]
+	elseif diff.money > 0 and self:tcount(positive) > 0 and self:tcount(negative) == 0 then
 		self:Debug("loot")
 	elseif abs(diff.money) > 0 and self:tcount(diff.items) == 1 then
 		self:Debug("purchase or sale")
