@@ -1,6 +1,7 @@
 2010-07-18  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Added color coding to the minimum price tooltip. If your minimum price is below the current auction price, it wll be green, otherwise it is red.
+- Added the ability to change the price of an item. You can click the Total Invested or the Invested Each to change the value. 
 
 2010-07-17  Asa Ayers  <Asa.Ayers@Gmail.com>
 

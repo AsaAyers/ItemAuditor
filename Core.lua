@@ -248,7 +248,8 @@ function addon:RemoveItem(link)
 	self.db.factionrealm.item_account[link] = nil
 	link = self:GetSafeLink(link)
 	if link ~= nil then
-		self.items[link] = nil
+		local item = addon:GetItem(link)
+		item.invested = 0
 	else
 		self:Debug('Failed to convert link' .. tostring(link))
 	end
@@ -301,6 +302,7 @@ function addon:SaveValue(link, value, countChange)
 	if realLink ~= nil then
 		addon:UpdateQAThreshold(realLink)
 	end
+	UpdateInvestedData()
 end
 
 
@@ -356,5 +358,5 @@ function addon:GetItemCost(link, countModifier)
 		end
 		
 	end
-	return 0, 0, 0
+	return 0, 0, Altoholic:GetItemCount(ItemAuditor:GetIDFromLink(link))
 end
