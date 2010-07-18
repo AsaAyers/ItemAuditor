@@ -17,9 +17,20 @@ local function ShowTipWithPricing(tip, link, num)
 	local show = false
 
 	if investedTotal > 0 then
+		local suggestColor
+		local ap = addon:GetAuctionPrice(link)
+		if ap == nil then
+			suggestColor = nil
+		elseif ap > ceil(investedPerItem/keep) then
+			suggestColor = "|cFF00FF00" -- green
+		else
+			suggestColor = "|cFFFF0000" -- red
+		end
+	
+	
 		tip:AddDoubleLine("\124cffffffffIA: Total Invested", addon:FormatMoney(investedTotal));
 		tip:AddDoubleLine("\124cffffffffIA: Invested per Item (own: " .. count .. ")", addon:FormatMoney(ceil(investedPerItem)));
-		tip:AddDoubleLine("\124cffffffffIA: Minimum " .. addon:GetAHFaction() .. " AH Price: ", addon:FormatMoney(ceil(investedPerItem/keep)))
+		tip:AddDoubleLine("\124cffffffffIA: Minimum " .. addon:GetAHFaction() .. " AH Price: ", addon:FormatMoney(ceil(investedPerItem/keep), suggestColor))
 		show = true
 		
 	end

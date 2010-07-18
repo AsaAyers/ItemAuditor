@@ -1,3 +1,7 @@
+2010-07-18  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Added color coding to the minimum price tooltip. If your minimum price is below the current auction price, it wll be green, otherwise it is red.
+
 2010-07-17  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed a bug that occurs if you take a flight point and the first thing you kill only has one item. ItemAuditor was incorrectly attaching the cost fo the flight to the cost of that item.
