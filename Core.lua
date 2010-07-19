@@ -232,13 +232,17 @@ function addon:GetItem(link, viewOnly)
 		
 	end
 	
+	if self.items[link] ~= nil then
+		self.items[link].count =  Altoholic:GetItemCount(self:GetIDFromLink(link))
+	end
+	
 	if viewOnly == true and self.items[link] == nil then
 		return {count = 0, invested = 0}
 	elseif viewOnly == true then
 		
 		return {count = self.items[link].count, invested = self.items[link].invested}
 	end
-	self.items[link].count =  Altoholic:GetItemCount(self:GetIDFromLink(link))
+	
 	
 	
 	return self.items[link]
