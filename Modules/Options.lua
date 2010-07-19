@@ -156,8 +156,29 @@ local options = {
 			func = "CreateFrames",
 			guiHidden = false,
 		},
+		suspend = {
+			type = "toggle",
+			name = "suspend",
+			desc = "Suspends ItemAuditor",
+			get = "IsEnabled",
+			set = "SetEnabled",
+			guiHidden = true,
+		},
 	},
 }
+
+function addon:SetEnabled(info, enable)
+	self.db.profile.addon_enabled = enable
+	if enable == self:IsEnabled() then
+		-- do nothing
+	elseif enable then
+		self:Enable()
+		self:Print('ItemAuditor is enabled.')
+	else
+		self:Disable()
+		self:Print('ItemAuditor is supended and will not watch for any events. Use "/ia suspend" to turn it back on.')
+	end
+end
 
 function addon:RegisterOptions()
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ItemAuditor", "ItemAuditor")

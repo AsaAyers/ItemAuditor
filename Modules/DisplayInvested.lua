@@ -65,6 +65,7 @@ local function PromptForNewPrice(link, type)
 
 	if not promptFrame then
 		promptFrame = AceGUI:Create("Frame")
+		ItemAuditor:RegisterFrame(promptFrame)
 
 		local window = promptFrame.frame;
 		local width = 345
@@ -189,6 +190,7 @@ local function CreateFrames()
 	if not displayFrame then
 		-- Create the frame container
 		displayFrame = AceGUI:Create("Frame")
+		ItemAuditor:RegisterFrame(displayFrame)
 		local window = displayFrame.frame;
 		displayFrame:SetTitle("ItemAuditor")
 		displayFrame:SetStatusText("")

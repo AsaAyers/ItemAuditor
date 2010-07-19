@@ -3,13 +3,19 @@ local addon = _G[addonName]
 
 local utils = addonTable.utils
 
-function addon:PLAYER_ENTERING_WORLD()
+function addon:OnEnable()
 	self:RegisterEvent("MAIL_SHOW")
 	self:RegisterEvent("UNIT_SPELLCAST_START")
 	addon:UpdateCurrentInventory()
 	self:WatchBags()
 	
-	-- addon:ConvertItems()
+	self:SetEnabled(nil, self.db.profile.addon_enabled)
+end
+
+function addon:OnDisable()
+	self:UnwatchBags()
+	self:UnregisterAllEvents()
+	addon:HideAllFrames()
 end
  
  function addon:MAIL_SHOW()

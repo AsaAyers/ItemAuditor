@@ -3,6 +3,7 @@
 - Added color coding to the minimum price tooltip. If your minimum price is below the current auction price, it wll be green, otherwise it is red.
 - Added the ability to change the price of an item. You can click the Total Invested or the Invested Each to change the value. 
 - Fixed a bug where sometimes the number owned was not being updated, so you might have 3 of an item but it was calculating as if you only had 1.
+- Added the ability to suspend and resume ItemAuditor (Ticket #8). To access this feature use "/ia suspend".
 
 2010-07-17  Asa Ayers  <Asa.Ayers@Gmail.com>
 

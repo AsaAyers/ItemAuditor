@@ -27,6 +27,7 @@ function addon:OnInitialize()
 				cost_updates = true,
 				queue_skip = false,
 			},
+			addon_enabled = true,
 			-- This is for development, so I have no plans to turn it into an option.
 			show_debug_frame_on_startup = false,
 		},
@@ -40,13 +41,50 @@ function addon:OnInitialize()
 	self.items = self.db.factionrealm.items
 	
 	self:RegisterOptions()
-	
-	self:RegisterEvent("PLAYER_ENTERING_WORLD")
+	ItemAuditor:RegisterFrame(ItemAuditor_DebugFrame)
 	
 	-- /run ItemAuditor.db.profile.show_debug_frame_on_startup = true
 	if self.db.profile.show_debug_frame_on_startup then
 		ItemAuditor_DebugFrame:Show()
 		self:CreateFrames()
+	end
+end
+
+local registeredEvents = {}
+local originalRegisterEvent = addon.RegisterEvent 
+function addon:RegisterEvent(event, callback, arg)
+	registeredEvents[event] = true
+	if arg ~= nil then
+		return originalRegisterEvent(self, event, callback, arg)
+	elseif callback ~= nil then
+		return originalRegisterEvent(self, event, callback)
+	else
+		return originalRegisterEvent(self, event)
+	end
+end
+
+local originalUnregisterEvent = addon.UnregisterEvent
+function addon:UnregisterEvent(event)
+	registeredEvents[event] = nil
+        return originalUnregisterEvent(self, event)
+end
+
+function addon:UnregisterAllEvents()
+	for event in pairs(registeredEvents) do
+		self:UnregisterEvent(event)
+	end
+end
+
+local registeredFrames = {}
+function addon:RegisterFrame(frame)
+	tinsert(registeredFrames, frame)
+end
+
+function addon:HideAllFrames()
+	for key, frame in pairs(registeredFrames) do
+		if frame then
+			frame:Hide()
+		end
 	end
 end
 
