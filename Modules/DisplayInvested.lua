@@ -51,61 +51,83 @@ local function SaveNewValue(link, type, text)
 	promptFrame:Hide()
 end
 
+StaticPopupDialogs["ItemAuditor_NewPrice"] = {
+	text = "New price %s %s",
+	button1 = SAVE,
+	button2 = CANCEL,
+	hasEditBox = 1,
+	showAlert = 1,
+	OnAccept = function()
+		skipCODTracking = true
+	end,
+	EditBoxOnEnterPressed = function()
+		if ( getglobal(this:GetParent():GetName().."Button1"):IsEnabled() == 1 ) then
+			getglobal(this:GetParent():GetName().."Button1"):Click()
+		end
+	end,
+	EditBoxOnTextChanged = function ()
+		local parentName = this:GetParent():GetName()
+		local editBox = getglobal( parentName.."EditBox");
+		local value = editBox:GetText()
+		if validateMoney(value) then
+			getglobal(parentName.."Button1"):Enable();
+		else
+			getglobal(parentName.."Button1"):Disable();
+		end
+	end,
+	EditBoxOnEscapePressed = function()
+		this:GetParent():Hide();
+		ClearCursor();
+	end,
+	timeout = 0,
+	hideOnEscape = 1,
+	exclusive = true,
+}
 
 local function PromptForNewPrice(link, type)
+	-- function(widget, event, text) SaveNewValue(link, type, text) end
 	local investedTotal, investedPerItem, count = ItemAuditor:GetItemCost(link)
-	local itemName, displayLink = GetItemInfo(link)
-	local priceDesc = " Invested Each:"
+
+	local typeText = "Invested Each"
 	local price = investedPerItem
-	
 	if type == priceTypeTotal then
-		priceDesc = " Invested Total:"
+		typeText = "Invested Total"
 		price = investedTotal
+
 	end
-
-	if not promptFrame then
-		promptFrame = AceGUI:Create("Frame")
-		ItemAuditor:RegisterFrame(promptFrame)
-
-		local window = promptFrame.frame;
-		local width = 345
-		local height = 115
-		window:SetWidth(width )
-		window:SetHeight(height )
-		window:SetMinResize(width, height)
-		window:SetMaxResize(width, height)
-		
-		promptFrame:SetTitle("ItemAuditor")
-		promptFrame:SetStatusText("Status Here")
-		promptFrame:SetCallback("OnClose", function(widget) AceGUI:Release(widget); promptFrame = false end)
-		promptFrame:SetLayout("Flow")
-
-		promptFrame.editbox = AceGUI:Create("EditBox")
-		promptFrame.editbox:SetWidth(300)
-		promptFrame:AddChild(promptFrame.editbox)
-	end
-	promptFrame.editbox:SetCallback("OnEnterPressed", function(widget, event, text) SaveNewValue(link, type, text) end)
-	promptFrame:SetStatusText("Current Price: "..ItemAuditor:FormatMoney(price))
-	promptFrame.editbox:SetLabel(displayLink..priceDesc)
-	promptFrame.editbox:SetText(ItemAuditor:FormatMoney(price, "", true))
 	
-	promptFrame:Show()
-	editBox = promptFrame.editbox
+	StaticPopupDialogs["ItemAuditor_NewPrice"].text = format("Update %s: %s|nThe current value is %s", typeText, link, ItemAuditor:FormatMoney(price))
+	
+	StaticPopupDialogs["ItemAuditor_NewPrice"].OnShow = function (self, data)
+		self.editBox:SetText(ItemAuditor:FormatMoney(price, '', true))
+	end
+	
+	StaticPopupDialogs["ItemAuditor_NewPrice"].OnAccept = function()
+		local name = this:GetParent():GetName().."EditBox"
+		local button = getglobal(name)
+		local newValue = button:GetText()
+		newValue = parseMoney(newValue)
+		
+		local investedTotal, investedPerItem, numOwned = ItemAuditor:GetItemCost(link)
+		
+		if type == priceTypeEach then
+			newValue = newValue * numOwned
+		end
+		
+		ItemAuditor:SaveValue(link, newValue-investedTotal, 0)
+	end
+	StaticPopup_Show ("ItemAuditor_NewPrice", link, 'two');
 end
 
 local function displayMoney(rowFrame, cellFrame, data, cols, row, realrow, column, fShow, table, ...)
 	if fShow == true then
 		local money = data[realrow][column]
-		if money == nil then
-			cellFrame.text:SetText("None")
-		else
-			cellFrame.text:SetText(ItemAuditor:FormatMoney(data[realrow][column]))
-		end
+		cellFrame.text:SetText(ItemAuditor:FormatMoney(data[realrow][column]))
 	end
 end
 
 local investedCols = {
-	{ name= "Item", width = 200, 
+	{ name= "Item", width = 200, defaultsort = "desc",
 		['DoCellUpdate'] = function(rowFrame, cellFrame, data, cols, row, realrow, column, fShow, table, ...)
 			if fShow == true then
 				local _, link= strsplit("|", data[realrow][column], 2)
@@ -119,7 +141,7 @@ local investedCols = {
 	{ name= "Invested Each", width = 100, align = "RIGHT", 
 		['DoCellUpdate'] = displayMoney,
 	},
-	{ name= "# Owned", width = 50, align = "RIGHT", defaultsort = "asc", },
+	{ name= "# Owned", width = 50, align = "RIGHT", },
 }
 
 local investedTable = false
@@ -192,6 +214,8 @@ local function CreateFrames()
 		displayFrame = AceGUI:Create("Frame")
 		ItemAuditor:RegisterFrame(displayFrame)
 		local window = displayFrame.frame;
+		-- I have no idea why AceGUI insists on using FULLSCREEN_DIALOG by default.
+		window:SetFrameStrata("MEDIUM")
 		displayFrame:SetTitle("ItemAuditor")
 		displayFrame:SetStatusText("")
 
