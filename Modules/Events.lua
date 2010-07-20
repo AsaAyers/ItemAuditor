@@ -48,6 +48,7 @@ function addon:GenerateBlankOutbox()
 	end
 end
 
+local attachedItems = {}
 local Orig_SendMail = SendMail
 
 function SendMail(recipient, subject, body, ...)
@@ -58,44 +59,56 @@ function SendMail(recipient, subject, body, ...)
 	
 	self.mailOutbox.COD = GetSendMailCOD()
 	
-	if self.mailOutbox.COD == 0 then
-		self:Debug("Non-COD mail")
-		return Orig_SendMail(recipient, subject, body, ...)
-	end
-	
-	subject = format("[IA: %s] %s", self.mailOutbox.key, subject)
-	self.mailOutbox.subject = subject
-	self.mailOutbox.to = recipient
-	
-	self.mailOutbox.count  = 0
+	attachedItems = {}
+	local totalStacks = 0
 	local link
-	for index = 1, 12 do
+	for index = 1, ATTACHMENTS_MAX_SEND do
 		local itemName, _, itemCount = GetSendMailItem(index)
 		local newLink = GetSendMailItemLink(index)
 		
-		if link == nil then
-			link = newLink
+		if newLink ~= nil then
+			newLink = self:GetSafeLink(newLink)
+			totalStacks = totalStacks + 1
+			attachedItems[newLink] = (attachedItems[newLink] or {stacks = 0, count = 0})
+			attachedItems[newLink].stacks = attachedItems[newLink].stacks + 1
+			attachedItems[newLink].count = attachedItems[newLink].count + itemCount
+			attachedItems[newLink].price = 0 -- This is a placeholder for below.
 		end
-		
-		if newLink ~= nil and self:GetIDFromLink(newLink) ~= self:GetIDFromLink(link) then
-			self:Print(self:GetIDFromLink(newLink))
-			self:Print(self:GetIDFromLink(link))
-			
-			self:Print("WARNING: ItemAuditor can't track COD mail with more than one item type.")
-			self:GenerateBlankOutbox()
-			return
-		end
-		self.mailOutbox.link = link 
-		self.mailOutbox.count = self.mailOutbox.count + itemCount
-		
+	end
+	local pricePerStack = GetSendMailPrice() / totalStacks
+	for link, data in pairs(attachedItems) do
+		data.price = pricePerStack * data.stacks
 	end
 	
-	-- self:MAIL_SUCCESS("Mock Success")
+	if self.mailOutbox.COD > 0 then
+		if self:tcount(attachedItems) > 1 then
+			self:Print("ERROR: ItemAuditor can't track COD mail with more than one item type.")
+			self:GenerateBlankOutbox()
+			-- I need to make a prompt so the user can send the mail without interference
+			return
+		end
+		self:Debug("COD mail")
+		
+		subject = format("[IA: %s] %s", self.mailOutbox.key, subject)
+		self.mailOutbox.subject = subject
+		self.mailOutbox.to = recipient
+		
+		-- At this point we know there is only one item
+		for link, data in pairs(attachedItems) do
+			self.mailOutbox.link = link 
+			self.mailOutbox.count = data.count
+		end
+	else
+		self:Debug("Non-COD mail")
+	end
+
 	return Orig_SendMail(recipient, subject, body, ...)
 end
 
 function addon:MAIL_SUCCESS(event)
-
+	for link, data in pairs(attachedItems) do
+		self:SaveValue(link, data.price, data.count)
+	end
 	if self.mailOutbox.COD > 0 then
 		self:Debug(format("MAIL_SUCCESS %d [To: %s] [Subject: %s] [COD: %s]", self.mailOutbox.key, self.mailOutbox.to, self.mailOutbox.subject, self.mailOutbox.COD))
 		
@@ -103,12 +116,8 @@ function addon:MAIL_SUCCESS(event)
 		self.db.factionrealm.outbound_cod[self.mailOutbox.key] = self.mailOutbox
 	end
 	
-	self.mailOutbox = {
-		to = "",
-		subject = "",
-		items = {},
-		COD = 0,
-	}
+	
+	self:GenerateBlankOutbox()
 end
 
 function addon:MAIL_CLOSED()

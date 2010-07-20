@@ -46,9 +46,6 @@ local function calculateQAThreshold(copper)
 	-- GetAuctionThreshold returns a percent as a whole number. This will convert 25 to 1.25
 	copper = copper *  (1+addon:GetAuctionThreshold())
 	
-	-- Adding the cost of mailing every item once.
-	copper = copper + 30
-	
 	-- add AH Cut
 	local keep = 1 - addon:GetAHCut()
 	return copper/keep
