@@ -3,6 +3,8 @@
 - Implemented COD mail (Ticket #1) and updated the way postage was counted so that if you mail multiple items at once, they will all have the postage counted. I also removed the 30c for postage from how QA thresholds are calculated now that they will be counted every time.
 - Added a dialog to allow the user to send COD mail without a tracking number.
 - Replaced my edit window with a static popup. This looks and behaves better this way.
+- Fixed a couple nil related bugs
+- Fixed the way prices were being calculated as items were being created/destroyed/converted/crafted
 
 2010-07-18  Asa Ayers  <Asa.Ayers@Gmail.com>
 
