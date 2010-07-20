@@ -34,23 +34,6 @@ local function parseMoney(value)
 	
 end
 
-local function SaveNewValue(link, type, text)
-	if not validateMoney(text) then
-		error("Invalid value")
-	end
-	local investedTotal, investedPerItem, numOwned = ItemAuditor:GetItemCost(link)
-	local newValue=parseMoney(text)
-	
-	if type == priceTypeEach then
-		newValue = newValue * numOwned
-	end
-	
-	ItemAuditor:SaveValue(link, newValue-investedTotal, 0)
-	-- ItemAuditor:SaveValue(link, newValue, 0)
-	
-	promptFrame:Hide()
-end
-
 StaticPopupDialogs["ItemAuditor_NewPrice"] = {
 	text = "New price %s %s",
 	button1 = SAVE,
@@ -85,7 +68,6 @@ StaticPopupDialogs["ItemAuditor_NewPrice"] = {
 }
 
 local function PromptForNewPrice(link, type)
-	-- function(widget, event, text) SaveNewValue(link, type, text) end
 	local investedTotal, investedPerItem, count = ItemAuditor:GetItemCost(link)
 
 	local typeText = "Invested Each"
