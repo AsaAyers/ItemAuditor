@@ -50,6 +50,19 @@ end
 
 local attachedItems = {}
 local Orig_SendMail = SendMail
+local skipCODTracking = false
+
+StaticPopupDialogs["ItemAuditor_Send_COD_without_tracking_number"] = {
+	text = "ItemAuditor cannot track COD mail with multiple item types attached. Do you want to send this mail without tracking?",
+	button1 = "Yes",
+	button2 = "No",
+	OnAccept = function()
+		skipCODTracking = true
+	end,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+}
 
 function SendMail(recipient, subject, body, ...)
 	local self = ItemAuditor
@@ -80,11 +93,18 @@ function SendMail(recipient, subject, body, ...)
 		data.price = pricePerStack * data.stacks
 	end
 	
-	if self.mailOutbox.COD > 0 then
+	if self.mailOutbox.COD > 0 and skipCODTracking then
+		
+	elseif self.mailOutbox.COD > 0 then
 		if self:tcount(attachedItems) > 1 then
-			self:Print("ERROR: ItemAuditor can't track COD mail with more than one item type.")
 			self:GenerateBlankOutbox()
-			-- I need to make a prompt so the user can send the mail without interference
+			local vararg = ...
+			StaticPopupDialogs["ItemAuditor_Send_COD_without_tracking_number"].OnAccept = function()
+				skipCODTracking = true
+				SendMail(recipient, subject, body, vararg)
+				skipCODTracking = false
+			end
+			StaticPopup_Show ("ItemAuditor_Send_COD_without_tracking_number");
 			return
 		end
 		self:Debug("COD mail")
@@ -106,6 +126,7 @@ function SendMail(recipient, subject, body, ...)
 end
 
 function addon:MAIL_SUCCESS(event)
+	skipCODTracking = false
 	for link, data in pairs(attachedItems) do
 		self:SaveValue(link, data.price, data.count)
 	end

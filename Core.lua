@@ -220,10 +220,11 @@ function addon:ScanMail()
 			local trackID
 			if outboundSubject ~= nil then
 				self:Debug(outboundSubject)
-				trackID = tonumber(select(3, outboundSubject:find('[[]IA: (%d*)[]]')))
+				trackID = select(3, outboundSubject:find('[[]IA: (%d*)[]]'))
 				
-				self:Debug('COD ID: %s', trackID)
 				if trackID ~= nil then
+					trackID = tonumber(trackID)
+					self:Debug('COD ID: %s', trackID)
 					local cod = self.db.factionrealm.outbound_cod[trackID]
 					if cod == nil then
 						skipMail[mailSignature] = true
@@ -308,6 +309,10 @@ function addon:GetItem(link, viewOnly)
 	
 	if self.items[link] ~= nil then
 		self.items[link].count =  Altoholic:GetItemCount(self:GetIDFromLink(link))
+		
+		if self.items[link].invested == nil then
+			self.items[link].invested = 0
+		end
 	end
 	
 	if viewOnly == true and self.items[link] == nil then
@@ -432,7 +437,7 @@ function addon:GetItemCost(link, countModifier)
 			count = count - countModifier
 		end
 		if count > 0 then 
-			return ceil(item.invested), ceil(item.invested/item.count), count
+			return ceil(item.invested), ceil(item.invested/count), count
 		end
 		
 	end
