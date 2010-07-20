@@ -1,8 +1,6 @@
 local addonName, addonTable = ...; 
 local addon = _G[addonName]
 
-local utils = addonTable.utils
-
 local currentFaction = UnitFactionGroup("player")
 local AHFactions = { currentFaction, 'Neutral' }
 
@@ -226,13 +224,6 @@ end
 function addon:GetAHFaction()
 	return AHFactions[ItemAuditor.db.char.ah]
 end
-
-function addon:DumpInfo()
-	for itemName, value in pairsByKeys(self.db.factionrealm.item_account) do
-		self:Print(itemName .. ": " .. self:FormatMoney(value))
-	end
-end
-
 
 function addon:ShowOptionsGUI()
 	InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)

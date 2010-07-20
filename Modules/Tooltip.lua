@@ -1,8 +1,6 @@
 local addonName, addonTable = ...; 
 local addon = _G[addonName]
 
-local utils = addonTable.utils
-
 local function ShowTipWithPricing(tip, link, num)
 	if (link == nil) then
 		return;

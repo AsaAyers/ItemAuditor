@@ -1,9 +1,6 @@
 local addonName, addonTable = ...; 
 local addon = _G[addonName]
 
-addonTable.utils = addon
-IAUtils = addon
-
 function addon:FormatMoney(copper, color, textOnly)
 	color = color or "|cFFFFFFFF"
 	local prefix = ""

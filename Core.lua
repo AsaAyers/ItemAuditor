@@ -3,9 +3,6 @@ _G[addonName] = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "Ace
 local addon = _G[addonName]
 addonTable.ItemAuditor = addon
 
-local utils = addonTable.utils
-
-
 local WHITE		= "|cFFFFFFFF"
 local RED		= "|cFFFF0000"
 local GREEN		= "|cFF00FF00"
@@ -34,6 +31,7 @@ function addon:OnInitialize()
 		factionrealm = {
 			item_account = {},
 			items = {},
+			outbound_cod = {},
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
@@ -169,20 +167,23 @@ function addon:GetInventoryDiff(pastInventory, current)
 	return {items = diff, money = moneyDiff}
 end
 
-
-
+local inboundCOD = {}
+local skipMail = {}
 function addon:ScanMail()
 	local results = {}
+	local CODPaymentRegex = gsub(COD_PAYMENT, "%%s", "(.*)")
+	
 	for mailIndex = 1, GetInboxNumItems() or 0 do
-		local sender, msgSubject, msgMoney, msgCOD, _, msgItem, _, _, msgText, _, isGM = select(3, GetInboxHeaderInfo(mailIndex))
+		local sender, msgSubject, msgMoney, msgCOD, daysLeft, msgItem, _, _, msgText, _, isGM = select(3, GetInboxHeaderInfo(mailIndex))
 		local mailType = self:GetMailType(msgSubject)
+		
+		local mailSignature = msgSubject .. '-' .. msgMoney .. '-' .. msgCOD .. '-' .. daysLeft
 		
 		results[mailType] = (results[mailType] or {})
 		
-		if mailType == "NonAHMail" then
-			--[[
-			and msgCOD > 0 
-			
+		if skipMail[mailSignature] ~= nil then
+			-- do nothing
+		elseif mailType == "NonAHMail" and msgCOD > 0 then
 			mailType = 'COD'
 			results[mailType] = (results[mailType] or {})
 			
@@ -190,23 +191,58 @@ function addon:ScanMail()
 			for itemIndex = 1, ATTACHMENTS_MAX_RECEIVE do
 				local itemName, _, count, _, _= GetInboxItem(mailIndex, itemIndex)
 				if itemName ~= nil then
-					itemTypdes[itemName] = (itemTypes[itemName] or 0) + count
+					itemTypes[itemName] = (itemTypes[itemName] or 0) + count
 				end
 			end
 			
 			if self:tcount(itemTypes) == 1 then
 				for itemName, count in pairs(itemTypes) do
-					results[mailType][itemName] = (results[mailType][itemName] or 0) - msgCOD
+					results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
+					results[mailType][itemName].total = results[mailType][itemName].total + msgCOD
+					
+					if inboundCOD[mailSignature] == nil then
+						results[mailType][itemName].count = results[mailType][itemName].count + count
+						inboundCOD[mailSignature] = (inboundCOD[mailSignature] or 0) + count
+					else
+						results[mailType][itemName].count = inboundCOD[mailSignature]
+					end
+					
+					
 				end
 			else
 				self:Debug("Don't know what to do with more than one item type on COD mail.")
 			end
-			]]
 		elseif mailType == "CODPayment" then	
-			itemName = msgSubject:gsub(utils.SubjectPatterns[mailType], function(item) return item end)
+			-- /dump ItemAuditor.db.factionrealm.outbound_cod
+			self:Debug(msgSubject)
+			self:Debug(CODPaymentRegex)
+			local outboundSubject = select(3, msgSubject:find(CODPaymentRegex))
+			local trackID
+			if outboundSubject ~= nil then
+				self:Debug(outboundSubject)
+				trackID = tonumber(select(3, outboundSubject:find('[[]IA: (%d*)[]]')))
+				
+				self:Debug('COD ID: %s', trackID)
+				if trackID ~= nil then
+					local cod = self.db.factionrealm.outbound_cod[trackID]
+					if cod == nil then
+						skipMail[mailSignature] = true
+						self:Print("WARNING: {%s} has an invalid ItemAuditor tracking number.", msgSubject)
+					else
+						itemName = trackID .. "|" .. cod['link']
+						
+						
+						results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
+						results[mailType][itemName].total = results[mailType][itemName].total - msgMoney
+						results[mailType][itemName].count = results[mailType][itemName].count - cod.count
+					end
+				end
+			end
 			
-			results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
-			results[mailType][itemName].total = results[mailType][itemName].total - msgMoney
+			if trackID == nil then
+				skipMail[mailSignature] = true
+				self:Print("WARNING: {%s} is a COD payment but doesn't have an ItemAuditor tracking number.", msgSubject)
+			end
 			
 		elseif mailType == "AHSuccess" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);

@@ -1,8 +1,6 @@
 local addonName, addonTable = ...; 
 local addon = _G[addonName]
 
-local utils = addonTable.utils
-
 function addon:OnEnable()
 	self:RegisterEvent("MAIL_SHOW")
 	self:RegisterEvent("UNIT_SPELLCAST_START")
@@ -20,12 +18,97 @@ end
  
  function addon:MAIL_SHOW()
 	self:Debug("MAIL_SHOW")
+	self:UnwatchBags()
 	addon:UpdateCurrentInventory()
 	self.lastMailScan = self:ScanMail()
 	
 	self:UnregisterEvent("MAIL_SHOW")
 	self:RegisterEvent("MAIL_CLOSED")
 	self:RegisterEvent("MAIL_INBOX_UPDATE")
+	
+	self:GenerateBlankOutbox()
+	
+	self:RegisterEvent("MAIL_SUCCESS")
+end
+
+function addon:GenerateBlankOutbox()
+	self.mailOutbox = {
+		from = UnitName("player"),
+		to = "",
+		subject = "",
+		link = '',
+		count = 0,
+		COD = 0,
+		key = random(10000),
+		sent = 0,
+	}
+	
+	if self.db.factionrealm.outbound_cod[self.mailOutbox.key] ~= nil then
+		return self:GenerateBlankOutbox()
+	end
+end
+
+local Orig_SendMail = SendMail
+
+function SendMail(recipient, subject, body, ...)
+	local self = ItemAuditor
+	self:GenerateBlankOutbox()
+
+	self:Debug(format("[To: %s] [Subject: %s]", recipient, subject))
+	
+	self.mailOutbox.COD = GetSendMailCOD()
+	
+	if self.mailOutbox.COD == 0 then
+		self:Debug("Non-COD mail")
+		return Orig_SendMail(recipient, subject, body, ...)
+	end
+	
+	subject = format("[IA: %s] %s", self.mailOutbox.key, subject)
+	self.mailOutbox.subject = subject
+	self.mailOutbox.to = recipient
+	
+	self.mailOutbox.count  = 0
+	local link
+	for index = 1, 12 do
+		local itemName, _, itemCount = GetSendMailItem(index)
+		local newLink = GetSendMailItemLink(index)
+		
+		if link == nil then
+			link = newLink
+		end
+		
+		if newLink ~= nil and self:GetIDFromLink(newLink) ~= self:GetIDFromLink(link) then
+			self:Print(self:GetIDFromLink(newLink))
+			self:Print(self:GetIDFromLink(link))
+			
+			self:Print("WARNING: ItemAuditor can't track COD mail with more than one item type.")
+			self:GenerateBlankOutbox()
+			return
+		end
+		self.mailOutbox.link = link 
+		self.mailOutbox.count = self.mailOutbox.count + itemCount
+		
+	end
+	
+	-- self:MAIL_SUCCESS("Mock Success")
+	return Orig_SendMail(recipient, subject, body, ...)
+end
+
+function addon:MAIL_SUCCESS(event)
+
+	if self.mailOutbox.COD > 0 then
+		self:Debug(format("MAIL_SUCCESS %d [To: %s] [Subject: %s] [COD: %s]", self.mailOutbox.key, self.mailOutbox.to, self.mailOutbox.subject, self.mailOutbox.COD))
+		
+		self.mailOutbox.sent = time()
+		self.db.factionrealm.outbound_cod[self.mailOutbox.key] = self.mailOutbox
+	end
+	
+	self.mailOutbox = {
+		to = "",
+		subject = "",
+		items = {},
+		COD = 0,
+	}
 end
 
 function addon:MAIL_CLOSED()
@@ -34,6 +117,7 @@ function addon:MAIL_CLOSED()
 	self:MAIL_INBOX_UPDATE()
 	self:UnregisterEvent("MAIL_INBOX_UPDATE")
 	self:RegisterEvent("MAIL_SHOW")
+	self:WatchBags()
 end
 
 local storedCountDiff
@@ -41,6 +125,7 @@ function addon:MAIL_INBOX_UPDATE()
 	self:Debug("MAIL_INBOX_UPDATE")
 	local newScan = addon:ScanMail()
 	local diff
+	
 	for mailType, collection in pairs(self.lastMailScan) do
 		newScan[mailType] = (newScan[mailType] or {})
 		for itemName, data in pairs(collection) do
@@ -57,6 +142,12 @@ function addon:MAIL_INBOX_UPDATE()
 			end
 			
 			if totalDiff ~= 0 then
+				if mailType == "CODPayment" then
+					local trackID
+					trackID, itemName= strsplit("|", itemName, 2)
+					self.db.factionrealm.outbound_cod[tonumber(trackID)] = nil
+					self:Debug("Removing COD Tracker: " .. trackID)
+				end
 				self:SaveValue(itemName, totalDiff, storedCountDiff)
 				storedCountDiff = 0
 			end
