@@ -224,6 +224,41 @@ function addon:UpdateCurrentInventory()
 	self.lastInventory = self:GetCurrentInventory()
 end
 
+local function distributeValueByAHValue(self, totalValue, targetItems)
+	
+	local weights = {}
+	local totalWeight = 0
+	for link, change in pairs(targetItems) do
+		--[[ 
+			If something has never been seen on the AH, it must not be very valuable.
+			I'm using 1c so it doesn't have much weight and I can't get a devided by zero error.
+			The only time I know that this is a problem is when crafting a BOP item, and it 
+			is always crafted 1 at a time, so a weight of 1 will work.
+		]]
+		local ap = (addon:GetAuctionPrice(link) or 1)
+		totalWeight = totalWeight + ap
+		weights[link] = ap
+	end
+	
+	local valuePerPoint = totalValue / totalWeight
+	
+	for link, change in pairs(targetItems) do
+		self:SaveValue(link, weights[link] * valuePerPoint, change)
+	end
+end
+
+local function distributeValue(self, totalValue, targetItems)
+	if true then
+		return distributeValueByAHValue(self, totalValue, targetItems)
+	else
+		local valuePerItem = totalChange / positiveCount
+			
+		for link, change in pairs(targetItems) do
+			self:SaveValue(link, valuePerItem * change, change)
+		end
+	end
+end
+
 function addon:UpdateAudit()
 	-- self:Debug("UpdateAudit " .. event)
 	local currentInventory = self:GetCurrentInventory()
@@ -266,11 +301,7 @@ function addon:UpdateAudit()
 			totalChange = totalChange + (itemCost * abs(change))
 		end
 		
-		local valuePerItem = totalChange / positiveCount
-		
-		for link, change in pairs(positive) do
-			self:SaveValue(link, valuePerItem * change, change)
-		end
+		distributeValue(self, totalChange, positive)
 	else
 		self:Debug("No match in UpdateAudit.")
 	end

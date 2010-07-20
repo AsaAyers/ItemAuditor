@@ -98,7 +98,7 @@ local function PromptForNewPrice(link, type)
 		
 		ItemAuditor:SaveValue(link, newValue-investedTotal, 0)
 	end
-	StaticPopup_Show ("ItemAuditor_NewPrice", link, 'two');
+	StaticPopup_Show ("ItemAuditor_NewPrice");
 end
 
 local function displayMoney(rowFrame, cellFrame, data, cols, row, realrow, column, fShow, table, ...)
