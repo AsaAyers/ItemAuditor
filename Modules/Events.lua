@@ -224,7 +224,7 @@ function addon:UpdateCurrentInventory()
 	self.lastInventory = self:GetCurrentInventory()
 end
 
-local function distributeValueByAHValue(self, totalValue, targetItems)
+local function distributeValue(self, totalValue, targetItems)
 	
 	local weights = {}
 	local totalWeight = 0
@@ -244,18 +244,6 @@ local function distributeValueByAHValue(self, totalValue, targetItems)
 	
 	for link, change in pairs(targetItems) do
 		self:SaveValue(link, weights[link] * valuePerPoint, change)
-	end
-end
-
-local function distributeValue(self, totalValue, targetItems)
-	if true then
-		return distributeValueByAHValue(self, totalValue, targetItems)
-	else
-		local valuePerItem = totalChange / positiveCount
-			
-		for link, change in pairs(targetItems) do
-			self:SaveValue(link, valuePerItem * change, change)
-		end
 	end
 end
 
