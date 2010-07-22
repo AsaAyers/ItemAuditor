@@ -1,5 +1,9 @@
 2010-07-21  Asa Ayers  <Asa.Ayers@Gmail.com>
 
+- Fixed a bug where if you attached money and items to a piece of mail it would count all of the money as postage.
+
+2010-07-21  Asa Ayers  <Asa.Ayers@Gmail.com>
+
 - Fixed the way prices were being calculated as items were being created/destroyed/converted/crafted. see http://www.wowace.com/addons/itemauditor/tickets/7-create-options-for-how-to-distribute-value-when-creating/
 
 2010-07-18  Asa Ayers  <Asa.Ayers@Gmail.com>

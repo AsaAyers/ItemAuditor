@@ -88,9 +88,8 @@ function SendMail(recipient, subject, body, ...)
 			attachedItems[newLink].price = 0 -- This is a placeholder for below.
 		end
 	end
-	local pricePerStack = GetSendMailPrice() / totalStacks
 	for link, data in pairs(attachedItems) do
-		data.price = pricePerStack * data.stacks
+		data.price = 30 * data.stacks
 	end
 	
 	if self.mailOutbox.COD > 0 and skipCODTracking then
