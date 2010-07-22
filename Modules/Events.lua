@@ -235,15 +235,14 @@ local function distributeValue(self, totalValue, targetItems)
 			The only time I know that this is a problem is when crafting a BOP item, and it 
 			is always crafted 1 at a time, so a weight of 1 will work.
 		]]
-		local ap = (addon:GetAuctionPrice(link) or 1)
+		local ap = (addon:GetAuctionPrice(link) or 1) * change
 		totalWeight = totalWeight + ap
 		weights[link] = ap
 	end
 	
-	local valuePerPoint = totalValue / totalWeight
-	
 	for link, change in pairs(targetItems) do
-		self:SaveValue(link, weights[link] * valuePerPoint, change)
+		local value = totalValue * (weights[link]/totalWeight)
+		self:SaveValue(link, value, change)
 	end
 end
 
