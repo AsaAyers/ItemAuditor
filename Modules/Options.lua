@@ -50,7 +50,10 @@ end
 
 function addon:GetSelectedChatWindow()
 	if not selectedWindow then
-		selectedWindow = _G["ChatFrame"..self:GetChatWindowIndex()]
+		local index = self:GetChatWindowIndex()
+		if index then
+			selectedWindow = _G["ChatFrame"..index]
+		end
 	end
 	if (selectedWindow) then
 		return selectedWindow
