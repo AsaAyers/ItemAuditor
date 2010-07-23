@@ -18,6 +18,7 @@ function addon:OnInitialize()
 			use_quick_auctions = false,
 			crafting_threshold = 1,
 			auction_threshold = 0.15,
+			output_chat_frame = nil,
 		},
 		profile = {
 			messages = {
@@ -109,8 +110,7 @@ end
 local printPrefix = "|cFFA3CEFFItemAuditor|r: "
 function addon:Print(message, ...)
 	message = format(message, ...)
-	DEFAULT_CHAT_FRAME:AddMessage( printPrefix .. tostring(message))
-	self:Log(message)
+	self:GetSelectedChatWindow():AddMessage( printPrefix .. tostring(message))
 end
 
 function addon:GetCurrentInventory()

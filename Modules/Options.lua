@@ -12,6 +12,52 @@ for key, value in pairs(craftingThresholds) do
 	-- craftingThresholdsDisplay[key] = value
 end
 
+local windowIndex = nil
+function addon:GetChatWindowList()
+	local windows = {}
+	for i=1, NUM_CHAT_WINDOWS do
+		local name, _, _, _, _, _, shown, locked, docked = GetChatWindowInfo(i)
+		if (name ~= "") and (docked or shown) then
+			windows[i] = name
+		end
+	end
+	return windows
+end
+
+function addon:GetChatWindowIndex()
+	local cf = self.db.char.output_chat_frame
+	if not windowIndex then
+		for i=1, NUM_CHAT_WINDOWS do
+			local name, _, _, _, _, _, shown, locked, docked = GetChatWindowInfo(i)
+			if name ~= "" and cf ~= nil and cf == name then
+				self:SetChatWindow(nil, i)
+			end
+		end
+	end
+	return windowIndex 
+end
+
+
+local selectedWindow = nil
+
+function addon:SetChatWindow(info, index)
+	windowIndex = index
+	local name = GetChatWindowInfo(windowIndex)
+	
+	self.db.char.output_chat_frame = name
+	selectedWindow = nil
+end
+
+function addon:GetSelectedChatWindow()
+	if not selectedWindow then
+		selectedWindow = _G["ChatFrame"..self:GetChatWindowIndex()]
+	end
+	if (selectedWindow) then
+		return selectedWindow
+	end
+	return DEFAULT_CHAT_FRAME
+end
+
 local options = {
 	handler = addon,
 	name = "ItemAuditor",
@@ -56,6 +102,14 @@ local options = {
 					set = function(info, value) ItemAuditor.db.profile.messages.queue_skip = value end,
 					disabled = 'IsQADisabled',
 					order = 1,
+				},
+				output = {
+					type = "select",
+					name = "Output",
+					desc = "",
+					values = 'GetChatWindowList',
+					get = 'GetChatWindowIndex',
+					set = 'SetChatWindow',
 				},
 			},
 		},
