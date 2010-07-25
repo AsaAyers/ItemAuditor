@@ -62,6 +62,7 @@ end
 
 local craftingContent = false
 local craftingTable = false
+local btnProcess = false
 local function ShowCrafting(container)
 	if craftingContent == false then
 		local window  = container.frame
@@ -100,20 +101,27 @@ local function ShowCrafting(container)
 		btnProcess:SetSize(100, 25) 
 		btnProcess:SetPoint("BOTTOMRIGHT", craftingContent, 0, 0)
 		btnProcess:RegisterForClicks("LeftButtonUp");
-		btnProcess:SetScript("OnClick", function (self, button, down)
-			local data = ItemAuditor:GetCraftingRow(1)
-			ItemAuditor:Print('Crafting %sx%s', data.link, data.queue)
-			DoTradeSkill(data.tradeSkillIndex, data.queue)
-		end)
 		
-		btnProcess:SetScript("OnEnter", function()
+		local function UpdateProcessTooltip(btn)
 			local data = ItemAuditor:GetCraftingRow(1)
 			if data then
 				GameTooltip:SetOwner(this, "ANCHOR_CURSOR")
 				GameTooltip:SetText(format('Create %sx%s', data.link, data.queue))
 				GameTooltip:Show()
 			end
+		end
+		btnProcess:SetScript("OnClick", function (self, button, down)
+			local data = ItemAuditor:GetCraftingRow(1)
+			if data then
+				ItemAuditor:Print('Crafting %sx%s', data.link, data.queue)
+				DoTradeSkill(data.tradeSkillIndex, data.queue)
+				data.queue = 0
+				ItemAuditor:RefreshCraftingTable()
+				UpdateProcessTooltip()
+			end
 		end)
+
+		btnProcess:SetScript("OnEnter", UpdateProcessTooltip)
 
 		btnProcess:SetScript("OnLeave", function()
 			GameTooltip:Hide()
@@ -281,6 +289,11 @@ function ItemAuditor:UpdateCraftingTable()
 		end
 	end
 	table.sort(realData, function(a, b) return a.profit*a.queue > b.profit*b.queue end)
+	craftingTable:SetFilter(tableFilter)
+	self:RefreshCraftingTable()
+end
+
+function ItemAuditor:RefreshCraftingTable()
 	for key, data in pairs(realData) do
 		tableData[key] = {
 			data.name,
@@ -291,9 +304,13 @@ function ItemAuditor:UpdateCraftingTable()
 			data.profit*data.queue,
 		}
 	end
-	
 	craftingTable:SetData(tableData, true)
-	craftingTable:SetFilter(tableFilter)
+	
+	if self:GetCraftingRow(1) then
+		btnProcess:Enable()
+	else
+		btnProcess:Disable()
+	end
 end
 
 function ItemAuditor:GetCraftingRow(row)
