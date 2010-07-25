@@ -7,6 +7,8 @@ local AHFactions = { currentFaction, 'Neutral' }
 local craftingThresholds = {5000, 10000, 50000}
 local craftingThresholdsDisplay = {}
 
+local currentVersion = "@project-version@"
+
 for key, value in pairs(craftingThresholds) do
 	craftingThresholdsDisplay[key] = addon:FormatMoney(value, '', true)
 	-- craftingThresholdsDisplay[key] = value
@@ -63,7 +65,7 @@ end
 
 local options = {
 	handler = addon,
-	name = "ItemAuditor",
+	name = "ItemAuditor "..currentVersion,
 	type = 'group',
 	args = {
 		prices = {

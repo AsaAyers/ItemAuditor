@@ -1,3 +1,7 @@
+2010-07-25  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Added the version number to the title in ItemAuditor options.
+
 2010-07-22  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - I Added an option to direct ItemAuditor output to a different chat frame.
