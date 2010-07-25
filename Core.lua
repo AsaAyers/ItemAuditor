@@ -44,8 +44,11 @@ function addon:OnInitialize()
 	
 	-- /run ItemAuditor.db.profile.show_debug_frame_on_startup = true
 	if self.db.profile.show_debug_frame_on_startup then
-		ItemAuditor_DebugFrame:Show()
-		self:CreateFrame()
+		-- ItemAuditor_DebugFrame:Show()
+		-- self:CreateFrame('tab_crafting')
+		self:RegisterEvent("TRADE_SKILL_SHOW", function()
+			ItemAuditor:CreateFrame('tab_crafting')
+		end)
 	end
 end
 

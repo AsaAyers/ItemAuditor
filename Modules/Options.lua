@@ -213,6 +213,14 @@ local options = {
 			func = "DisplayInvested",
 			guiHidden = false,
 		},
+		crafting = {
+			type = "execute",
+			name = "crafting",
+			desc = "<description goes here>",
+			func = "DisplayCrafting",
+			guiHidden = false,
+		},
+		
 		suspend = {
 			type = "toggle",
 			name = "suspend",

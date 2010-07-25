@@ -70,6 +70,32 @@ function addon:UpdateQAGroup(groupName)
 	end
 end
 
+local function isProfitable(data)
+	if addon.IsQAEnabled() then
+		local QAGroup = QAAPI:GetItemGroup(data.link)
+		if QAGroup ~= nil then
+			local currentInvested, _, currentCount = addon:GetItemCost(data.link)
+			
+			local stackSize = QAAPI:GetGroupPostCap(QAGroup) * QAAPI:GetGroupPerAuction(QAGroup)
+			stackSize = stackSize / GetTradeSkillNumMade(data.tradeSkillIndex)
+			
+			-- bonus
+			stackSize = ceil(stackSize *1.25)
+			
+			local newThreshold = ((data.cost*stackSize) + currentInvested) / (currentCount + stackSize)
+			newThreshold = calculateQAThreshold(newThreshold)
+			
+			if  newThreshold < data.price then
+				return stackSize
+			end
+			
+			return -1
+		end
+	end
+	return 0
+end
+ItemAuditor:RegisterCraftingDecider('IA QuickAuctions', isProfitable)
+
 --[[
 	This is based on KTQ
 ]]

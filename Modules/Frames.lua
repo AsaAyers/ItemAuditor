@@ -5,8 +5,8 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 local tabs = {}
 
-function addon:RegisterTab(text, value, width, callback)
-	tabs[value] = {text=text, callback=callback, width=width}
+function addon:RegisterTab(text, value, callback)
+	tabs[value] = {text=text, callback=callback}
 end
 
 local displayFrame = false
@@ -25,18 +25,13 @@ local function switchTab(container, event, group)
 			displayFrame:SetStatusText('')
 		end
 	end
-
+	
 	currentContent = cb(container)
 end
 
 
 function addon:CreateFrame(selectedTab)
-	--@debug@
-	-- This is here so I can verify that all of the callbacks and tab switching works.
-	-- The real crafting tab will become its own module.
-	-- addon:RegisterTab('Placeholder Crafting', 'tab_crafting', 400, function() addon:Print('crafting') end)
-	--@end-debug@
-
+	
 	if not displayFrame then
 		-- Create the frame container
 		displayFrame = AceGUI:Create("Frame")

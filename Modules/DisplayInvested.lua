@@ -10,7 +10,7 @@ local priceTypeTotal = 2
 local promptFrame = false
 
 local validateMoney = ItemAuditor.validateMoney
-local parseMoney = parseMoney
+local parseMoney = ItemAuditor.parseMoney
 
 
 StaticPopupDialogs["ItemAuditor_NewPrice"] = {
@@ -160,18 +160,9 @@ local function ShowInvested(container)
 	return investedTable
 end
 
-local function getinvestedColsWidth()
-	local width = 0
-	for i, data in pairs(investedCols) do 
-		width = width + data.width
-	end
-	return width
-end
-
-local tabName = 'tab_invested'
-ItemAuditor:RegisterTab("Invested", tabName, getinvestedColsWidth(), ShowInvested)
+ItemAuditor:RegisterTab("Invested", 'tab_invested', ShowInvested)
 function ItemAuditor:DisplayInvested()
-	self:CreateFrame(tabName)
+	self:CreateFrame('tab_invested')
 end
 
 function UpdateInvestedData()

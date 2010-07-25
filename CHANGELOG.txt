@@ -1,6 +1,7 @@
 2010-07-25  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Added the version number to the title in ItemAuditor options.
+- Implemented a crafting interface. This will eventually replace /ia queue, but for now they are two separate features.
 
 2010-07-22  Asa Ayers  <Asa.Ayers@Gmail.com>
 

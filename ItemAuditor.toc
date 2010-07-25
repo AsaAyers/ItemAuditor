@@ -15,10 +15,12 @@ ItemAuditor.xml
 Core.lua
 Modules\Frames.lua
 Modules\Utils.lua
-Modules\QuickAuctions.lua
 Modules\Events.lua
 Modules\Tooltip.lua
 Modules\Options.lua
 
 Modules\Debug.lua
 Modules\DisplayInvested.lua
+Modules\Crafting.lua
+
+Modules\QuickAuctions.lua
