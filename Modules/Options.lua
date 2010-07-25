@@ -210,7 +210,7 @@ local options = {
 			type = "execute",
 			name = "invested",
 			desc = "Shows what you have invested in",
-			func = "CreateFrames",
+			func = "DisplayInvested",
 			guiHidden = false,
 		},
 		suspend = {

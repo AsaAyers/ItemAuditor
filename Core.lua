@@ -45,7 +45,7 @@ function addon:OnInitialize()
 	-- /run ItemAuditor.db.profile.show_debug_frame_on_startup = true
 	if self.db.profile.show_debug_frame_on_startup then
 		ItemAuditor_DebugFrame:Show()
-		self:CreateFrames()
+		self:CreateFrame()
 	end
 end
 

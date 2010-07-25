@@ -39,6 +39,31 @@ function addon:FormatMoney(copper, color, textOnly)
 	return format("%s%s%s%s", prefix, gold, silver, copper)
 end
 
+-- Copied from QuickAuctions
+function ItemAuditor.validateMoney(value)
+	local gold = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)g|r") or string.match(value, "([0-9]+)g"))
+	local silver = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)s|r") or string.match(value, "([0-9]+)s"))
+	local copper = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)c|r") or string.match(value, "([0-9]+)c"))
+	
+	if( not gold and not silver and not copper ) then
+		return false;
+		-- return L["Invalid monney format entered, should be \"#g#s#c\", \"25g4s50c\" is 25 gold, 4 silver, 50 copper."]
+	end
+	
+	return true
+end
+
+-- Copied from QuickAuctions
+function ItemAuditor.parseMoney(value)
+	local gold = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)g|r") or string.match(value, "([0-9]+)g"))
+	local silver = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)s|r") or string.match(value, "([0-9]+)s"))
+	local copper = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)c|r") or string.match(value, "([0-9]+)c"))
+		
+	-- Convert it all into copper
+	return (copper or 0) + ((gold or 0) * COPPER_PER_GOLD) + ((silver or 0) * COPPER_PER_SILVER)
+	
+end
+
 -- This is only here to make sure this doesn't blow up if ReplaceItemCache is never called
 local item_db = {}
 

@@ -13,6 +13,7 @@ ItemAuditor.xml
 
 
 Core.lua
+Modules\Frames.lua
 Modules\Utils.lua
 Modules\QuickAuctions.lua
 Modules\Events.lua

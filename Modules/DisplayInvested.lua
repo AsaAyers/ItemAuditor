@@ -9,30 +9,9 @@ local priceTypeTotal = 2
 
 local promptFrame = false
 
--- Copied from QuickAuctions
-local function validateMoney(value)
-	local gold = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)g|r") or string.match(value, "([0-9]+)g"))
-	local silver = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)s|r") or string.match(value, "([0-9]+)s"))
-	local copper = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)c|r") or string.match(value, "([0-9]+)c"))
-	
-	if( not gold and not silver and not copper ) then
-		return false;
-		-- return L["Invalid monney format entered, should be \"#g#s#c\", \"25g4s50c\" is 25 gold, 4 silver, 50 copper."]
-	end
-	
-	return true
-end
+local validateMoney = ItemAuditor.validateMoney
+local parseMoney = parseMoney
 
--- Copied from QuickAuctions
-local function parseMoney(value)
-	local gold = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)g|r") or string.match(value, "([0-9]+)g"))
-	local silver = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)s|r") or string.match(value, "([0-9]+)s"))
-	local copper = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)c|r") or string.match(value, "([0-9]+)c"))
-		
-	-- Convert it all into copper
-	return (copper or 0) + ((gold or 0) * COPPER_PER_GOLD) + ((silver or 0) * COPPER_PER_SILVER)
-	
-end
 
 StaticPopupDialogs["ItemAuditor_NewPrice"] = {
 	text = "New price %s %s",
@@ -131,6 +110,9 @@ local function ShowInvested(container)
 	if investedTable == false then
 		local window  = container.frame
 		investedTable = ScrollingTable:CreateST(investedCols, 23, nil, nil, window)
+		
+		
+		
 		investedTable.frame:SetPoint("BOTTOMLEFT",window, 10,10)
 		investedTable.frame:SetPoint("TOP", window, 0, -60)
 		investedTable.frame:SetPoint("RIGHT", window, -10,0)
@@ -174,57 +156,23 @@ local function ShowInvested(container)
 
 	
 	UpdateInvestedData()
+	
+	return investedTable
 end
 
-
-local function switchTab(container, event, group)
-	container:ReleaseChildren()
-	
-	if investedTab then investedTab:Hide() end
-
-	if group == "tab_invested" then
-		ShowInvested(container)
+local function getinvestedColsWidth()
+	local width = 0
+	for i, data in pairs(investedCols) do 
+		width = width + data.width
 	end
+	return width
 end
 
-
-
-displayFrame = false
-local function CreateFrames()
-	if not displayFrame then
-		-- Create the frame container
-		displayFrame = AceGUI:Create("Frame")
-		ItemAuditor:RegisterFrame(displayFrame)
-		local window = displayFrame.frame;
-		-- I have no idea why AceGUI insists on using FULLSCREEN_DIALOG by default.
-		window:SetFrameStrata("MEDIUM")
-		displayFrame:SetTitle("ItemAuditor")
-		displayFrame:SetStatusText("")
-
-		displayFrame:SetLayout("Fill")
-	
-		window:SetHeight(500);
-	
-		local width = 80
-		for i, data in pairs(investedCols) do 
-			width = width + data.width
-		end
-		window:SetWidth(width);
-
-		local tab =  AceGUI:Create("TabGroup")
-		tab:SetLayout("Flow")
-		tab:SetTabs({{text="Invested", value="tab_invested"}})
-		tab:SetCallback("OnGroupSelected", switchTab)
-		tab:SelectTab("tab_invested")
-
-		displayFrame:AddChild(tab)
-	end
-	displayFrame:Show()
+local tabName = 'tab_invested'
+ItemAuditor:RegisterTab("Invested", tabName, getinvestedColsWidth(), ShowInvested)
+function ItemAuditor:DisplayInvested()
+	self:CreateFrame(tabName)
 end
-
-
-
-
 
 function UpdateInvestedData()
 	if investedTable then
@@ -273,14 +221,11 @@ function UpdateInvestedData()
 		end
 		
 		if investedTable.frame:IsShown() then
-			displayFrame:SetStatusText("Total Invested: "..ItemAuditor:FormatMoney(totalInvested))
+			ItemAuditor:UpdateStatusText("Total Invested: "..ItemAuditor:FormatMoney(totalInvested))
 		end
 		
 		investedTable:SetData(tableData, true)
 	end
 end
 
-function ItemAuditor:CreateFrames()
-	CreateFrames()
-end
 
