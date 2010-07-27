@@ -55,8 +55,9 @@ local function ExportToSkillet()
 		local _, skillId = strsplit(":", skillString)
 		
 		ItemAuditor:AddToQueue(skillId,tradeSkillIndex, data.queue)
+		index = index + 1
+		data = ItemAuditor:GetCraftingRow(index)
 		
-		local data = ItemAuditor:GetCraftingRow(index)
 	end
 end
 
