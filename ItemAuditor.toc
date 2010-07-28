@@ -24,3 +24,5 @@ Modules\DisplayInvested.lua
 Modules\Crafting.lua
 
 Modules\QuickAuctions.lua
+
+Modules\Api.lua

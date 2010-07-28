@@ -2,6 +2,7 @@
 
 - Fixed an infinite loop when when adding items to the Skillet queue from the crafting interface.
 - For Developers: Changed ItemAuditor to no longer be in the global namespace
+- For Developers: Added IAapi to the public namespace so other addons can interact with ItemAuditor.
 
 2010-07-25  Asa Ayers  <Asa.Ayers@Gmail.com>
 

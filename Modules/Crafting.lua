@@ -167,7 +167,7 @@ end
 
 local craftingDeciders = {}
 
-function ItemAuditor:RegisterCraftingDecider(name, decider)
+function Crafting.RegisterCraftingDecider(name, decider)
 	craftingDeciders[name] = decider
 end
 
@@ -200,7 +200,7 @@ local function isProfitable(data)
 	end
 	return -1
 end
-ItemAuditor:RegisterCraftingDecider('Is Profitable', isProfitable)
+Crafting.RegisterCraftingDecider('Is Profitable', isProfitable)
 
 local function tableFilter(self, row, ...)
 	-- column 5 is how many should be crafted

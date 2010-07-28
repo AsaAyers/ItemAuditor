@@ -1,5 +1,6 @@
 local ItemAuditor = select(2, ...)
 local QuickAuctions= ItemAuditor:NewModule("QuickAuctions")
+local Crafting = ItemAuditor:GetModule("Crafting")
 
 --[[
 	This is simply for compatibility while I change the QA API. Once
@@ -113,7 +114,7 @@ local function isProfitable(data)
 	end
 	return 0
 end
-ItemAuditor:RegisterCraftingDecider('IA QuickAuctions', isProfitable)
+Crafting.RegisterCraftingDecider('IA QuickAuctions', isProfitable)
 
 --[[
 	This is based on KTQ
