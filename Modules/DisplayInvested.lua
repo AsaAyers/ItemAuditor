@@ -221,3 +221,10 @@ function UpdateInvestedData()
 end
 
 
+ItemAuditor.Options.args.invested = {
+	type = "execute",
+	name = "invested",
+	desc = "Shows what you have invested in",
+	func = "DisplayInvested",
+	guiHidden = false,
+}

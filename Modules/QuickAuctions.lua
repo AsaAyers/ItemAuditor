@@ -291,3 +291,51 @@ function ItemAuditor:AddToQueue(skillId,skillIndex, toQueue)
 		Skillet.stitch:AddToQueue(skillIndex, toQueue)
 	end
 end
+
+ItemAuditor.Options.args.qa_options = {
+	name = "QA Options",
+	desc = "Control how ItemAuditor integrates with QuickAuctions",
+	type = 'group',
+	disabled = function() return not ItemAuditor:IsQACompatible() end,
+	args = {
+		toggle_qa = {
+			type = "toggle",
+			name = "Enable Quick Auctions",
+			desc = "This will enable or disable Quick Auctions integration",
+			get = "IsQAEnabled",
+			set = "SetQAEnabled",
+			order = 0,
+		},
+		auction_threshold = {
+			type = "range",
+			name = "Auction Threshold",
+			desc = "Don't create items that will make less than this amount of profit",
+			min = 0.0,
+			max = 1.0,
+			isPercent = true,
+			get = function() return ItemAuditor.db.char.auction_threshold end,
+			set = function(info, value)
+				ItemAuditor.db.char.auction_threshold = value
+				ItemAuditor:RefreshQAGroups()
+			end,
+			disabled = 'IsQADisabled',
+			order = 1,
+		},
+		refresh_qa = {
+			type = "execute",
+			name = "Refresh QA Thresholds",
+			desc = "Resets all Quick Auctions thresholds",
+			func = "RefreshQAGroups",
+			disabled = 'IsQADisabled',
+			order = 9,
+		},
+	}
+}
+
+ItemAuditor.Options.args.queue = {
+	type = "execute",
+	name = "queue",
+	desc = "Queue",
+	func = "Queue",
+	guiHidden = true,
+}

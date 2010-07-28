@@ -13,11 +13,11 @@ ItemAuditor.xml
 
 
 Core.lua
-Modules\Frames.lua
 Modules\Utils.lua
+Modules\Options.lua
+Modules\Frames.lua
 Modules\Events.lua
 Modules\Tooltip.lua
-Modules\Options.lua
 
 Modules\Debug.lua
 Modules\DisplayInvested.lua

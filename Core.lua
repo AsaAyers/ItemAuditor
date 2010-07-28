@@ -12,6 +12,37 @@ local ORANGE	= "|cFFFF7F00"
 local TEAL		= "|cFF00FF9A"
 local GOLD		= "|cFFFFD700"
 
+
+ItemAuditor.Options = {
+	handler = ItemAuditor,
+	name = "ItemAuditor @project-version@",
+	type = 'group',
+	args = {
+		options = {
+			type = "execute",
+			name = "options",
+			desc = "Show Blizzard's options GUI",
+			func = "ShowOptionsGUI",
+			guiHidden = true,
+		},
+		debug = {
+			type = "execute",
+			name = "debug",
+			desc = "Shows the debug frame",
+			func = function() ItemAuditor_DebugFrame:Show() end,
+			guiHidden = true,
+		},
+		suspend = {
+			type = "toggle",
+			name = "suspend",
+			desc = "Suspends ItemAuditor",
+			get = "IsEnabled",
+			set = "SetEnabled",
+			guiHidden = true,
+		},
+	},
+}
+
 function ItemAuditor:OnInitialize()
 	local DB_defaults = {
 		char = {
@@ -38,7 +69,10 @@ function ItemAuditor:OnInitialize()
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
 	
-	self:RegisterOptions()
+	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ItemAuditor", "ItemAuditor")
+	
+	DevTools_Dump(ItemAuditor.Options);
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", ItemAuditor.Options, {"ia"})
 	ItemAuditor:RegisterFrame(ItemAuditor_DebugFrame)
 	
 	--@debug@
@@ -49,6 +83,8 @@ function ItemAuditor:OnInitialize()
 		end)
 	--@end-debug@
 end
+
+
 
 local registeredEvents = {}
 local originalRegisterEvent = ItemAuditor.RegisterEvent 

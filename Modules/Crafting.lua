@@ -9,6 +9,34 @@ local parseMoney = ItemAuditor.parseMoney
 
 local realData = {}
 
+
+-- TODO: Convert this to a text field.
+local craftingThresholds = {5000, 10000, 50000}
+local craftingThresholdsDisplay = {}
+
+for key, value in pairs(craftingThresholds) do
+	craftingThresholdsDisplay[key] = ItemAuditor:FormatMoney(value, '', true)
+	-- craftingThresholdsDisplay[key] = value
+end
+
+ItemAuditor.Options.args.crafting_options = {
+	name = "Crafting with Skillet",
+	desc = "/ia queue",
+	type = 'group',
+	disabled = function() return Skillet == nil end,
+	args = {
+		crafting_threshold = {
+			type = "select",
+			name = "Crafting Threshold",
+			desc = "Don't create items that will make less than this amount of profit",
+			values = craftingThresholdsDisplay,
+			get = function() return ItemAuditor.db.char.crafting_threshold end,
+			set = function(info, value) ItemAuditor.db.char.crafting_threshold = value end,
+			order = 11,
+		},
+	},
+}
+
 local function displayMoney(rowFrame, cellFrame, data, cols, row, realrow, column, fShow, table, ...)
 	if fShow == true then
 		local money = data[realrow][column]
@@ -330,3 +358,10 @@ function ItemAuditor:GetCraftingRow(row)
 	end
 	return nil
 end
+ItemAuditor.Options.args.crafting = {
+	type = "execute",
+	name = "crafting",
+	desc = "This opens a window to configure a crafting queue.",
+	func = "DisplayCrafting",
+	guiHidden = false,
+}
