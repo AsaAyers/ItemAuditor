@@ -1,5 +1,5 @@
-local addonName, addonTable = ...; 
-local addon = _G[addonName]
+local ItemAuditor = select(2, ...)
+local Tooltip = ItemAuditor:NewModule("Tooltip")
 
 local function ShowTipWithPricing(tip, link, num)
 	if (link == nil) then
@@ -11,12 +11,12 @@ local function ShowTipWithPricing(tip, link, num)
 
 	local investedTotal, investedPerItem, count = ItemAuditor:GetItemCost(link)
 	
-	local keep = 1 - addon:GetAHCut()
+	local keep = 1 - ItemAuditor:GetAHCut()
 	local show = false
 
 	if investedTotal > 0 then
 		local suggestColor
-		local ap = addon:GetAuctionPrice(link)
+		local ap = ItemAuditor:GetAuctionPrice(link)
 		if ap == nil then
 			suggestColor = nil
 		elseif ap > ceil(investedPerItem/keep) then
@@ -26,18 +26,18 @@ local function ShowTipWithPricing(tip, link, num)
 		end
 	
 	
-		tip:AddDoubleLine("\124cffffffffIA: Total Invested", addon:FormatMoney(investedTotal));
-		tip:AddDoubleLine("\124cffffffffIA: Invested per Item (own: " .. count .. ")", addon:FormatMoney(ceil(investedPerItem)));
-		tip:AddDoubleLine("\124cffffffffIA: Minimum " .. addon:GetAHFaction() .. " AH Price: ", addon:FormatMoney(ceil(investedPerItem/keep), suggestColor))
+		tip:AddDoubleLine("\124cffffffffIA: Total Invested", ItemAuditor:FormatMoney(investedTotal));
+		tip:AddDoubleLine("\124cffffffffIA: Invested per Item (own: " .. count .. ")", ItemAuditor:FormatMoney(ceil(investedPerItem)));
+		tip:AddDoubleLine("\124cffffffffIA: Minimum " .. ItemAuditor:GetAHFaction() .. " AH Price: ", ItemAuditor:FormatMoney(ceil(investedPerItem/keep), suggestColor))
 		show = true
 		
 	end
 	
-	if addon:IsQAEnabled() then
+	if ItemAuditor:IsQAEnabled() then
 		local groupName = QAAPI:GetItemGroup(link)
 		if groupName then
 			local threshold = QAAPI:GetGroupConfig(groupName)
-			tip:AddDoubleLine("\124cffffffffIA: QA Threshold: ", addon:FormatMoney(threshold))
+			tip:AddDoubleLine("\124cffffffffIA: QA Threshold: ", ItemAuditor:FormatMoney(threshold))
 			show = true
 		end
 	end

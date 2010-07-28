@@ -1,7 +1,5 @@
-local addonName, addonTable = ...; 
-_G[addonName] = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceBucket-3.0")
-local addon = _G[addonName]
-addonTable.ItemAuditor = addon
+local ItemAuditor = select(2, ...)
+ItemAuditor = LibStub("AceAddon-3.0"):NewAddon(ItemAuditor, "ItemAuditor", "AceEvent-3.0", "AceBucket-3.0")
 
 local WHITE		= "|cFFFFFFFF"
 local RED		= "|cFFFF0000"
@@ -11,7 +9,7 @@ local ORANGE	= "|cFFFF7F00"
 local TEAL		= "|cFF00FF9A"
 local GOLD		= "|cFFFFD700"
 
-function addon:OnInitialize()
+function ItemAuditor:OnInitialize()
 	local DB_defaults = {
 		char = {
 			ah = 1,
@@ -25,7 +23,7 @@ function addon:OnInitialize()
 				cost_updates = true,
 				queue_skip = false,
 			},
-			addon_enabled = true,
+			ItemAuditor_enabled = true,
 			-- This is for development, so I have no plans to turn it into an option.
 			show_debug_frame_on_startup = false,
 		},
@@ -36,7 +34,6 @@ function addon:OnInitialize()
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
-	addonTable.db= self.db
 	self.items = self.db.factionrealm.items
 	
 	self:RegisterOptions()
@@ -53,8 +50,8 @@ function addon:OnInitialize()
 end
 
 local registeredEvents = {}
-local originalRegisterEvent = addon.RegisterEvent 
-function addon:RegisterEvent(event, callback, arg)
+local originalRegisterEvent = ItemAuditor.RegisterEvent 
+function ItemAuditor:RegisterEvent(event, callback, arg)
 	registeredEvents[event] = true
 	if arg ~= nil then
 		return originalRegisterEvent(self, event, callback, arg)
@@ -65,24 +62,24 @@ function addon:RegisterEvent(event, callback, arg)
 	end
 end
 
-local originalUnregisterEvent = addon.UnregisterEvent
-function addon:UnregisterEvent(event)
+local originalUnregisterEvent = ItemAuditor.UnregisterEvent
+function ItemAuditor:UnregisterEvent(event)
 	registeredEvents[event] = nil
         return originalUnregisterEvent(self, event)
 end
 
-function addon:UnregisterAllEvents()
+function ItemAuditor:UnregisterAllEvents()
 	for event in pairs(registeredEvents) do
 		self:UnregisterEvent(event)
 	end
 end
 
 local registeredFrames = {}
-function addon:RegisterFrame(frame)
+function ItemAuditor:RegisterFrame(frame)
 	tinsert(registeredFrames, frame)
 end
 
-function addon:HideAllFrames()
+function ItemAuditor:HideAllFrames()
 	for key, frame in pairs(registeredFrames) do
 		if frame then
 			frame:Hide()
@@ -90,7 +87,7 @@ function addon:HideAllFrames()
 	end
 end
 
-function addon:ConvertItems()
+function ItemAuditor:ConvertItems()
 	for itemName, value in pairs(self.db.factionrealm.item_account) do
 		local itemID = self:GetItemID(itemName)
 		if itemID ~= nil then
@@ -111,12 +108,12 @@ function addon:ConvertItems()
 end
 
 local printPrefix = "|cFFA3CEFFItemAuditor|r: "
-function addon:Print(message, ...)
+function ItemAuditor:Print(message, ...)
 	message = format(message, ...)
 	self:GetSelectedChatWindow():AddMessage( printPrefix .. tostring(message))
 end
 
-function addon:GetCurrentInventory()
+function ItemAuditor:GetCurrentInventory()
 	local i = {}
 	local bagID
 	local slotID
@@ -136,7 +133,7 @@ function addon:GetCurrentInventory()
 	return {items = i, money = GetMoney()}
 end
 
-function addon:GetInventoryDiff(pastInventory, current)
+function ItemAuditor:GetInventoryDiff(pastInventory, current)
 	if current == nil then
 		current = self:GetCurrentInventory()
 	end
@@ -172,7 +169,7 @@ end
 
 local inboundCOD = {}
 local skipMail = {}
-function addon:ScanMail()
+function ItemAuditor:ScanMail()
 	local results = {}
 	local CODPaymentRegex = gsub(COD_PAYMENT, "%%s", "(.*)")
 	
@@ -279,7 +276,7 @@ function addon:ScanMail()
 	return results   
 end
 
-function addon:GetItem(link, viewOnly)
+function ItemAuditor:GetItem(link, viewOnly)
 	if viewOnly == nil then
 		viewOnly = false
 	end
@@ -330,18 +327,18 @@ function addon:GetItem(link, viewOnly)
 	return self.items[link]
 end
 
-function addon:RemoveItem(link)
+function ItemAuditor:RemoveItem(link)
 	self.db.factionrealm.item_account[link] = nil
 	link = self:GetSafeLink(link)
 	if link ~= nil then
-		local item = addon:GetItem(link)
+		local item = ItemAuditor:GetItem(link)
 		item.invested = 0
 	else
 		self:Debug('Failed to convert link' .. tostring(link))
 	end
 end
 
-function addon:SaveValue(link, value, countChange)
+function ItemAuditor:SaveValue(link, value, countChange)
 	self:Debug("SaveValue(%s, %s, %s)", tostring(link), value, (countChange or 'default'))
 	countChange = countChange or 0
 	local item = nil
@@ -386,20 +383,20 @@ function addon:SaveValue(link, value, countChange)
 	end
 	
 	if realLink ~= nil then
-		addon:UpdateQAThreshold(realLink)
+		ItemAuditor:UpdateQAThreshold(realLink)
 	end
 	UpdateInvestedData()
 end
 
 
-function addon:WatchBags()
+function ItemAuditor:WatchBags()
 	if self.watch_handle == nil then
-		addon:UpdateCurrentInventory()
+		ItemAuditor:UpdateCurrentInventory()
 		self.watch_handle = self:RegisterBucketEvent({"BAG_UPDATE", "PLAYER_MONEY"}, 0.3, "UpdateAudit")
 	end
 end
 
-function addon:UnwatchBags()
+function ItemAuditor:UnwatchBags()
 	if self.watch_handle ~= nil then
 		self:UnregisterBucket(self.watch_handle)
 		self.watch_handle = nil
@@ -407,7 +404,7 @@ function addon:UnwatchBags()
 end
 
 
-function addon:GetSafeLink(link)
+function ItemAuditor:GetSafeLink(link)
 	local newLink = nil
 
 	if link and link == string.match(link, '.-:[-0-9]+[:0-9]*') then
@@ -425,12 +422,12 @@ function addon:GetSafeLink(link)
 	return newLink and string.gsub(newLink, ":0:0:0:0:0:0", "")
 end
 
-function addon:GetIDFromLink(link)
+function ItemAuditor:GetIDFromLink(link)
 	local _, _, _, _, Id = string.find(link, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
 	return tonumber(Id)
 end
 
-function addon:GetItemCost(link, countModifier)
+function ItemAuditor:GetItemCost(link, countModifier)
 	local item = self:GetItem(link, true)
 
 	if item.invested > 0 then

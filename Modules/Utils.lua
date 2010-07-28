@@ -1,7 +1,7 @@
-local addonName, addonTable = ...; 
-local addon = _G[addonName]
+local ItemAuditor = select(2, ...)
+local Utils = ItemAuditor:NewModule("Utils")
 
-function addon:FormatMoney(copper, color, textOnly)
+function ItemAuditor:FormatMoney(copper, color, textOnly)
 	color = color or "|cFFFFFFFF"
 	local prefix = ""
 	if copper < 0 then
@@ -67,13 +67,13 @@ end
 -- This is only here to make sure this doesn't blow up if ReplaceItemCache is never called
 local item_db = {}
 
-function addon:ReplaceItemCache(new_cache)
+function ItemAuditor:ReplaceItemCache(new_cache)
 	item_db  = new_cache
 end
 
 -- This will be reset every session
 local tmp_item_cache = {}
-function addon:GetItemID(itemName)
+function ItemAuditor:GetItemID(itemName)
 	if item_db[itemName] ~= nil then
 		return item_db[itemName]
 	end
@@ -100,7 +100,7 @@ function addon:GetItemID(itemName)
 	return tmp_item_cache[itemName]
 end
 
-function addon:GetLinkFromName(itemName)
+function ItemAuditor:GetLinkFromName(itemName)
 	local itemID = self:GetItemID(itemName)
 	local itemLink
 	if itemID ~= nil then
@@ -110,11 +110,11 @@ function addon:GetLinkFromName(itemName)
 	return itemLink
 end
 
-function addon:SaveItemID(itemName, id)
+function ItemAuditor:SaveItemID(itemName, id)
 	item_db[itemName] = tonumber(id)
 end
 
-addon.SubjectPatterns = {
+ItemAuditor.SubjectPatterns = {
 	AHCancelled = gsub(AUCTION_REMOVED_MAIL_SUBJECT, "%%s", ".*"),
 	AHExpired = gsub(AUCTION_EXPIRED_MAIL_SUBJECT, "%%s", ".*"),
 	AHOutbid = gsub(AUCTION_OUTBID_MAIL_SUBJECT, "%%s", ".*"),
@@ -123,7 +123,7 @@ addon.SubjectPatterns = {
 	CODPayment = gsub(COD_PAYMENT, "%%s", "(.*)"),
 }
 
-function addon:GetMailType(msgSubject)
+function ItemAuditor:GetMailType(msgSubject)
 	if msgSubject then
 		for k, v in pairs(self.SubjectPatterns) do
 			if msgSubject:find(v) then return k end
@@ -132,7 +132,7 @@ function addon:GetMailType(msgSubject)
 	return "NonAHMail"
 end
 
-function addon:tcount(tab)
+function ItemAuditor:tcount(tab)
    local n = #tab
    if (n == 0) then
       for _ in pairs(tab) do
@@ -142,11 +142,11 @@ function addon:tcount(tab)
    return n
 end
 
-function addon:GetDebug(info)
+function ItemAuditor:GetDebug(info)
 	return self.db.char.debug
 end
 
-function addon:SetDebug(info, input)
+function ItemAuditor:SetDebug(info, input)
 	
 	ItemAuditor.db.char.debug = input
 	local value = "off"

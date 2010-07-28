@@ -1,6 +1,7 @@
 2010-07-27  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed an infinite loop when when adding items to the Skillet queue from the crafting interface.
+- For Developers: Changed ItemAuditor to no longer be in the global namespace
 
 2010-07-25  Asa Ayers  <Asa.Ayers@Gmail.com>
 

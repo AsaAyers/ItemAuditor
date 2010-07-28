@@ -1,5 +1,5 @@
-local addonName, addonTable = ...; 
-local ItemAuditor = _G[addonName]
+local ItemAuditor = select(2, ...)
+local Crafting = ItemAuditor:NewModule("Crafting")
 
 local AceGUI = LibStub("AceGUI-3.0")
 local ScrollingTable = LibStub("ScrollingTable")

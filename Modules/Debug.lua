@@ -1,21 +1,22 @@
-local addonName, addonTable = ...; 
-local addon = _G[addonName]
+local ItemAuditor = select(2, ...)
+local Debug = ItemAuditor:NewModule("Debug")
+local ItemAuditor = ItemAuditor
 
-function addon:Debug(msg, ...)
+function ItemAuditor:Debug(msg, ...)
 	msg = format(msg, ...)
 	self:Log(msg, " |cffffff00DEBUG")
 end
 
-function addon:Log(message, prefix)
+function ItemAuditor:Log(message, prefix)
 	prefix = prefix or ""
 	ItemAuditor_DebugFrameTxt:AddMessage(format("%d%s|r: %s", time(), prefix, tostring(message)))
 end
 
-function addon:GetDebug(info)
+function ItemAuditor:GetDebug(info)
        return self.db.profile.messages.debug
 end
 
-function addon:SetDebug(info, input)
+function ItemAuditor:SetDebug(info, input)
        self.db.profile.messages.debug = input
        local value = "off"
        if input then
@@ -25,23 +26,23 @@ function addon:SetDebug(info, input)
 end
 
 local function DebugEventRegistration()
-	addon.OriginalRegisterEvent = addon.RegisterEvent 
-	addon.OriginalUnregisterEvent = addon.UnregisterEvent
+	ItemAuditor.OriginalRegisterEvent = ItemAuditor.RegisterEvent 
+	ItemAuditor.OriginalUnregisterEvent = ItemAuditor.UnregisterEvent
 
-	function addon:RegisterEvent(event, callback, arg)
+	function ItemAuditor:RegisterEvent(event, callback, arg)
 	   self:Debug("RegisterEvent " .. event )
 	   if arg ~= nil then
-	      addon:OriginalRegisterEvent(event, callback, arg)
+	      ItemAuditor:OriginalRegisterEvent(event, callback, arg)
 	   elseif callback ~= nil then
-	      addon:OriginalRegisterEvent(event, callback)
+	      ItemAuditor:OriginalRegisterEvent(event, callback)
 	   else
-	      addon:OriginalRegisterEvent(event)
+	      ItemAuditor:OriginalRegisterEvent(event)
 	   end
 	end
 
-	function addon:UnregisterEvent(event)
+	function ItemAuditor:UnregisterEvent(event)
 		self:Debug("UnregisterEvent " .. event )
-		addon:OriginalUnregisterEvent (event)
+		ItemAuditor:OriginalUnregisterEvent (event)
 	end
 
 end

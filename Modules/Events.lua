@@ -1,25 +1,25 @@
-local addonName, addonTable = ...; 
-local addon = _G[addonName]
+local ItemAuditor = select(2, ...)
+local Events = ItemAuditor:NewModule("Events", "AceEvent-3.0")
 
-function addon:OnEnable()
+function ItemAuditor:OnEnable()
 	self:RegisterEvent("MAIL_SHOW")
 	self:RegisterEvent("UNIT_SPELLCAST_START")
-	addon:UpdateCurrentInventory()
+	ItemAuditor:UpdateCurrentInventory()
 	self:WatchBags()
 	
-	self:SetEnabled(nil, self.db.profile.addon_enabled)
+	self:SetEnabled(nil, self.db.profile.ItemAuditor_enabled)
 end
 
-function addon:OnDisable()
+function ItemAuditor:OnDisable()
 	self:UnwatchBags()
 	self:UnregisterAllEvents()
-	addon:HideAllFrames()
+	ItemAuditor:HideAllFrames()
 end
  
- function addon:MAIL_SHOW()
+ function ItemAuditor:MAIL_SHOW()
 	self:Debug("MAIL_SHOW")
 	self:UnwatchBags()
-	addon:UpdateCurrentInventory()
+	ItemAuditor:UpdateCurrentInventory()
 	self.lastMailScan = self:ScanMail()
 	
 	self:UnregisterEvent("MAIL_SHOW")
@@ -31,7 +31,7 @@ end
 	self:RegisterEvent("MAIL_SUCCESS")
 end
 
-function addon:GenerateBlankOutbox()
+function ItemAuditor:GenerateBlankOutbox()
 	self.mailOutbox = {
 		from = UnitName("player"),
 		to = "",
@@ -124,7 +124,7 @@ function SendMail(recipient, subject, body, ...)
 	return Orig_SendMail(recipient, subject, body, ...)
 end
 
-function addon:MAIL_SUCCESS(event)
+function ItemAuditor:MAIL_SUCCESS(event)
 	skipCODTracking = false
 	for link, data in pairs(attachedItems) do
 		self:SaveValue(link, data.price, data.count)
@@ -140,9 +140,9 @@ function addon:MAIL_SUCCESS(event)
 	self:GenerateBlankOutbox()
 end
 
-function addon:MAIL_CLOSED()
+function ItemAuditor:MAIL_CLOSED()
 	self:Debug("MAIL_CLOSED")
-	addon:UnregisterEvent("MAIL_CLOSED")
+	ItemAuditor:UnregisterEvent("MAIL_CLOSED")
 	self:MAIL_INBOX_UPDATE()
 	self:UnregisterEvent("MAIL_INBOX_UPDATE")
 	self:RegisterEvent("MAIL_SHOW")
@@ -150,9 +150,9 @@ function addon:MAIL_CLOSED()
 end
 
 local storedCountDiff
-function addon:MAIL_INBOX_UPDATE()
+function ItemAuditor:MAIL_INBOX_UPDATE()
 	self:Debug("MAIL_INBOX_UPDATE")
-	local newScan = addon:ScanMail()
+	local newScan = ItemAuditor:ScanMail()
 	local diff
 	
 	for mailType, collection in pairs(self.lastMailScan) do
@@ -187,7 +187,7 @@ function addon:MAIL_INBOX_UPDATE()
 	self.lastMailScan = newScan
 end
 
-function addon:UNIT_SPELLCAST_START(event, target, spell)
+function ItemAuditor:UNIT_SPELLCAST_START(event, target, spell)
 	if target == "player" and spell == "Milling" or spell == "Prospecting" or spell == "Disenchanting" then
 		self:Debug(event .. " " .. spell)
 		self:UnwatchBags()
@@ -201,7 +201,7 @@ end
 	The item should be destroyed before this point, so the last inventory check
 	needs to be kept so it can be combined with the up coming loot.
  ]]
-function addon:LOOT_CLOSED()
+function ItemAuditor:LOOT_CLOSED()
 	self:Debug("LOOT_CLOSED")
 	self:UnregisterEvent("LOOT_CLOSED")
 	self:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
@@ -210,7 +210,7 @@ function addon:LOOT_CLOSED()
 	self.lastInventory = inventory 
 end
 
-function addon:UNIT_SPELLCAST_INTERRUPTED(event, target, spell)
+function ItemAuditor:UNIT_SPELLCAST_INTERRUPTED(event, target, spell)
 	if target == "player" and spell == "Milling" or spell == "Prospecting" or spell == "Disenchanting" then
 		self:Debug(event .. " " .. spell)
 		self:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
@@ -219,7 +219,7 @@ function addon:UNIT_SPELLCAST_INTERRUPTED(event, target, spell)
 	end
 end
 
-function addon:UpdateCurrentInventory()
+function ItemAuditor:UpdateCurrentInventory()
 	self.lastInventory = self:GetCurrentInventory()
 end
 
@@ -234,7 +234,7 @@ local function distributeValue(self, totalValue, targetItems)
 			The only time I know that this is a problem is when crafting a BOP item, and it 
 			is always crafted 1 at a time, so a weight of 1 will work.
 		]]
-		local ap = (addon:GetAuctionPrice(link) or 1) * change
+		local ap = (ItemAuditor:GetAuctionPrice(link) or 1) * change
 		totalWeight = totalWeight + ap
 		weights[link] = ap
 	end
@@ -245,10 +245,10 @@ local function distributeValue(self, totalValue, targetItems)
 	end
 end
 
-function addon:UpdateAudit()
+function ItemAuditor:UpdateAudit()
 	-- self:Debug("UpdateAudit " .. event)
 	local currentInventory = self:GetCurrentInventory()
-	local diff =  addon:GetInventoryDiff(self.lastInventory, currentInventory)
+	local diff =  ItemAuditor:GetInventoryDiff(self.lastInventory, currentInventory)
 	
 	local positive, negative = {}, {}
 	local positiveCount, negativeCount = 0, 0
@@ -293,5 +293,5 @@ function addon:UpdateAudit()
 	end
 	
 	self.lastInventory = currentInventory
-	addon:WatchBags()
+	ItemAuditor:WatchBags()
 end

@@ -1,5 +1,5 @@
-local addonName, addonTable = ...; 
-local addon = _G[addonName]
+local ItemAuditor = select(2, ...)
+local Options = ItemAuditor:NewModule("Options")
 
 local currentFaction = UnitFactionGroup("player")
 local AHFactions = { currentFaction, 'Neutral' }
@@ -10,12 +10,12 @@ local craftingThresholdsDisplay = {}
 local currentVersion = "@project-version@"
 
 for key, value in pairs(craftingThresholds) do
-	craftingThresholdsDisplay[key] = addon:FormatMoney(value, '', true)
+	craftingThresholdsDisplay[key] = ItemAuditor:FormatMoney(value, '', true)
 	-- craftingThresholdsDisplay[key] = value
 end
 
 local windowIndex = nil
-function addon:GetChatWindowList()
+function ItemAuditor:GetChatWindowList()
 	local windows = {}
 	for i=1, NUM_CHAT_WINDOWS do
 		local name, _, _, _, _, _, shown, locked, docked = GetChatWindowInfo(i)
@@ -26,7 +26,7 @@ function addon:GetChatWindowList()
 	return windows
 end
 
-function addon:GetChatWindowIndex()
+function ItemAuditor:GetChatWindowIndex()
 	local cf = self.db.char.output_chat_frame
 	if not windowIndex then
 		for i=1, NUM_CHAT_WINDOWS do
@@ -42,7 +42,7 @@ end
 
 local selectedWindow = nil
 
-function addon:SetChatWindow(info, index)
+function ItemAuditor:SetChatWindow(info, index)
 	windowIndex = index
 	local name = GetChatWindowInfo(windowIndex)
 	
@@ -50,7 +50,7 @@ function addon:SetChatWindow(info, index)
 	selectedWindow = nil
 end
 
-function addon:GetSelectedChatWindow()
+function ItemAuditor:GetSelectedChatWindow()
 	if not selectedWindow then
 		local index = self:GetChatWindowIndex()
 		if index then
@@ -63,8 +63,8 @@ function addon:GetSelectedChatWindow()
 	return DEFAULT_CHAT_FRAME
 end
 
-local options = {
-	handler = addon,
+local optionsTable = {
+	handler = ItemAuditor,
 	name = "ItemAuditor "..currentVersion,
 	type = 'group',
 	args = {
@@ -123,7 +123,6 @@ local options = {
 			name = "QA Options",
 			desc = "Control how ItemAuditor integrates with QuickAuctions",
 			type = 'group',
-			-- disabled = (not addon.QA_compatibile),
 			disabled = function() return not ItemAuditor:IsQACompatible() end,
 			args = {
 				toggle_qa = {
@@ -232,7 +231,7 @@ local options = {
 	},
 }
 
-function addon:SetEnabled(info, enable)
+function ItemAuditor:SetEnabled(info, enable)
 	self.db.profile.addon_enabled = enable
 	if enable == self:IsEnabled() then
 		-- do nothing
@@ -245,9 +244,9 @@ function addon:SetEnabled(info, enable)
 	end
 end
 
-function addon:RegisterOptions()
+function ItemAuditor:RegisterOptions()
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ItemAuditor", "ItemAuditor")
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", options, {"ia"})
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", optionsTable, {"ia"})
 end
 
 local function pairsByKeys (t, f)
@@ -264,35 +263,35 @@ local function pairsByKeys (t, f)
 	return iter
 end
 
-function addon:GetCraftingThreshold()
+function ItemAuditor:GetCraftingThreshold()
 	local key = ItemAuditor.db.char.crafting_threshold
 	return craftingThresholds[key]
 end
 
-function addon:GetAuctionThreshold()
+function ItemAuditor:GetAuctionThreshold()
 	return ItemAuditor.db.char.auction_threshold
 end
 
-function addon:GetAH()
+function ItemAuditor:GetAH()
 	return ItemAuditor.db.char.ah
 end
 
-function addon:SetAH(info, value)
+function ItemAuditor:SetAH(info, value)
 	ItemAuditor.db.char.ah = value
 end
 
-function addon:GetAHCut()
+function ItemAuditor:GetAHCut()
 	if ItemAuditor.db.char.ah == 1 then
 		return 0.05
 	end
 	return 0.15
 end
 
-function addon:GetAHFaction()
+function ItemAuditor:GetAHFaction()
 	return AHFactions[ItemAuditor.db.char.ah]
 end
 
-function addon:ShowOptionsGUI()
+function ItemAuditor:ShowOptionsGUI()
 	InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
 end
 

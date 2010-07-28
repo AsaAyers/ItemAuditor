@@ -1,11 +1,11 @@
-local addonName, addonTable = ...; 
-local addon = _G[addonName]
+local ItemAuditor = select(2, ...)
+local Frames = ItemAuditor:NewModule("Frames")
 
 local AceGUI = LibStub("AceGUI-3.0")
 
 local tabs = {}
 
-function addon:RegisterTab(text, value, callback)
+function ItemAuditor:RegisterTab(text, value, callback)
 	tabs[value] = {text=text, callback=callback}
 end
 
@@ -30,7 +30,7 @@ local function switchTab(container, event, group)
 end
 
 
-function addon:CreateFrame(selectedTab)
+function ItemAuditor:CreateFrame(selectedTab)
 	
 	if not displayFrame then
 		-- Create the frame container
@@ -77,7 +77,7 @@ function addon:CreateFrame(selectedTab)
 	displayFrame:Show()
 end
 
-function addon:UpdateStatusText(message)
+function ItemAuditor:UpdateStatusText(message)
 	if displayFrame then
 		displayFrame:SetStatusText(message)
 	end

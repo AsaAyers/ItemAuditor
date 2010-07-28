@@ -1,5 +1,5 @@
-local addonName, addonTable = ...; 
-local addon = _G[addonName]
+local ItemAuditor = select(2, ...)
+local QuickAuctions= ItemAuditor:NewModule("QuickAuctions")
 
 --[[
 	This is simply for compatibility while I change the QA API. Once
@@ -21,24 +21,24 @@ end
 
 
 
-function addon:IsQACompatible()
+function ItemAuditor:IsQACompatible()
 	return (QAAPI ~= nil and QAAPI.GetGroupConfig ~= nil)
 end
 
-function addon:IsQAEnabled()
-	return addon:IsQACompatible() and ItemAuditor.db.char.use_quick_auctions
+function ItemAuditor:IsQAEnabled()
+	return ItemAuditor:IsQACompatible() and ItemAuditor.db.char.use_quick_auctions
 end
 
-function addon:IsQADisabled()
+function ItemAuditor:IsQADisabled()
 	return not self:IsQAEnabled()
 end
 
-function addon:SetQAEnabled(info, value)
+function ItemAuditor:SetQAEnabled(info, value)
 	ItemAuditor.db.char.use_quick_auctions = value
 end
 
-function addon:RefreshQAGroups()
-	if not addon.IsQAEnabled() then
+function ItemAuditor:RefreshQAGroups()
+	if not ItemAuditor.IsQAEnabled() then
 		return
 	end
 	for groupName in pairs(QAAPI:GetGroups()) do
@@ -46,16 +46,14 @@ function addon:RefreshQAGroups()
 	end
 end
 
-function addon:UpdateQAThreshold(link)
-	if not addon.IsQAEnabled() then
+function ItemAuditor:UpdateQAThreshold(link)
+	if not ItemAuditor.IsQAEnabled() then
 		return
 	end
 	_, link= GetItemInfo(link)
 	
 	self:UpdateQAGroup(QAAPI:GetItemGroup(link))
 end
-
-addon.profit_margin = 1.15
 
 local function calculateQAThreshold(copper)
 	if copper == 0 then
@@ -64,15 +62,15 @@ local function calculateQAThreshold(copper)
 	
 	-- add my minimum profit margin
 	-- GetAuctionThreshold returns a percent as a whole number. This will convert 25 to 1.25
-	copper = copper *  (1+addon:GetAuctionThreshold())
+	copper = copper *  (1+ItemAuditor:GetAuctionThreshold())
 	
 	-- add AH Cut
-	local keep = 1 - addon:GetAHCut()
+	local keep = 1 - ItemAuditor:GetAHCut()
 	return copper/keep
 end
 
-function addon:UpdateQAGroup(groupName)
-	if not addon.IsQAEnabled() then
+function ItemAuditor:UpdateQAGroup(groupName)
+	if not ItemAuditor.IsQAEnabled() then
 		return
 	end
 	if groupName then
@@ -91,10 +89,10 @@ function addon:UpdateQAGroup(groupName)
 end
 
 local function isProfitable(data)
-	if addon.IsQAEnabled() then
+	if ItemAuditor.IsQAEnabled() then
 		local QAGroup = QAAPI:GetItemGroup(data.link)
 		if QAGroup ~= nil then
-			local currentInvested, _, currentCount = addon:GetItemCost(data.link)
+			local currentInvested, _, currentCount = ItemAuditor:GetItemCost(data.link)
 			local threshold, postCap, perAuction = QAAPI:GetGroupConfig(QAGroup)
 			local stackSize = postCap * perAuction
 			
@@ -120,7 +118,7 @@ ItemAuditor:RegisterCraftingDecider('IA QuickAuctions', isProfitable)
 --[[
 	This is based on KTQ
 ]]
-function addon:Queue()
+function ItemAuditor:Queue()
 	if LSW == nil then
 		self:Print("This feature requires LilSparky's Workshop.")
 		return
@@ -137,7 +135,7 @@ function addon:Queue()
 	end
 	
 	
-	if addon.IsQAEnabled() then
+	if ItemAuditor.IsQAEnabled() then
 		self:Debug("Auction Threshold: %d%%", self:GetAuctionThreshold()*100 )
 	end
 	self:Debug(format("Crafting Threshold: %s", self:FormatMoney(self:GetCraftingThreshold())))
@@ -165,7 +163,7 @@ function addon:Queue()
 			
 			-- if QA isn't enabled, this will just return nil
 			local QAGroup = nil
-			if addon.IsQAEnabled() then
+			if ItemAuditor.IsQAEnabled() then
 				QAGroup = QAAPI:GetItemGroup(itemLink)
 				if QAGroup ~= nil then
 					local threshold, postCap, perAuction = QAAPI:GetGroupConfig(QAGroup)
@@ -188,20 +186,20 @@ function addon:Queue()
 				for reagentId = 1, GetTradeSkillNumReagents(i) do
 					_, _, reagentCount = GetTradeSkillReagentInfo(i, reagentId);
 					reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
-					newCost = newCost + addon:GetReagentCost(reagentLink, reagentCount)  
+					newCost = newCost + ItemAuditor:GetReagentCost(reagentLink, reagentCount)
 				end
 				
-				local currentInvested, _, currentCount = addon:GetItemCost(itemLink)
+				local currentInvested, _, currentCount = ItemAuditor:GetItemCost(itemLink)
 				local newThreshold = (newCost + currentInvested) / (currentCount + toQueue)
 				
-				if addon.IsQAEnabled() then
+				if ItemAuditor.IsQAEnabled() then
 					newThreshold = calculateQAThreshold(newThreshold)
 				else
 					-- if quick auctions isn't enabled, this will cause the decision to rely
 					-- completly on the crafting threshold
 					newThreshold = 0
 				end
-				local currentPrice = addon:GetAuctionPrice(itemLink) or 0
+				local currentPrice = ItemAuditor:GetAuctionPrice(itemLink) or 0
 				numChecked = numChecked  + 1
 				
 				if newThreshold < currentPrice and (currentPrice - newCost) > self:GetCraftingThreshold() then
@@ -215,11 +213,11 @@ function addon:Queue()
 					}
 					profitableIndex = profitableIndex + 1
 				else
-					local skipMessage = format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newCost))
+					local skipMessage = format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, ItemAuditor:FormatMoney(currentPrice - newCost))
 					if ItemAuditor.db.profile.messages.queue_skip then
 						self:Print(skipMessage)
 					else
-						self:Debug(format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, addon:FormatMoney(currentPrice - newCost)))
+						self:Debug(format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, ItemAuditor:FormatMoney(currentPrice - newCost)))
 					end
 				end
 			end
@@ -240,7 +238,7 @@ function addon:Queue()
 	self:Print(format("%d queued", numAdded))
 end
 
-function addon:GetReagentCost(link, total)
+function ItemAuditor:GetReagentCost(link, total)
 	local totalCost = 0
 	
 	if Skillet:VendorSellsReagent(link) then
@@ -250,7 +248,7 @@ function addon:GetReagentCost(link, total)
 	end
 
 	
-	local investedTotal, investedPerItem, count = addon:GetItemCost(link)
+	local investedTotal, investedPerItem, count = ItemAuditor:GetItemCost(link)
 	
 	if count > 0 then
 		if total <= count then
@@ -270,7 +268,7 @@ function addon:GetReagentCost(link, total)
 	return totalCost + (ahPrice * total)
 end
 
-function addon:GetAuctionPrice(itemLink)
+function ItemAuditor:GetAuctionPrice(itemLink)
 	if GetAuctionBuyout ~= nil then
 		return GetAuctionBuyout(itemLink)
 	elseif AucAdvanced and AucAdvanced.Version then
@@ -280,7 +278,7 @@ function addon:GetAuctionPrice(itemLink)
 	return nil
 end
 
-function addon:AddToQueue(skillId,skillIndex, toQueue)
+function ItemAuditor:AddToQueue(skillId,skillIndex, toQueue)
 	if Skillet == nil then
 		self:Print("Skillet not loaded")
 		return
