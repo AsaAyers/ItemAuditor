@@ -1,8 +1,28 @@
 local addonName, addonTable = ...; 
 local addon = _G[addonName]
 
+--[[
+	This is simply for compatibility while I change the QA API. Once
+	my changes get merged into the main project, this can go away.
+]]
+if QAAPI ~= nil and QAAPI.GetGroupThreshold ~= nil and QAAPI.GetGroupConfig == nil then
+	function QAAPI:GetGroupConfig(groupName)
+		return QAAPI:GetGroupThreshold(groupName),
+			QAAPI:GetGroupPostCap(groupName),
+			QAAPI:GetGroupPerAuction(groupName)
+	end
+	
+	function QAAPI:SetGroupConfig(groupName, key, value)
+		if key == 'threshold' then
+			return QAAPI:SetGroupThreshold(groupName, value)
+		end
+	end
+end
+
+
+
 function addon:IsQACompatible()
-	return (QAAPI ~= nil and QAAPI.GetGroups ~= nil)
+	return (QAAPI ~= nil and QAAPI.GetGroupConfig ~= nil)
 end
 
 function addon:IsQAEnabled()
@@ -66,7 +86,7 @@ function addon:UpdateQAGroup(groupName)
 		
 		threshold = calculateQAThreshold(threshold)
 		
-		QAAPI:SetGroupThreshold(groupName, ceil(threshold))
+		QAAPI:SetGroupConfig(groupName, 'threshold', ceil(threshold))
 	end
 end
 
@@ -75,8 +95,9 @@ local function isProfitable(data)
 		local QAGroup = QAAPI:GetItemGroup(data.link)
 		if QAGroup ~= nil then
 			local currentInvested, _, currentCount = addon:GetItemCost(data.link)
+			local threshold, postCap, perAuction = QAAPI:GetGroupConfig(QAGroup)
+			local stackSize = postCap * perAuction
 			
-			local stackSize = QAAPI:GetGroupPostCap(QAGroup) * QAAPI:GetGroupPerAuction(QAGroup)
 			stackSize = stackSize / GetTradeSkillNumMade(data.tradeSkillIndex)
 			
 			-- bonus
@@ -147,7 +168,8 @@ function addon:Queue()
 			if addon.IsQAEnabled() then
 				QAGroup = QAAPI:GetItemGroup(itemLink)
 				if QAGroup ~= nil then
-					stackSize = QAAPI:GetGroupPostCap(QAGroup) * QAAPI:GetGroupPerAuction(QAGroup)
+					local threshold, postCap, perAuction = QAAPI:GetGroupConfig(QAGroup)
+					stackSize = postCap * perAuction
 					stackSize = stackSize / GetTradeSkillNumMade(i)
 					
 					-- bonus

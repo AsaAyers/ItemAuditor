@@ -36,7 +36,7 @@ local function ShowTipWithPricing(tip, link, num)
 	if addon:IsQAEnabled() then
 		local groupName = QAAPI:GetItemGroup(link)
 		if groupName then
-			local threshold = QAAPI:GetGroupThreshold(groupName)
+			local threshold = QAAPI:GetGroupConfig(groupName)
 			tip:AddDoubleLine("\124cffffffffIA: QA Threshold: ", addon:FormatMoney(threshold))
 			show = true
 		end
