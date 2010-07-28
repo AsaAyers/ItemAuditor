@@ -4,6 +4,7 @@ local Options = ItemAuditor:NewModule("Options")
 local currentFaction = UnitFactionGroup("player")
 local AHFactions = { currentFaction, 'Neutral' }
 
+-- TODO: Convert this to a text field.
 local craftingThresholds = {5000, 10000, 50000}
 local craftingThresholdsDisplay = {}
 
@@ -15,7 +16,7 @@ for key, value in pairs(craftingThresholds) do
 end
 
 local windowIndex = nil
-function ItemAuditor:GetChatWindowList()
+function Options.GetChatWindowList()
 	local windows = {}
 	for i=1, NUM_CHAT_WINDOWS do
 		local name, _, _, _, _, _, shown, locked, docked = GetChatWindowInfo(i)
@@ -26,13 +27,13 @@ function ItemAuditor:GetChatWindowList()
 	return windows
 end
 
-function ItemAuditor:GetChatWindowIndex()
-	local cf = self.db.char.output_chat_frame
+function Options:GetChatWindowIndex()
+	local cf = ItemAuditor.db.char.output_chat_frame
 	if not windowIndex then
 		for i=1, NUM_CHAT_WINDOWS do
 			local name, _, _, _, _, _, shown, locked, docked = GetChatWindowInfo(i)
 			if name ~= "" and cf ~= nil and cf == name then
-				self:SetChatWindow(nil, i)
+				Options.SetChatWindow(nil, i)
 			end
 		end
 	end
@@ -42,17 +43,17 @@ end
 
 local selectedWindow = nil
 
-function ItemAuditor:SetChatWindow(info, index)
+function Options.SetChatWindow(info, index)
 	windowIndex = index
 	local name = GetChatWindowInfo(windowIndex)
 	
-	self.db.char.output_chat_frame = name
+	ItemAuditor.db.char.output_chat_frame = name
 	selectedWindow = nil
 end
 
-function ItemAuditor:GetSelectedChatWindow()
+function Options.GetSelectedChatWindow()
 	if not selectedWindow then
-		local index = self:GetChatWindowIndex()
+		local index = Options.GetChatWindowIndex()
 		if index then
 			selectedWindow = _G["ChatFrame"..index]
 		end
@@ -112,9 +113,9 @@ local optionsTable = {
 					type = "select",
 					name = "Output",
 					desc = "",
-					values = 'GetChatWindowList',
-					get = 'GetChatWindowIndex',
-					set = 'SetChatWindow',
+					values = Options.GetChatWindowList,
+					get = Options.GetChatWindowIndex,
+					set = Options.SetChatWindow,
 				},
 			},
 		},

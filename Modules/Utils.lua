@@ -1,7 +1,7 @@
 local ItemAuditor = select(2, ...)
 local Utils = ItemAuditor:NewModule("Utils")
 
-function ItemAuditor:FormatMoney(copper, color, textOnly)
+function Utils.FormatMoney(copper, color, textOnly)
 	color = color or "|cFFFFFFFF"
 	local prefix = ""
 	if copper < 0 then
@@ -40,7 +40,7 @@ function ItemAuditor:FormatMoney(copper, color, textOnly)
 end
 
 -- Copied from QuickAuctions
-function ItemAuditor.validateMoney(value)
+function Utils.validateMoney(value)
 	local gold = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)g|r") or string.match(value, "([0-9]+)g"))
 	local silver = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)s|r") or string.match(value, "([0-9]+)s"))
 	local copper = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)c|r") or string.match(value, "([0-9]+)c"))
@@ -54,30 +54,18 @@ function ItemAuditor.validateMoney(value)
 end
 
 -- Copied from QuickAuctions
-function ItemAuditor.parseMoney(value)
+function Utils.parseMoney(value)
 	local gold = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)g|r") or string.match(value, "([0-9]+)g"))
 	local silver = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)s|r") or string.match(value, "([0-9]+)s"))
 	local copper = tonumber(string.match(value, "([0-9]+)|c([0-9a-fA-F]+)c|r") or string.match(value, "([0-9]+)c"))
 		
 	-- Convert it all into copper
 	return (copper or 0) + ((gold or 0) * COPPER_PER_GOLD) + ((silver or 0) * COPPER_PER_SILVER)
-	
 end
 
--- This is only here to make sure this doesn't blow up if ReplaceItemCache is never called
-local item_db = {}
 
-function ItemAuditor:ReplaceItemCache(new_cache)
-	item_db  = new_cache
-end
-
--- This will be reset every session
 local tmp_item_cache = {}
-function ItemAuditor:GetItemID(itemName)
-	if item_db[itemName] ~= nil then
-		return item_db[itemName]
-	end
-	
+function Utils.GetItemID(itemName)
 	if tmp_item_cache[itemName] == nil then
 		local _, itemLink = GetItemInfo (itemName);
 		if itemLink ~= nil then
@@ -100,6 +88,7 @@ function ItemAuditor:GetItemID(itemName)
 	return tmp_item_cache[itemName]
 end
 
+
 function ItemAuditor:GetLinkFromName(itemName)
 	local itemID = self:GetItemID(itemName)
 	local itemLink
@@ -110,11 +99,7 @@ function ItemAuditor:GetLinkFromName(itemName)
 	return itemLink
 end
 
-function ItemAuditor:SaveItemID(itemName, id)
-	item_db[itemName] = tonumber(id)
-end
-
-ItemAuditor.SubjectPatterns = {
+local SubjectPatterns = {
 	AHCancelled = gsub(AUCTION_REMOVED_MAIL_SUBJECT, "%%s", ".*"),
 	AHExpired = gsub(AUCTION_EXPIRED_MAIL_SUBJECT, "%%s", ".*"),
 	AHOutbid = gsub(AUCTION_OUTBID_MAIL_SUBJECT, "%%s", ".*"),
@@ -123,9 +108,9 @@ ItemAuditor.SubjectPatterns = {
 	CODPayment = gsub(COD_PAYMENT, "%%s", "(.*)"),
 }
 
-function ItemAuditor:GetMailType(msgSubject)
+function Utils.GetMailType(msgSubject)
 	if msgSubject then
-		for k, v in pairs(self.SubjectPatterns) do
+		for k, v in pairs(SubjectPatterns) do
 			if msgSubject:find(v) then return k end
 		end
 	end
@@ -155,3 +140,21 @@ function ItemAuditor:SetDebug(info, input)
 	end
 	self:Print("Debugging is now: " .. value)
 end
+
+-- TODO: Once everything points to the correct Utils method, all of these should be removed
+
+function ItemAuditor:FormatMoney(copper, color, textOnly)
+	return Utils.FormatMoney(copper, color, textOnly)
+end
+
+
+function ItemAuditor:GetMailType(msgSubject)
+	return Utils.GetMailType(msgSubject)
+end
+
+function ItemAuditor:GetItemID(itemName)
+	return Utils.GetItemID(itemName)
+end
+
+ItemAuditor.parseMoney = Utils.parseMoney
+ItemAuditor.validateMoney = Utils.validateMoney

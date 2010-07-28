@@ -1,5 +1,8 @@
 local ItemAuditor = select(2, ...)
 ItemAuditor = LibStub("AceAddon-3.0"):NewAddon(ItemAuditor, "ItemAuditor", "AceEvent-3.0", "AceBucket-3.0")
+--@debug@
+	_G['ItemAuditor'] = ItemAuditor
+--@end-debug@
 
 local WHITE		= "|cFFFFFFFF"
 local RED		= "|cFFFF0000"
@@ -34,19 +37,17 @@ function ItemAuditor:OnInitialize()
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
-	self.items = self.db.factionrealm.items
 	
 	self:RegisterOptions()
 	ItemAuditor:RegisterFrame(ItemAuditor_DebugFrame)
 	
-	-- /run ItemAuditor.db.profile.show_debug_frame_on_startup = true
-	if self.db.profile.show_debug_frame_on_startup then
+	--@debug@
 		-- ItemAuditor_DebugFrame:Show()
 		-- self:CreateFrame('tab_crafting')
 		self:RegisterEvent("TRADE_SKILL_SHOW", function()
 			ItemAuditor:CreateFrame('tab_crafting')
 		end)
-	end
+	--@end-debug@
 end
 
 local registeredEvents = {}
@@ -107,10 +108,20 @@ function ItemAuditor:ConvertItems()
 	self:RefreshQAGroups()
 end
 
+-- Options doesn't exist when this file is created the first time, so getOptions will 
+-- make one call to :GetModule and return the result and replace itself with a 
+-- function that simply returns the same object. The permanent solution will probably be
+-- to move :Print to a different module.
+local function getOptions()
+	local Options = ItemAuditor:GetModule("Options")
+	getOptions = function() return Options end
+	return Options
+end
+
 local printPrefix = "|cFFA3CEFFItemAuditor|r: "
 function ItemAuditor:Print(message, ...)
 	message = format(message, ...)
-	self:GetSelectedChatWindow():AddMessage( printPrefix .. tostring(message))
+	getOptions().GetSelectedChatWindow():AddMessage( printPrefix .. tostring(message))
 end
 
 function ItemAuditor:GetCurrentInventory()
@@ -291,40 +302,40 @@ function ItemAuditor:GetItem(link, viewOnly)
 	
 	
 	if self.db.factionrealm.item_account[itemName] ~= nil then
-		self.items[link] = {
+		self.db.factionrealm.items[link] = {
 			count = Altoholic:GetItemCount(self:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
 		}
 		self.db.factionrealm.item_account[itemName] = nil
 	end
 	
-	if viewOnly == false and self.items[link] == nil then
+	if viewOnly == false and self.db.factionrealm.items[link] == nil then
 		
-		self.items[link] = {
+		self.db.factionrealm.items[link] = {
 			count =  Altoholic:GetItemCount(self:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
 		}
 		
 	end
 	
-	if self.items[link] ~= nil then
-		self.items[link].count =  Altoholic:GetItemCount(self:GetIDFromLink(link))
+	if self.db.factionrealm.items[link] ~= nil then
+		self.db.factionrealm.items[link].count =  Altoholic:GetItemCount(self:GetIDFromLink(link))
 		
-		if self.items[link].invested == nil then
-			self.items[link].invested = 0
+		if self.db.factionrealm.items[link].invested == nil then
+			self.db.factionrealm.items[link].invested = 0
 		end
 	end
 	
-	if viewOnly == true and self.items[link] == nil then
+	if viewOnly == true and self.db.factionrealm.items[link] == nil then
 		return {count = 0, invested = 0}
 	elseif viewOnly == true then
 		
-		return {count = self.items[link].count, invested = self.items[link].invested}
+		return {count = self.db.factionrealm.items[link].count, invested = self.db.factionrealm.items[link].invested}
 	end
 	
 	
 	
-	return self.items[link]
+	return self.db.factionrealm.items[link]
 end
 
 function ItemAuditor:RemoveItem(link)

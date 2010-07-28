@@ -5,7 +5,7 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 local tabs = {}
 
-function ItemAuditor:RegisterTab(text, value, callback)
+function Frames.RegisterTab(text, value, callback)
 	tabs[value] = {text=text, callback=callback}
 end
 
@@ -29,8 +29,7 @@ local function switchTab(container, event, group)
 	currentContent = cb(container)
 end
 
-
-function ItemAuditor:CreateFrame(selectedTab)
+function Frames.CreateFrame(selectedTab)
 	
 	if not displayFrame then
 		-- Create the frame container
@@ -77,8 +76,20 @@ function ItemAuditor:CreateFrame(selectedTab)
 	displayFrame:Show()
 end
 
-function ItemAuditor:UpdateStatusText(message)
+function Frames.UpdateStatusText(message)
 	if displayFrame then
 		displayFrame:SetStatusText(message)
 	end
+end
+
+function ItemAuditor:UpdateStatusText(message)
+	return Frames.UpdateStatusText(message)
+end
+
+function ItemAuditor:RegisterTab(text, value, callback)
+	return Frames.RegisterTab(text, value, callback)
+end
+
+function ItemAuditor:CreateFrame(selectedTab)
+	Frames.CreateFrame(selectedTab)
 end
