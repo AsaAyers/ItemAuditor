@@ -10,6 +10,12 @@ local parseMoney = ItemAuditor.parseMoney
 local realData = {}
 
 
+local queueDestinations = {}
+
+function Crafting.RegisterQueueDestination(name, destination)
+	queueDestinations[name] = destination
+end
+
 -- TODO: Convert this to a text field.
 local craftingThresholds = {5000, 10000, 50000}
 local craftingThresholdsDisplay = {}
@@ -17,6 +23,11 @@ local craftingThresholdsDisplay = {}
 for key, value in pairs(craftingThresholds) do
 	craftingThresholdsDisplay[key] = ItemAuditor:FormatMoney(value, '', true)
 	-- craftingThresholdsDisplay[key] = value
+end
+
+function ItemAuditor:GetCraftingThreshold()
+	local key = ItemAuditor.db.char.crafting_threshold
+	return craftingThresholds[key]
 end
 
 ItemAuditor.Options.args.crafting_options = {
@@ -75,14 +86,34 @@ local craftingCols = {
 	},
 }
 
-local function ExportToSkillet()
+function Crafting.ExportToSkillet(data)
+	local skillString = select(3, string.find(data.recipeLink, "^|%x+|H(.+)|h%[.+%]"))
+	local _, skillId = strsplit(":", skillString)
+	
+	ItemAuditor:AddToQueue(skillId,tradeSkillIndex, data.queue)
+end
+
+Crafting.RegisterQueueDestination('Skillet', Crafting.ExportToSkillet)
+
+
+
+function Crafting.Export(destination)
+	if type(destination) == 'function' then
+		-- do nothing
+	elseif destination == nil then
+		destination = queueDestinations['Skillet']
+	elseif type(destination) == 'string' then
+		destination = queueDestinations[destination]
+	else
+		error('destination must be a function or a string')
+	end
+	
 	local index = 1
 	local data = ItemAuditor:GetCraftingRow(index)
 	while data do
-		local skillString = select(3, string.find(data.recipeLink, "^|%x+|H(.+)|h%[.+%]"))
-		local _, skillId = strsplit(":", skillString)
-		
-		ItemAuditor:AddToQueue(skillId,tradeSkillIndex, data.queue)
+		if data.queue > 0 then
+			destination(data)
+		end
 		index = index + 1
 		data = ItemAuditor:GetCraftingRow(index)
 		
@@ -318,8 +349,10 @@ function ItemAuditor:UpdateCraftingTable()
 		end
 	end
 	table.sort(realData, function(a, b) return a.profit*a.queue > b.profit*b.queue end)
-	craftingTable:SetFilter(tableFilter)
-	self:RefreshCraftingTable()
+	if craftingTable then
+		craftingTable:SetFilter(tableFilter)
+		self:RefreshCraftingTable()
+	end
 end
 
 function ItemAuditor:RefreshCraftingTable()

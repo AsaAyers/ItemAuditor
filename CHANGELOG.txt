@@ -1,3 +1,8 @@
+2010-07-28  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed a bug with the crafting threshold options.
+- Updated /ia queue so that it is a shortcut to using /ia crafting and then clicking export.
+
 2010-07-27  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed an infinite loop when when adding items to the Skillet queue from the crafting interface.

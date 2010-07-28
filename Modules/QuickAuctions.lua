@@ -1,6 +1,7 @@
 local ItemAuditor = select(2, ...)
 local QuickAuctions= ItemAuditor:NewModule("QuickAuctions")
 local Crafting = ItemAuditor:GetModule("Crafting")
+local Utils = ItemAuditor:GetModule("Utils")
 
 --[[
 	This is simply for compatibility while I change the QA API. Once
@@ -116,127 +117,18 @@ local function isProfitable(data)
 end
 Crafting.RegisterCraftingDecider('IA QuickAuctions', isProfitable)
 
---[[
-	This is based on KTQ
-]]
+
 function ItemAuditor:Queue()
-	if LSW == nil then
-		self:Print("This feature requires LilSparky's Workshop.")
-		return
-	end
-	if Skillet == nil then
-		self:Print("This feature requires Skillet.")
-		return
-	end
-	if GetAuctionBuyout ~= nil then
-	elseif AucAdvanced and AucAdvanced.Version then
-	else
-		self:Print("This feature requires Auctionator, Auctioneer, AuctionLite, or AuctionMaster.")
-		return
-	end
-	
-	
-	if ItemAuditor.IsQAEnabled() then
-		self:Debug("Auction Threshold: %d%%", self:GetAuctionThreshold()*100 )
-	end
-	self:Debug(format("Crafting Threshold: %s", self:FormatMoney(self:GetCraftingThreshold())))
-	local profitableItems = {}
-	local profitableIndex = 1
-	local numChecked = 0
-	
-	for i = 1, GetNumTradeSkills() do
-		local itemLink = GetTradeSkillItemLink(i)
-		local itemId = Skillet:GetItemIDFromLink(itemLink)
-
-		--Figure out if its an enchant or not
-		_, _, _, _, altVerb = GetTradeSkillInfo(i)
-		if LSW.scrollData[itemId] ~= nil and altVerb == 'Enchant' then
-			-- Ask LSW for the correct scroll
-			itemId = LSW.scrollData[itemId]["scrollID"]
-		end
-
-		local skillName, skillType, numAvailable, isExpanded, altVerb = GetTradeSkillInfo(i)
-		local recipeLink = GetTradeSkillRecipeLink(i)
-		local stackSize  = 1
-		if recipeLink ~= nil then
-			_, itemLink= GetItemInfo(itemId)
-			
-			
-			-- if QA isn't enabled, this will just return nil
-			local QAGroup = nil
-			if ItemAuditor.IsQAEnabled() then
-				QAGroup = QAAPI:GetItemGroup(itemLink)
-				if QAGroup ~= nil then
-					local threshold, postCap, perAuction = QAAPI:GetGroupConfig(QAGroup)
-					stackSize = postCap * perAuction
-					stackSize = stackSize / GetTradeSkillNumMade(i)
-					
-					-- bonus
-					stackSize = ceil(stackSize *1.25)
-				end
-			end
-			
-			local count = Altoholic:GetItemCount(itemId)
-			
-			if count < stackSize and itemLink ~= nil then
-				local found, _, skillString = string.find(recipeLink, "^|%x+|H(.+)|h%[.+%]")
-				local _, skillId = strsplit(":", skillString )
-				
-				local toQueue = stackSize - count
-				local newCost = 0
-				for reagentId = 1, GetTradeSkillNumReagents(i) do
-					_, _, reagentCount = GetTradeSkillReagentInfo(i, reagentId);
-					reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
-					newCost = newCost + ItemAuditor:GetReagentCost(reagentLink, reagentCount)
-				end
-				
-				local currentInvested, _, currentCount = ItemAuditor:GetItemCost(itemLink)
-				local newThreshold = (newCost + currentInvested) / (currentCount + toQueue)
-				
-				if ItemAuditor.IsQAEnabled() then
-					newThreshold = calculateQAThreshold(newThreshold)
-				else
-					-- if quick auctions isn't enabled, this will cause the decision to rely
-					-- completly on the crafting threshold
-					newThreshold = 0
-				end
-				local currentPrice = ItemAuditor:GetAuctionPrice(itemLink) or 0
-				numChecked = numChecked  + 1
-				
-				if newThreshold < currentPrice and (currentPrice - newCost) > self:GetCraftingThreshold() then
-					
-					profitableItems[profitableIndex] = {
-						itemLink = itemLink,
-						SkillID = skillId,
-						Index = i,
-						toQueue = toQueue,
-						profit = (currentPrice - newCost) * toQueue
-					}
-					profitableIndex = profitableIndex + 1
-				else
-					local skipMessage = format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, ItemAuditor:FormatMoney(currentPrice - newCost))
-					if ItemAuditor.db.profile.messages.queue_skip then
-						self:Print(skipMessage)
-					else
-						self:Debug(format("Skipping %s x%s. Profit: %s ", itemLink, toQueue, ItemAuditor:FormatMoney(currentPrice - newCost)))
-					end
-				end
-			end
-		end
-	end
-	local numAdded = 0
-	table.sort(profitableItems, function(a, b) return a.profit > b.profit end)
-	for key, data in pairs(profitableItems) do
-		self:Print(format("Adding %s x%s to skillet queue. Profit: %s", 
-			data.itemLink, 
-			data.toQueue, 
-			self:FormatMoney(data.profit)
+	local function Export(data)
+		ItemAuditor:Print(format("Adding %s x%s to skillet queue. Profit: %s", 
+			data.link, 
+			data.queue, 
+			Utils.FormatMoney(data.profit)
 		))
-		self:AddToQueue(data.SkillID, data.Index, data.toQueue)
-		numAdded = numAdded +1
+		Crafting.ExportToSkillet(data)
 	end
-	self:Print(format("%d items checked", numChecked))
-	self:Print(format("%d queued", numAdded))
+	ItemAuditor:UpdateCraftingTable()
+	Crafting.Export(Export)
 end
 
 function ItemAuditor:GetReagentCost(link, total)

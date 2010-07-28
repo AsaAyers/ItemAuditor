@@ -71,16 +71,15 @@ function ItemAuditor:OnInitialize()
 	
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ItemAuditor", "ItemAuditor")
 	
-	DevTools_Dump(ItemAuditor.Options);
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", ItemAuditor.Options, {"ia"})
 	ItemAuditor:RegisterFrame(ItemAuditor_DebugFrame)
 	
 	--@debug@
 		-- ItemAuditor_DebugFrame:Show()
 		-- self:CreateFrame('tab_crafting')
-		self:RegisterEvent("TRADE_SKILL_SHOW", function()
-			ItemAuditor:CreateFrame('tab_crafting')
-		end)
+--		self:RegisterEvent("TRADE_SKILL_SHOW", function()
+--			ItemAuditor:CreateFrame('tab_crafting')
+--		end)
 	--@end-debug@
 end
 

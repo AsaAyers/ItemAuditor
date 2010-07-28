@@ -81,10 +81,7 @@ local function pairsByKeys (t, f)
 	return iter
 end
 
-function ItemAuditor:GetCraftingThreshold()
-	local key = ItemAuditor.db.char.crafting_threshold
-	return craftingThresholds[key]
-end
+
 
 function ItemAuditor:GetAuctionThreshold()
 	return ItemAuditor.db.char.auction_threshold
