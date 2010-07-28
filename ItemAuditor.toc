@@ -2,10 +2,10 @@
 ## Title: Item Auditor
 ## Notes: This will keep track of how much you have paid per item in your inventory. Only one of (Auctionator, Auctioneer, AuctionLite, AuctionMaster) is needed to determine which items are profitable to craft.
 ## Author: Asa Ayers <Asa.Ayers@Gmail.com>
-## Version: 0.1
+## Version: @project-version@
 ## SavedVariables: ItemAuditorDB
 ## Dependencies: Altoholic
-## OptionalDeps: QuickAuctions, Skillet, LilSparkysWorkshop, Auctionator, Auctioneer, AuctionLite, AuctionMaster, DevTools
+## OptionalDeps: QuickAuctions, Skillet, LilSparkysWorkshop, Auctionator, Auctioneer, AuctionLite, AuctionMaster, DevTools, WoWUnit
 
 
 embeds.xml
@@ -26,3 +26,5 @@ Modules\Crafting.lua
 Modules\QuickAuctions.lua
 
 Modules\Api.lua
+
+Modules\UnitTests.lua
