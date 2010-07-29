@@ -65,7 +65,7 @@ ItemAuditor.Options.args.crafting_options = {
 			values = craftingThresholdsDisplay,
 			get = function() return ItemAuditor.db.char.crafting_threshold end,
 			set = function(info, value) ItemAuditor.db.char.crafting_threshold = value end,
-			order = 11,
+			order = 0,
 		},
 		queue_destination = {
 			type = "select",
@@ -74,8 +74,14 @@ ItemAuditor.Options.args.crafting_options = {
 			values = displayCraftingDestinations,
 			get = function() return select(2, Crafting.GetQueueDestination()) end,
 			set = function(info, value) ItemAuditor.db.profile.queue_destination = value end,
-			order = 11,
+			order = 1,
 		},
+		deciders = {
+			type="header",
+			name="Crafting Deciders",
+			order = 10,
+		},
+		
 	},
 }
 
@@ -261,15 +267,32 @@ end
 
 local craftingDeciders = {}
 
-function Crafting.RegisterCraftingDecider(name, decider)
+function Crafting.RegisterCraftingDecider(name, decider, options)
 	craftingDeciders[name] = decider
+	
+	ItemAuditor.Options.args.crafting_options.args['chk'..name] = {
+		type = "toggle",
+		name = "Enable "..name,
+		get = function() return not ItemAuditor.db.profile.disabled_deciders[name] end,
+		set = function(info, value) ItemAuditor.db.profile.disabled_deciders[name] = not value end,
+		order = 11,
+	}
+	
+	if options then
+		ItemAuditor.Options.args.crafting_options.args['decider_'..name] = {
+			handler = {},
+			name = name,
+			type = 'group',
+			args = options,
+		}
+	end
 end
 
 local lastWinnder = ""
 local function Decide(data)
 	local newDecision = 0
 	for name, decider in pairs(craftingDeciders) do
-		if name ~= lastWinner then
+		if not ItemAuditor.db.profile.disabled_deciders[name] and name ~= lastWinner then
 			newDecision = decider(data)
 			if newDecision > data.queue then
 				data.queue = newDecision
@@ -294,6 +317,7 @@ local function isProfitable(data)
 	end
 	return -1
 end
+
 Crafting.RegisterCraftingDecider('Is Profitable', isProfitable)
 
 local function tableFilter(self, row, ...)

@@ -60,6 +60,7 @@ function ItemAuditor:OnInitialize()
 			},
 			ItemAuditor_enabled = true,
 			queue_destination = nil,
+			disabled_deciders = {},
 		},
 		factionrealm = {
 			item_account = {},
