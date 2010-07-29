@@ -18,13 +18,12 @@ Modules\Options.lua
 Modules\Frames.lua
 Modules\Events.lua
 Modules\Tooltip.lua
-
 Modules\Debug.lua
 Modules\DisplayInvested.lua
 Modules\Crafting.lua
-
 Modules\QuickAuctions.lua
-
 Modules\Api.lua
+Modules\ArkInventoryRules.lua
 
 Modules\UnitTests.lua
+

@@ -2,6 +2,7 @@
 
 - Fixed a bug with the crafting threshold options.
 - Updated /ia queue so that it is a shortcut to using /ia crafting and then clicking export.
+- Added integration with ArkInventory. You can set up rules that use "itemauditor('profitable')" or "itemauditor('qa')" to find items managed by QuickAuctions.
 
 2010-07-27  Asa Ayers  <Asa.Ayers@Gmail.com>
 

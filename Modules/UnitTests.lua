@@ -208,6 +208,6 @@ UnitTests.Core = {
 if WoWUnit then
 	WoWUnit:AddTestSuite("ItemAuditor", UnitTests);
 
-	WoWUnitConsole:SlashCommand('ItemAuditor')
+	-- WoWUnitConsole:SlashCommand('ItemAuditor')
 end
 --@end-debug@
