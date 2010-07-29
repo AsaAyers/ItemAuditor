@@ -3,7 +3,8 @@
 - Fixed a bug with the crafting threshold options.
 - Updated /ia queue so that it is a shortcut to using /ia crafting and then clicking export.
 - Added integration with ArkInventory. You can set up rules that use "itemauditor('profitable')" or "itemauditor('qa')" to find items managed by QuickAuctions.
-- Added a public API so other addon developers can register themselves as a queue destination and added a UI so users can change that destination.
+- Added a public API so other addon developers can register themselves as a queue destination and added a UI so users can select that destination.
+- Added a config option to control how many extra copies of an item are created if its being managed with QA. The previous behaveior was to add 25% to whatever QA would normally post. Now it defaults to 0% and is user configurable.
 
 2010-07-27  Asa Ayers  <Asa.Ayers@Gmail.com>
 

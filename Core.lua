@@ -50,6 +50,7 @@ function ItemAuditor:OnInitialize()
 			use_quick_auctions = false,
 			crafting_threshold = 1,
 			auction_threshold = 0.15,
+			qa_extra = 0,
 			output_chat_frame = nil,
 		},
 		profile = {

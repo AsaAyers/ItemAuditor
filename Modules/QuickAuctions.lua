@@ -101,7 +101,7 @@ local function isProfitable(data)
 			stackSize = stackSize / GetTradeSkillNumMade(data.tradeSkillIndex)
 			
 			-- bonus
-			stackSize = ceil(stackSize *1.25)
+			stackSize = ceil(stackSize * (1+ItemAuditor.db.char.qa_extra))
 			
 			local newThreshold = ((data.cost*stackSize) + currentInvested) / (currentCount + stackSize)
 			newThreshold = calculateQAThreshold(newThreshold)
@@ -210,7 +210,22 @@ ItemAuditor.Options.args.qa_options = {
 			get = function() return ItemAuditor.db.char.auction_threshold end,
 			set = function(info, value)
 				ItemAuditor.db.char.auction_threshold = value
-				ItemAuditor:RefreshQAGroups()
+				-- ItemAuditor:RefreshQAGroups()
+			end,
+			disabled = 'IsQADisabled',
+			order = 1,
+		},
+		extra = {
+			type = "range",
+			name = "Create Extra",
+			desc = "This is the amount of an item that should be created above what you sell in one post in QuickAuctions."..
+				"If you sell 4 stacks of 5 of an item and your extra is 25%, it will queue enough for you to have 25 of that item.",
+			min = 0.0,
+			max = 1.0,
+			isPercent = true,
+			get = function() return ItemAuditor.db.char.qa_extra end,
+			set = function(info, value)
+				ItemAuditor.db.char.qa_extra = value
 			end,
 			disabled = 'IsQADisabled',
 			order = 1,
