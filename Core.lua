@@ -58,8 +58,7 @@ function ItemAuditor:OnInitialize()
 				queue_skip = false,
 			},
 			ItemAuditor_enabled = true,
-			-- This is for development, so I have no plans to turn it into an option.
-			show_debug_frame_on_startup = false,
+			queue_destination = nil,
 		},
 		factionrealm = {
 			item_account = {},

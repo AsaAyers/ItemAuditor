@@ -119,13 +119,15 @@ Crafting.RegisterCraftingDecider('IA QuickAuctions', isProfitable)
 
 
 function ItemAuditor:Queue()
+	local dest, name = Crafting.GetQueueDestination()
 	local function Export(data)
-		ItemAuditor:Print(format("Adding %s x%s to skillet queue. Profit: %s", 
+		ItemAuditor:Print(format("Adding %s x%s to %s queue. Profit: %s", 
 			data.link, 
 			data.queue, 
+			name,
 			Utils.FormatMoney(data.profit)
 		))
-		Crafting.ExportToSkillet(data)
+		dest(data)
 	end
 	ItemAuditor:UpdateCraftingTable()
 	Crafting.Export(Export)

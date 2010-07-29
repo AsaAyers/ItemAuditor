@@ -11,9 +11,33 @@ local realData = {}
 
 
 local queueDestinations = {}
-
+local displayCraftingDestinations = {}
 function Crafting.RegisterQueueDestination(name, destination)
 	queueDestinations[name] = destination
+	displayCraftingDestinations[name] = name
+end
+
+function Crafting.UnRegisterQueueDestination(name)
+	queueDestinations[name] = nil
+	displayCraftingDestinations[name] = nil
+end
+
+function Crafting.GetQueueDestination()
+	local dest = ItemAuditor.db.profile.queue_destination
+	if dest and queueDestinations[dest] then
+		return queueDestinations[dest], dest
+	end
+	-- If there is none selected or the selected option has 
+	-- dissapeared, choose the first one in the list
+	for name, func in pairs(queueDestinations) do
+		if dest then
+			ItemAuditor:Print("%s is no longer available as a queue destination. %s is the new default", dest, name)
+		end
+		ItemAuditor.db.profile.queue_destination = name
+		return func, name
+	end
+	
+	error('Unable to determine queue destination.')
 end
 
 -- TODO: Convert this to a text field.
@@ -31,10 +55,8 @@ function ItemAuditor:GetCraftingThreshold()
 end
 
 ItemAuditor.Options.args.crafting_options = {
-	name = "Crafting with Skillet",
-	desc = "/ia queue",
+	name = "Crafting",
 	type = 'group',
-	disabled = function() return Skillet == nil end,
 	args = {
 		crafting_threshold = {
 			type = "select",
@@ -43,6 +65,15 @@ ItemAuditor.Options.args.crafting_options = {
 			values = craftingThresholdsDisplay,
 			get = function() return ItemAuditor.db.char.crafting_threshold end,
 			set = function(info, value) ItemAuditor.db.char.crafting_threshold = value end,
+			order = 11,
+		},
+		queue_destination = {
+			type = "select",
+			name = "Queue Destination",
+			desc = "Select the addon who's queue you would like ItemAuditor to post to.",
+			values = displayCraftingDestinations,
+			get = function() return select(2, Crafting.GetQueueDestination()) end,
+			set = function(info, value) ItemAuditor.db.profile.queue_destination = value end,
 			order = 11,
 		},
 	},
@@ -101,7 +132,7 @@ function Crafting.Export(destination)
 	if type(destination) == 'function' then
 		-- do nothing
 	elseif destination == nil then
-		destination = queueDestinations['Skillet']
+		destination = Crafting.GetQueueDestination()
 	elseif type(destination) == 'string' then
 		destination = queueDestinations[destination]
 	else
@@ -188,15 +219,19 @@ local function ShowCrafting(container)
 		end)
 	
 		btnSkillet = CreateFrame("Button", nil, craftingContent, "UIPanelButtonTemplate")
-		btnSkillet:SetText("Queue in Skillet")
+		
+		
 		btnSkillet:SetSize(125, 25) 
 		btnSkillet:SetPoint("BOTTOMRIGHT", btnProcess, 'BOTTOMLEFT', 0, 0)
 		btnSkillet:RegisterForClicks("LeftButtonUp");
 		btnSkillet:SetScript("OnClick", function (self, button, down)
-			ExportToSkillet()
+			Crafting.Export()
 		end)
 		
 	end
+	local destination = select(2, Crafting.GetQueueDestination())
+	btnSkillet:SetText("Export to "..destination)
+	
 	craftingContent:Show()
 	
 	if container.parent then

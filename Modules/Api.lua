@@ -24,7 +24,28 @@ IAapi = {}
 	IAapi.RegisterCraftingDecider('Five', function() return 5 end)
 ]]
 function IAapi.RegisterCraftingDecider(name, decider)
+	assert(type(name) == 'string', 'name must be a string to identify your addon. This will be displayed to the user.')
+	assert(type(destination) == 'function', 'decider must be a function.')
 	Crafting.RegisterCraftingDecider(name, decider)
 end
 
+function IAapi.RegisterQueueDestination(name, destination)
+	assert(type(name) == 'string', 'name must be a string to identify your addon. This will be displayed to the user.')
+	assert(type(destination) == 'function', 'destination must be a function that will be called for each item when exporting the queue.')
+	
+	Crafting.RegisterQueueDestination(name, destination)
+end
 
+function IAapi.UnRegisterQueueDestination(name)
+	assert(type(name) == 'string', 'name must be the string that was used to register your addon.')
+	Crafting.UnRegisterQueueDestination(name)
+end
+
+--@debug@
+-- This is here so I have a second option in the menu and to serve as an example.
+local function testDestination(data)
+	ItemAuditor:Print('queue: '..data.recipeLink)
+end
+
+IAapi.RegisterQueueDestination('Echo', testDestination)
+--@end-debug@
