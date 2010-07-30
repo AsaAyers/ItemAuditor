@@ -157,6 +157,16 @@ function Crafting.Export(destination)
 	end
 end
 
+-- ItemAuditor:GetModule('Crafting').filter_queued = false
+Crafting.filter_queued = true
+local function tableFilter(self, row, ...)
+	-- column 5 is how many should be crafted
+	if Crafting.filter_queued and row[5] <= 0 then
+		return false
+	end
+	return true
+end
+
 local craftingContent = false
 local craftingTable = false
 local btnProcess = false
@@ -291,16 +301,18 @@ end
 local lastWinnder = ""
 local function Decide(data)
 	local newDecision = 0
+	local reason = ""
 	for name, decider in pairs(craftingDeciders) do
 		if not ItemAuditor.db.profile.disabled_deciders[name] and name ~= lastWinner then
-			newDecision = decider(data)
+			newDecision, reason = decider(data)
+			
 			if newDecision > data.queue then
 				data.queue = newDecision
-				lastWinner = name
+				lastWinner = (reason or name)
 				return Decide(data)
 			elseif newDecision < 0 then
 				lastWinner = ""
-				return 'VETO: '..name, 0
+				return 'VETO: '..(reason or name), -1
 			end
 		end
 	end
@@ -320,10 +332,7 @@ end
 
 Crafting.RegisterCraftingDecider('Is Profitable', isProfitable)
 
-local function tableFilter(self, row, ...)
-	-- column 5 is how many should be crafted
-	return row[5] > 0
-end
+
 
 local tableData = {}
 function ItemAuditor:UpdateCraftingTable()
@@ -365,46 +374,48 @@ function ItemAuditor:UpdateCraftingTable()
 		if recipeLink ~= nil and itemId ~= nil then
 			local skillName, skillType, numAvailable, isExpanded, altVerb = GetTradeSkillInfo(i)
 			local itemName, itemLink= GetItemInfo(itemId)
-		
-			local count = Altoholic:GetItemCount(itemId)
-			local reagents = {}
-			local totalCost = 0
-			for reagentId = 1, GetTradeSkillNumReagents(i) do
-				local reagentName, _, reagentCount = GetTradeSkillReagentInfo(i, reagentId);
-				local reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
-				
-				reagents[reagentId] = {
-					name = reagentName,
-					count = reagentCount,
-					price = self:GetReagentCost(reagentLink, reagentCount),
+			
+			-- This check has to be here for things like Inscription Research that don't produce an item.
+			if itemLink then
+				local count = Altoholic:GetItemCount(itemId)
+				local reagents = {}
+				local totalCost = 0
+				for reagentId = 1, GetTradeSkillNumReagents(i) do
+					local reagentName, _, reagentCount = GetTradeSkillReagentInfo(i, reagentId);
+					local reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
+					
+					reagents[reagentId] = {
+						name = reagentName,
+						count = reagentCount,
+						price = self:GetReagentCost(reagentLink, reagentCount),
+					}
+					totalCost  = totalCost + self:GetReagentCost(reagentLink, reagentCount)
+				end
+				local data = {
+					recipeLink = recipeLink,
+					link = itemLink,
+					name = itemName,
+					count = count,
+					price = (self:GetAuctionPrice(itemLink) or 0),
+					cost = totalCost,
+					profit = (self:GetAuctionPrice(itemLink) or 0) - totalCost,
+					reagents = reagents,
+					count = count,
+					tradeSkillIndex = i,
+					queue = 0,
+					winner = "",
 				}
-				totalCost  = totalCost + self:GetReagentCost(reagentLink, reagentCount)
+				
+				data.winner, data.queue = Decide(data)
+				data.queue = data.queue - count
+				
+				-- If a tradeskill makes 5 at a time and something asks for 9, we should only 
+				-- craft twice to get 10.
+				data.queue = ceil(data.queue / GetTradeSkillNumMade(i))
+				
+				realData[row] = data
+				row = row + 1
 			end
-			
-			local data = {
-				recipeLink = recipeLink,
-				link = itemLink,
-				name = itemName,
-				count = count,
-				price = (self:GetAuctionPrice(itemLink) or 0),
-				cost = totalCost,
-				profit = (self:GetAuctionPrice(itemLink) or 0) - totalCost,
-				reagents = reagents,
-				count = count,
-				tradeSkillIndex = i,
-				queue = 0,
-				winner = "",
-			}
-			
-			data.winner, data.queue = Decide(data)
-			data.queue = data.queue - count
-			
-			-- If a tradeskill makes 5 at a time and something asks for 9, we should only 
-			-- craft twice to get 10.
-			data.queue = ceil(data.queue / GetTradeSkillNumMade(i))
-			
-			realData[row] = data
-			row = row + 1
 		end
 	end
 	table.sort(realData, function(a, b) return a.profit*a.queue > b.profit*b.queue end)

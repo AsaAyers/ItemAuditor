@@ -5,7 +5,7 @@
 ## Version: @project-version@
 ## SavedVariables: ItemAuditorDB
 ## Dependencies: Altoholic
-## OptionalDeps: QuickAuctions, Skillet, LilSparkysWorkshop, Auctionator, Auctioneer, AuctionLite, AuctionMaster, DevTools, WoWUnit
+## OptionalDeps: QuickAuctions, Skillet, LilSparkysWorkshop, Auctionator, Auctioneer, AuctionLite, AuctionMaster, ArkInventory, DevTools, WoWUnit
 
 
 embeds.xml

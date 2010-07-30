@@ -1,13 +1,13 @@
-if not ArkInventoryRules then
-	return
-end
+
 
 local ItemAuditor = select(2, ...)
 local ArkInventory = ItemAuditor:NewModule("ArkInventory")
 
 function ArkInventory:OnEnable( )
-	ItemAuditor:Print('Registering with ArkInventory')
-	ArkInventoryRules.Register(self, "itemauditor", ArkInventory.Execute)
+	if ArkInventoryRules then
+		ItemAuditor:Print('Registering with ArkInventory')
+		ArkInventoryRules.Register(self, "itemauditor", ArkInventory.Execute)
+	end
 end
 
 function ArkInventory.Execute( ... )

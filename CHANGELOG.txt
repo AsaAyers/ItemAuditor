@@ -1,3 +1,9 @@
+2010-07-29  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed a bug where tradeskill that don't produce items, like Inscription Research, cause IA to crash.
+- Added some API enhancements.
+- Added ArkInventory as an optional dependency so it will be loaded before IA.
+
 2010-07-28  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed a bug with the crafting threshold options.
