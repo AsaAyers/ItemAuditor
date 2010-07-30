@@ -23,10 +23,11 @@ IAapi = {}
 	
 	IAapi.RegisterCraftingDecider('Five', function() return 5 end)
 ]]
-function IAapi.RegisterCraftingDecider(name, decider)
+function IAapi.RegisterCraftingDecider(name, decider, optionsTable)
 	assert(type(name) == 'string', 'name must be a string to identify your addon. This will be displayed to the user.')
-	assert(type(destination) == 'function', 'decider must be a function.')
-	Crafting.RegisterCraftingDecider(name, decider)
+	assert(type(decider) == 'function', 'decider must be a function.')
+	assert(optionsTable == nil or type(optionsTable) == 'table')
+	Crafting.RegisterCraftingDecider(name, decider, optionsTable)
 end
 
 function IAapi.RegisterQueueDestination(name, destination)
