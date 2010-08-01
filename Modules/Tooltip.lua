@@ -19,7 +19,7 @@ local function ShowTipWithPricing(tip, link, num)
 		local ap = ItemAuditor:GetAuctionPrice(link)
 		if ap == nil then
 			suggestColor = nil
-		elseif ap > ceil(investedPerItem/keep) then
+		elseif ap >= ceil(investedPerItem/keep) then
 			suggestColor = "|cFF00FF00" -- green
 		else
 			suggestColor = "|cFFFF0000" -- red

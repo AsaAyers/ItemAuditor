@@ -1,3 +1,7 @@
+2010-08-01  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed the tooltip so that it is green if the auction price exactly matches your threshold.
+
 2010-07-29  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed a bug where tradeskill that don't produce items, like Inscription Research, cause IA to crash.
