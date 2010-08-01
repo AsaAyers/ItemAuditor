@@ -98,16 +98,16 @@ local function isProfitable(data)
 			local threshold, postCap, perAuction = QAAPI:GetGroupConfig(QAGroup)
 			local stackSize = postCap * perAuction
 			
-			stackSize = stackSize / GetTradeSkillNumMade(data.tradeSkillIndex)
-			
 			-- bonus
 			stackSize = ceil(stackSize * (1+ItemAuditor.db.char.qa_extra))
+			local target = stackSize
+			stackSize  = stackSize - currentCount
 			
 			local newThreshold = ((data.cost*stackSize) + currentInvested) / (currentCount + stackSize)
 			newThreshold = calculateQAThreshold(newThreshold)
 			
 			if  newThreshold < data.price then
-				return stackSize
+				return target
 			end
 			
 			return -1

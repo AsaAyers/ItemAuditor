@@ -1,6 +1,8 @@
 2010-08-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed the tooltip so that it is green if the auction price exactly matches your threshold.
+- Changed the QuickAuctions decider to consider the number already owned and only calculate based on what needs to be crated.
+- Fixed the QuickAuctions decider to return the number of items to be created instead of the number of times to create. This makes a difference with things like Runescroll of Fortitude where 5 are created at once.
 
 2010-07-29  Asa Ayers  <Asa.Ayers@Gmail.com>
 

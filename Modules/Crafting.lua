@@ -320,6 +320,8 @@ local function Decide(data)
 	winner = lastWinner
 	lastWinner = ""
 	
+	data.queue = ceil(data.queue / GetTradeSkillNumMade(data.tradeSkillIndex))
+	
 	return winner, data.queue
 end
 
