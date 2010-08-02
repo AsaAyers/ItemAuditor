@@ -164,10 +164,12 @@ function ItemAuditor:GetReagentCost(link, total)
 end
 
 function ItemAuditor:GetAuctionPrice(itemLink)
+	local link = select(2, GetItemInfo(itemLink))
+	assert(link, 'Invalid item link: '..itemLink)
 	if GetAuctionBuyout ~= nil then
-		return GetAuctionBuyout(itemLink)
+		return GetAuctionBuyout(link)
 	elseif AucAdvanced and AucAdvanced.Version then
-		local _, _, _, _, _, lowBuy= AucAdvanced.Modules.Util.SimpleAuction.Private.GetItems(itemLink)
+		local _, _, _, _, _, lowBuy= AucAdvanced.Modules.Util.SimpleAuction.Private.GetItems(link)
 		return lowBuy
 	end
 	return nil
