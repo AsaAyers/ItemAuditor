@@ -1,3 +1,7 @@
+2010-08-05  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed Bug 22 - Exchanging player bags for bank bags changes invested
+
 2010-08-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed the tooltip so that it is green if the auction price exactly matches your threshold.

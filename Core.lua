@@ -160,23 +160,32 @@ function ItemAuditor:Print(message, ...)
 	getOptions().GetSelectedChatWindow():AddMessage( printPrefix .. tostring(message))
 end
 
+local function scanBag(bagID, i)
+	bagSize=GetContainerNumSlots(bagID)
+	for slotID = 0, bagSize do
+		local link= GetContainerItemLink(bagID, slotID);
+		link = link and ItemAuditor:GetSafeLink(link)
+
+		if link ~= nil and i[link] == nil then
+			i[link] = GetItemCount(link, true);
+		end
+	end
+end
+
 function ItemAuditor:GetCurrentInventory()
 	local i = {}
 	local bagID
 	local slotID
 	
 	for bagID = 0, NUM_BAG_SLOTS do
-		bagSize=GetContainerNumSlots(bagID)
-		for slotID = 0, bagSize do
-			local link= GetContainerItemLink(bagID, slotID);
-			link = link and self:GetSafeLink(link)
-
-			if link ~= nil and i[link] == nil then
-				i[link] = GetItemCount(link);
-			end
-		end
-
+		scanBag(bagID, i)
 	end
+	
+	scanBag(BANK_CONTAINER, i)
+	for bagID = NUM_BAG_SLOTS+1, NUM_BANKBAGSLOTS do
+		scanBag(bagID, i)
+	end
+	
 	return {items = i, money = GetMoney()}
 end
 
