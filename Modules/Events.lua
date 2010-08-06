@@ -4,6 +4,10 @@ local Events = ItemAuditor:NewModule("Events", "AceEvent-3.0")
 function ItemAuditor:OnEnable()
 	self:RegisterEvent("MAIL_SHOW")
 	self:RegisterEvent("UNIT_SPELLCAST_START")
+	
+	self:RegisterEvent("BANKFRAME_OPENED", 'BankFrameChanged')
+	self:RegisterEvent("BANKFRAME_CLOSED", 'BankFrameChanged')
+
 	ItemAuditor:UpdateCurrentInventory()
 	self:WatchBags()
 	

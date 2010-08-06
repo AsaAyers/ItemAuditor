@@ -160,6 +160,13 @@ function ItemAuditor:Print(message, ...)
 	getOptions().GetSelectedChatWindow():AddMessage( printPrefix .. tostring(message))
 end
 
+local bankOpen = false
+
+function ItemAuditor:BankFrameChanged(event)
+	bankOpen = (event == 'BANKFRAME_OPENED')
+	ItemAuditor:UpdateCurrentInventory()
+end
+
 local function scanBag(bagID, i)
 	bagSize=GetContainerNumSlots(bagID)
 	for slotID = 0, bagSize do
@@ -167,7 +174,7 @@ local function scanBag(bagID, i)
 		link = link and ItemAuditor:GetSafeLink(link)
 
 		if link ~= nil and i[link] == nil then
-			i[link] = GetItemCount(link, true);
+			i[link] = GetItemCount(link, bankOpen);
 		end
 	end
 end
@@ -181,9 +188,11 @@ function ItemAuditor:GetCurrentInventory()
 		scanBag(bagID, i)
 	end
 	
-	scanBag(BANK_CONTAINER, i)
-	for bagID = NUM_BAG_SLOTS+1, NUM_BANKBAGSLOTS do
-		scanBag(bagID, i)
+	if bankOpen then
+		scanBag(BANK_CONTAINER, i)
+		for bagID = NUM_BAG_SLOTS+1, NUM_BANKBAGSLOTS do
+			scanBag(bagID, i)
+		end
 	end
 	
 	return {items = i, money = GetMoney()}
