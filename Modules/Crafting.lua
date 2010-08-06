@@ -379,7 +379,7 @@ function ItemAuditor:UpdateCraftingTable()
 			
 			-- This check has to be here for things like Inscription Research that don't produce an item.
 			if itemLink then
-				local count = Altoholic:GetItemCount(itemId)
+				local count = ItemAuditor:GetItemCount(itemId)
 				local reagents = {}
 				local totalCost = 0
 				for reagentId = 1, GetTradeSkillNumReagents(i) do

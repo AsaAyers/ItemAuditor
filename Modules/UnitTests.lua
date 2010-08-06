@@ -124,8 +124,8 @@ UnitTests.Core = {
 			},
 		}
 		
-		backups['Altoholic.GetItemCount'] = Altoholic.GetItemCount
-		Altoholic.GetItemCount = function(self, id) 
+		backups['ItemAuditor.GetItemCount'] = ItemAuditor.GetItemCount
+		ItemAuditor.GetItemCount = function(self, id)
 			local total = GetItemCount(id)
 			total = total + (fakeAlts[id] or 0)
 			
@@ -140,7 +140,7 @@ UnitTests.Core = {
 		ItemAuditor:Print('Unit Test tearDown')
 		ItemAuditor:UpdateCurrentInventory()
 		ItemAuditor.db = backups['ItemAuditor.db']
-		Altoholic.GetItemCount = backups['Altoholic.GetItemCount']		
+		ItemAuditor.GetItemCount = backups['ItemAuditor.GetItemCount']
 	end;
 	
 	testMockGetContainerItemLink = function()

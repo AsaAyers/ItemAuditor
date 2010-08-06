@@ -197,7 +197,7 @@ function UpdateInvestedData()
 		
 		for link, count in pairs(inventory.items) do
 			if includedItems[link] == nil then
-				local count = Altoholic:GetItemCount(ItemAuditor:GetIDFromLink(link))
+				local count = ItemAuditor:GetItemCount(ItemAuditor:GetIDFromLink(link))
 				local itemName, link = GetItemInfo(link)
 				tableData[i] = {
 					itemName.."|"..link,

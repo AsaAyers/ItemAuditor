@@ -341,6 +341,20 @@ function ItemAuditor:ScanMail()
 	return results   
 end
 
+function ItemAuditor:GetItemCount(searchID)
+	local itemCounts = {}
+	local count = 0
+	for _, character in pairs(DataStore:GetCharacters()) do
+		bags, bank = DataStore:GetContainerItemCount(character, searchID)
+
+		count = count + bags + bank
+			+ DataStore:GetAuctionHouseItemCount(character, searchID)
+			+ DataStore:GetInventoryItemCount(character, searchID)
+			+ DataStore:GetCurrencyItemCount(character, searchID)
+	end
+	return count
+end
+
 function ItemAuditor:GetItem(link, viewOnly)
 	if viewOnly == nil then
 		viewOnly = false
@@ -357,7 +371,7 @@ function ItemAuditor:GetItem(link, viewOnly)
 	
 	if self.db.factionrealm.item_account[itemName] ~= nil then
 		self.db.factionrealm.items[link] = {
-			count = Altoholic:GetItemCount(self:GetIDFromLink(link)),
+			count = ItemAuditor:GetItemCount(self:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
 		}
 		self.db.factionrealm.item_account[itemName] = nil
@@ -366,14 +380,14 @@ function ItemAuditor:GetItem(link, viewOnly)
 	if viewOnly == false and self.db.factionrealm.items[link] == nil then
 		
 		self.db.factionrealm.items[link] = {
-			count =  Altoholic:GetItemCount(self:GetIDFromLink(link)),
+			count =  ItemAuditor:GetItemCount(self:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
 		}
 		
 	end
 	
 	if self.db.factionrealm.items[link] ~= nil then
-		self.db.factionrealm.items[link].count =  Altoholic:GetItemCount(self:GetIDFromLink(link))
+		self.db.factionrealm.items[link].count =  ItemAuditor:GetItemCount(self:GetIDFromLink(link))
 		
 		if self.db.factionrealm.items[link].invested == nil then
 			self.db.factionrealm.items[link].invested = 0
@@ -436,7 +450,7 @@ function ItemAuditor:SaveValue(link, value, countChange)
 			self:RemoveItem(link)
 		-- This doesn't work when you mail the only copy of an item you have to another character.
 		--[[
-		elseif item.count == 0 and realLink and Altoholic:GetItemCount(self:GetIDFromLink(realLink)) then 
+		elseif item.count == 0 and realLink and ItemAuditor:GetItemCount(self:GetIDFromLink(realLink)) then 
 			self:Print("You ran out of " .. itemName .. " and never recovered " .. self:FormatMoney(item.invested))
 			self:RemoveItem(link)
 		]]
@@ -506,5 +520,5 @@ function ItemAuditor:GetItemCost(link, countModifier)
 		end
 		
 	end
-	return 0, 0, Altoholic:GetItemCount(ItemAuditor:GetIDFromLink(link))
+	return 0, 0, ItemAuditor:GetItemCount(ItemAuditor:GetIDFromLink(link))
 end

@@ -1,6 +1,7 @@
 2010-08-05  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed Bug 22 - Exchanging player bags for bank bags changes invested
+- Fixed Bug 23 - When you purchase multiple stacks of the same item and it is one you have not invested in yet, ItemAuditor mistakenly counted items you have not yet pulled from the mail as items you already owned. This resulted in those items being counted twice.
 
 2010-08-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 
