@@ -1,3 +1,7 @@
+2010-08-03  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed a bug introduced last night where in some cases there was an error caused by DataStore:GetAuctionHouseItemCount returning nil instead of 0 as I expected.
+
 2010-08-05  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed Bug 22 - Exchanging player bags for bank bags changes invested

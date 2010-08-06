@@ -348,9 +348,9 @@ function ItemAuditor:GetItemCount(searchID)
 		bags, bank = DataStore:GetContainerItemCount(character, searchID)
 
 		count = count + bags + bank
-			+ DataStore:GetAuctionHouseItemCount(character, searchID)
-			+ DataStore:GetInventoryItemCount(character, searchID)
-			+ DataStore:GetCurrencyItemCount(character, searchID)
+			+ (DataStore:GetAuctionHouseItemCount(character, searchID) or 0)
+			+ (DataStore:GetInventoryItemCount(character, searchID) or 0)
+			+ (DataStore:GetCurrencyItemCount(character, searchID) or 0)
 	end
 	return count
 end
