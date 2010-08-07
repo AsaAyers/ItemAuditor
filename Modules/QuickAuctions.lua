@@ -3,6 +3,8 @@ local QuickAuctions= ItemAuditor:NewModule("QuickAuctions")
 local Crafting = ItemAuditor:GetModule("Crafting")
 local Utils = ItemAuditor:GetModule("Utils")
 
+local PT = LibStub("LibPeriodicTable-3.1")
+
 --[[
 	This is simply for compatibility while I change the QA API. Once
 	my changes get merged into the main project, this can go away.
@@ -136,7 +138,7 @@ end
 function ItemAuditor:GetReagentCost(link, total)
 	local totalCost = 0
 	
-	if Skillet:VendorSellsReagent(link) then
+	if PT:ItemInSet(link,"Tradeskill.Mat.BySource.Vendor") then
 		local _, _, _, _, _, _, _, _, _, _, itemVendorPrice = GetItemInfo (link);
 		totalCost = itemVendorPrice * total
 		total = 0

@@ -65,27 +65,33 @@ end
 
 
 local tmp_item_cache = {}
-function Utils.GetItemID(itemName)
-	if tmp_item_cache[itemName] == nil then
-		local _, itemLink = GetItemInfo (itemName);
+function Utils.GetItemID(item)
+	if not item then
+		return nil
+	end
+
+	if tmp_item_cache[item] == nil then
+		-- Whether item is a link or a name, both should return the full link
+		DevTools_Dump(item)
+		local _, itemLink = GetItemInfo (item);
 		if itemLink ~= nil then
 			local _, _, _, _, itemID = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
-			tmp_item_cache[itemName] = tonumber(itemID)
+			tmp_item_cache[item] = tonumber(itemID)
 		end
 	end
 	
-	if tmp_item_cache[itemName] == nil then
+	if tmp_item_cache[item] == nil then
 		for link, data in pairs(ItemAuditor.db.factionrealm.items) do
 			local name, itemLink = GetItemInfo (link);
-			if name == itemName then
+			if name == item then
 				local _, _, _, _, itemID = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
-				tmp_item_cache[itemName] = tonumber(itemID)
+				tmp_item_cache[item] = tonumber(itemID)
 			end
 		end
 		
 	end
 	
-	return tmp_item_cache[itemName]
+	return tmp_item_cache[item]
 end
 
 

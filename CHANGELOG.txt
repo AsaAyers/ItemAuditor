@@ -1,3 +1,7 @@
+2010-08-07  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Removed references to Skillet in core functionality. Skillet really should be optional.
+
 2010-08-03  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed a bug introduced last night where in some cases there was an error caused by DataStore:GetAuctionHouseItemCount returning nil instead of 0 as I expected.

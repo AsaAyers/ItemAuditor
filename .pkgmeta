@@ -32,6 +32,10 @@ externals:
     Libs/lib-st: 
         url: svn://svn.wowace.com/wow/lib-st/mainline/trunk
         tag: latest
+    Libs/LibPeriodicTable-3.1:
+        url: svn://svn.wowace.com/wow/libperiodictable-3-1/mainline/trunk/LibPeriodicTable-3.1 
+        tag: latest
+
 
 required-dependencies: Altoholic
 

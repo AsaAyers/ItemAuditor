@@ -75,6 +75,8 @@ function ItemAuditor:OnInitialize()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", ItemAuditor.Options, {"ia"})
 	ItemAuditor:RegisterFrame(ItemAuditor_DebugFrame)
 	
+	LibStub("AceConsole-3.0"):RegisterChatCommand('rl', ReloadUI)
+	
 	--@debug@
 		-- ItemAuditor_DebugFrame:Show()
 		-- self:CreateFrame('tab_crafting')

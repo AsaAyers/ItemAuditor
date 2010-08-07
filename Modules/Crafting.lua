@@ -1,6 +1,8 @@
 local ItemAuditor = select(2, ...)
 local Crafting = ItemAuditor:NewModule("Crafting")
 
+local Utils = ItemAuditor:GetModule("Utils")
+
 local AceGUI = LibStub("AceGUI-3.0")
 local ScrollingTable = LibStub("ScrollingTable")
 
@@ -342,10 +344,6 @@ function ItemAuditor:UpdateCraftingTable()
 		self:Print("This feature requires LilSparky's Workshop.")
 		return
 	end
-	if Skillet == nil then
-		self:Print("This feature requires Skillet.")
-		return
-	end
 	if GetAuctionBuyout ~= nil then
 	elseif AucAdvanced and AucAdvanced.Version then
 	else
@@ -362,7 +360,7 @@ function ItemAuditor:UpdateCraftingTable()
 	
 	for i = 1, GetNumTradeSkills() do
 		local itemLink = GetTradeSkillItemLink(i)
-		local itemId = Skillet:GetItemIDFromLink(itemLink)
+		local itemId = Utils.GetItemID(itemLink)
 
 		--Figure out if its an enchant or not
 		_, _, _, _, altVerb = GetTradeSkillInfo(i)
