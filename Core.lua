@@ -4,6 +4,11 @@ ItemAuditor = LibStub("AceAddon-3.0"):NewAddon(ItemAuditor, "ItemAuditor", "AceE
 	_G['ItemAuditor'] = ItemAuditor
 --@end-debug@
 
+if not DevTools_Dump then
+	function DevTools_Dump()
+	end
+end
+
 local WHITE		= "|cFFFFFFFF"
 local RED		= "|cFFFF0000"
 local GREEN		= "|cFF00FF00"

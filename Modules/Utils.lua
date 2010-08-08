@@ -72,7 +72,6 @@ function Utils.GetItemID(item)
 
 	if tmp_item_cache[item] == nil then
 		-- Whether item is a link or a name, both should return the full link
-		DevTools_Dump(item)
 		local _, itemLink = GetItemInfo (item);
 		if itemLink ~= nil then
 			local _, _, _, _, itemID = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")

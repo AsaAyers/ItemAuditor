@@ -1,3 +1,7 @@
+2010-08-08  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Removed some debugging code and added some code to prevent ItemAuditor from crashing if debug code gets released.
+
 2010-08-07  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Removed references to Skillet in core functionality. Skillet really should be optional.
