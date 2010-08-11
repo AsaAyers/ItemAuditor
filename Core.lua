@@ -66,6 +66,7 @@ function ItemAuditor:OnInitialize()
 			ItemAuditor_enabled = true,
 			queue_destination = nil,
 			disabled_deciders = {},
+			pricing_method = 'low',
 		},
 		factionrealm = {
 			item_account = {},

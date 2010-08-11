@@ -36,6 +36,23 @@ local function getSelected()
 	return ItemAuditor.db.profile.auction_addon
 end
 
+local function setAddon(info, value)
+	ItemAuditor.db.profile.auction_addon = value
+end
+
+local function getPricingMethods()
+	if ItemAuditor.db.profile.auction_addon == 'other' then
+		return {
+			low = 'Lowest Price',
+		}
+	else
+		return {
+			low = 'Lowest Price',
+			market = 'Market Price',
+		}
+	end
+end
+
 ItemAuditor.Options.args.auction_house = {
 	name = "Auction House",
 	type = 'group',
@@ -46,9 +63,18 @@ ItemAuditor.Options.args.auction_house = {
 			desc = "",
 			values = getAddons,
 			get = getSelected,
-			set = function(info, value) ItemAuditor.db.profile.auction_addon = value end,
+			set = setAddon,
 			order = 0,
 		},
+		pricingMethod = {
+			type = "select",
+			name = "Pricing Method",
+			desc = "",
+			values = getPricingMethods,
+			get = function() return ItemAuditor.db.profile.pricing_method end,
+			set = function(info, value) ItemAuditor.db.profile.pricing_method = value end,
+			order = 1,
+		}
 	},
 }
 
@@ -56,11 +82,16 @@ function AuctionHouse:GetAuctionPrice(itemLink)
 	local link = select(2, GetItemInfo(itemLink))
 	assert(link, 'Invalid item link: '..itemLink)
 	local addon = getSelected()
+	local prices = ItemAuditor.db.profile.pricing_method or 'low'
 	if GetAuctionBuyout ~= nil and addon == 'other' then
 		return GetAuctionBuyout(link)
 	elseif AucAdvanced and AucAdvanced.Version and addon == 'auctioneer' then
-		local _, _, _, _, _, lowBuy= AucAdvanced.Modules.Util.SimpleAuction.Private.GetItems(link)
-		return lowBuy
+		if prices == 'low' then
+			local _, _, _, _, _, lowBuy= AucAdvanced.Modules.Util.SimpleAuction.Private.GetItems(link)
+			return lowBuy
+		else
+			return AucAdvanced.API.GetMarketValue(link)
+		end
 	end
 	return nil
 end

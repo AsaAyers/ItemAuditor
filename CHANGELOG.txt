@@ -2,6 +2,7 @@
 
 - Changed the ArkInventory rule to consider items with no competition to be profitable.
 - Ticket 27 - Added the ability to select your preferred auction adodn if multiple are available.
+- Added options when using Auctioneer to use the market price instead of the lowest price on the AH.
 
 2010-08-08  Asa Ayers  <Asa.Ayers@Gmail.com>
 
