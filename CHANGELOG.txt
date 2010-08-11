@@ -1,6 +1,7 @@
-2010-08-08  Asa Ayers  <Asa.Ayers@Gmail.com>
+2010-08-10  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Changed the ArkInventory rule to consider items with no competition to be profitable.
+- Ticket 27 - Added the ability to select your preferred auction adodn if multiple are available.
 
 2010-08-08  Asa Ayers  <Asa.Ayers@Gmail.com>
 

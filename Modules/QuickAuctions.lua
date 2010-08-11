@@ -2,6 +2,7 @@ local ItemAuditor = select(2, ...)
 local QuickAuctions= ItemAuditor:NewModule("QuickAuctions")
 local Crafting = ItemAuditor:GetModule("Crafting")
 local Utils = ItemAuditor:GetModule("Utils")
+local AuctionHouse = ItemAuditor:GetModule("AuctionHouse")
 
 local PT = LibStub("LibPeriodicTable-3.1")
 
@@ -166,15 +167,7 @@ function ItemAuditor:GetReagentCost(link, total)
 end
 
 function ItemAuditor:GetAuctionPrice(itemLink)
-	local link = select(2, GetItemInfo(itemLink))
-	assert(link, 'Invalid item link: '..itemLink)
-	if GetAuctionBuyout ~= nil then
-		return GetAuctionBuyout(link)
-	elseif AucAdvanced and AucAdvanced.Version then
-		local _, _, _, _, _, lowBuy= AucAdvanced.Modules.Util.SimpleAuction.Private.GetItems(link)
-		return lowBuy
-	end
-	return nil
+	return AuctionHouse:GetAuctionPrice(itemLink)
 end
 
 function ItemAuditor:AddToQueue(skillId,skillIndex, toQueue)
