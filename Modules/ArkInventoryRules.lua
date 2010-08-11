@@ -47,11 +47,8 @@ function ArkInventory.Execute( ... )
 					local ap = ItemAuditor:GetAuctionPrice(link)
 					local keep = 1 - ItemAuditor:GetAHCut()
 					
-					if ap ~= nil then
-						
-						if ap > ceil(investedPerItem/keep) then
-							return true
-						end
+					if ap == nil or ap > ceil(investedPerItem/keep) then
+						return true
 					end
 				end
 				return false

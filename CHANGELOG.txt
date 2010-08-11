@@ -1,5 +1,9 @@
 2010-08-08  Asa Ayers  <Asa.Ayers@Gmail.com>
 
+- Changed the ArkInventory rule to consider items with no competition to be profitable.
+
+2010-08-08  Asa Ayers  <Asa.Ayers@Gmail.com>
+
 - Removed some debugging code and added some code to prevent ItemAuditor from crashing if debug code gets released.
 
 2010-08-07  Asa Ayers  <Asa.Ayers@Gmail.com>
