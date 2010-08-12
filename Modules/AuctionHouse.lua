@@ -1,6 +1,8 @@
 local ItemAuditor = select(2, ...)
 local AuctionHouse = ItemAuditor:NewModule("AuctionHouse")
 
+local Utils = ItemAuditor:GetModule("Utils")
+
 local addon_options
 local function getAddons()
 	-- this will ensure that the addons are only scanned once per session.
@@ -75,7 +77,51 @@ ItemAuditor.Options.args.auction_house = {
 			set = function(info, value) ItemAuditor.db.profile.pricing_method = value end,
 			order = 1,
 		}
+		
 	},
+}
+
+local function clearSnatch()
+	ItemAuditor:Print('clearing snatch')
+	local Snatch = AucAdvanced.Modules.Util.SearchUI.Searchers.Snatch
+	local snatchList = Snatch.Private.snatchList
+
+	for itemLink in pairs(snatchList) do
+		local link = select(2, GetItemInfo('item:'..itemLink))
+		Snatch.RemoveSnatch(link)
+	end
+end
+
+function AuctionHouse.Snatch()
+	if not AucAdvanced or not AucAdvanced.Version then
+		ItemAuditor:Print("The snatch command requires Auctioneer.")
+		return
+	end
+	
+	local Snatch = AucAdvanced.Modules.Util.SearchUI.Searchers.Snatch
+	if not Snatch.Private.frame then
+		ItemAuditor:Print("You must visit the Auction House before you can update Auctioneer's snatch list.")
+		return
+	end
+	clearSnatch()
+
+	local function Export(data)
+		for id, reagent in pairs(data.reagents) do
+			ItemAuditor:Print("Adding %s for %s", reagent.link, Utils.FormatMoney(reagent.price))
+			Snatch.AddSnatch(reagent.link, reagent.price)
+		end
+	end
+	ItemAuditor:UpdateCraftingTable()
+	ItemAuditor:GetModule("Crafting").Export(Export)
+end
+
+ItemAuditor.Options.args.snatch = {
+	type = "execute",
+	handler = AuctionHouse,
+	name = "snatch",
+	desc = "Replace Auctioner's snatch list with all the reagents you need for crafting.",
+	func = "Snatch",
+	guiHidden = true,
 }
 
 function AuctionHouse:GetAuctionPrice(itemLink)

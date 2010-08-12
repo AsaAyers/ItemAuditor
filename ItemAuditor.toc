@@ -13,8 +13,8 @@ ItemAuditor.xml
 
 
 Core.lua
-Modules\AuctionHouse.lua
 Modules\Utils.lua
+Modules\AuctionHouse.lua
 Modules\Options.lua
 Modules\Frames.lua
 Modules\Events.lua

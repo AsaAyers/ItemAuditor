@@ -87,7 +87,7 @@ function ItemAuditor:OnInitialize()
 		-- ItemAuditor_DebugFrame:Show()
 		-- self:CreateFrame('tab_crafting')
 		self:RegisterEvent("TRADE_SKILL_SHOW", function()
-			ItemAuditor:CreateFrame('tab_crafting')
+			ItemAuditor:DisplayCrafting()
 		end)
 	--@end-debug@
 end

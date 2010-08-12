@@ -3,6 +3,7 @@
 - Fixed an issue where trading an item and gold in exchange for a different item was not considering the gold in the price of the new item.
 - Fixed a bug where postage was being counted more than once if you send mail and then open mail in the same session.
 - Added a warning when sending items with value to characters on other accounts.
+- Added '/ia snatch'. This new command works with your queue (/ia crafting) to replace your snatch list with the materials you need for crafting. NOTE: Auctioneer requires visiting the AH before you can modify the snatch list.
 
 2010-08-10  Asa Ayers  <Asa.Ayers@Gmail.com>
 

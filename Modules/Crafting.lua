@@ -385,6 +385,7 @@ function ItemAuditor:UpdateCraftingTable()
 					local reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
 					
 					reagents[reagentId] = {
+						link = reagentLink,
 						name = reagentName,
 						count = reagentCount,
 						price = self:GetReagentCost(reagentLink, reagentCount),
