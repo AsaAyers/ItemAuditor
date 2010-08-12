@@ -42,6 +42,13 @@ function IAapi.UnRegisterQueueDestination(name)
 	Crafting.UnRegisterQueueDestination(name)
 end
 
+function IAapi.GetItemCost(link)
+	assert(link, 'usage: IAapi.GetItemCost(itemLink)')
+	return ItemAuditor:GetItemCost(link)
+end
+
+
+
 local function registerLoadedAddons()
 	return ItemAuditor_RegisterAPI and ItemAuditor_RegisterAPI()
 end
