@@ -389,6 +389,8 @@ function ItemAuditor:UpdateCraftingTable()
 						name = reagentName,
 						count = reagentCount,
 						price = self:GetReagentCost(reagentLink, reagentCount),
+						need = 0, -- This will get populated after the decisions have been made. it can't
+						-- be done before that because highest profit items get priority on materials.
 					}
 					totalCost  = totalCost + self:GetReagentCost(reagentLink, reagentCount)
 				end
@@ -420,6 +422,23 @@ function ItemAuditor:UpdateCraftingTable()
 		end
 	end
 	table.sort(realData, function(a, b) return a.profit*a.queue > b.profit*b.queue end)
+
+	local numOwned = {}
+	for key, data in pairs(realData) do
+		data.haveMaterials = true
+		for id, reagent in pairs(data.reagents) do
+			if not numOwned[reagent.link] then
+				numOwned[reagent.link] = ItemAuditor:GetItemCount(ItemAuditor:GetIDFromLink(reagent.link))
+			end
+			numOwned[reagent.link] = numOwned[reagent.link] - reagent.count
+
+			if numOwned[reagent.link] < 0 then
+				data.haveMaterials = false
+				reagent.need = min(reagent.count, abs(numOwned[reagent.link]))
+			end
+		end
+	end
+
 	if craftingTable then
 		craftingTable:SetFilter(tableFilter)
 		self:RefreshCraftingTable()

@@ -76,6 +76,9 @@ function Utils.GetItemID(item)
 		if itemLink ~= nil then
 			local _, _, _, _, itemID = string.find(itemLink, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
 			tmp_item_cache[item] = tonumber(itemID)
+		else
+			local _, _, _, _, itemID = string.find(item, "|?c?f?f?(%x*)|?H?([^:]*):?(%d+):?(%d*):?(%d*):?(%d*):?(%d*):?(%d*):?(%-?%d*):?(%-?%d*):?(%d*)|?h?%[?([^%[%]]*)%]?|?h?|?r?")
+			tmp_item_cache[item] = tonumber(itemID)
 		end
 	end
 	
@@ -87,9 +90,7 @@ function Utils.GetItemID(item)
 				tmp_item_cache[item] = tonumber(itemID)
 			end
 		end
-		
 	end
-	
 	return tmp_item_cache[item]
 end
 

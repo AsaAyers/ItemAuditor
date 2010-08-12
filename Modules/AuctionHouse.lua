@@ -105,10 +105,16 @@ function AuctionHouse.Snatch()
 	end
 	clearSnatch()
 
+	local snatchList = {}
 	local function Export(data)
-		for id, reagent in pairs(data.reagents) do
-			ItemAuditor:Print("Adding %s for %s", reagent.link, Utils.FormatMoney(reagent.price))
-			Snatch.AddSnatch(reagent.link, reagent.price)
+		if not data.haveMaterials then
+			for id, reagent in pairs(data.reagents) do
+				if reagent.need > 0 and not snatchList[reagent.link] then
+					snatchList[reagent.link] = true
+					ItemAuditor:Print("Adding %s for %s", reagent.link, Utils.FormatMoney(reagent.price))
+					Snatch.AddSnatch(reagent.link, reagent.price)
+				end
+			end
 		end
 	end
 	ItemAuditor:UpdateCraftingTable()

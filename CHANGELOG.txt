@@ -4,6 +4,9 @@
 - Fixed a bug where postage was being counted more than once if you send mail and then open mail in the same session.
 - Added a warning when sending items with value to characters on other accounts.
 - Added '/ia snatch'. This new command works with your queue (/ia crafting) to replace your snatch list with the materials you need for crafting. NOTE: Auctioneer requires visiting the AH before you can modify the snatch list.
+- Fixed Enchanting. I was not getting the ItemID correctly, so enchants could not be mapped to the scrolls they were to created
+- Changed snatch to only add each item once and to only add a snatch for items you don't have
+- API: Added haveMaterials to the item and need to the reagents that get passed to queue destinations. This is in preparation for building a shopping list module.
 
 2010-08-10  Asa Ayers  <Asa.Ayers@Gmail.com>
 
