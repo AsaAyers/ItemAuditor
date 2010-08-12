@@ -1,6 +1,8 @@
 local ItemAuditor = select(2, ...)
 local Events = ItemAuditor:NewModule("Events", "AceEvent-3.0")
 
+local Utils = ItemAuditor:GetModule("Utils")
+
 function ItemAuditor:OnEnable()
 	self:RegisterEvent("MAIL_SHOW")
 	self:RegisterEvent("UNIT_SPELLCAST_START")
@@ -55,6 +57,7 @@ end
 local attachedItems = {}
 local Orig_SendMail = SendMail
 local skipCODTracking = false
+local skipCODCheck = false
 
 StaticPopupDialogs["ItemAuditor_Send_COD_without_tracking_number"] = {
 	text = "ItemAuditor cannot track COD mail with multiple item types attached. Do you want to send this mail without tracking?",
@@ -62,6 +65,18 @@ StaticPopupDialogs["ItemAuditor_Send_COD_without_tracking_number"] = {
 	button2 = "No",
 	OnAccept = function()
 		skipCODTracking = true
+	end,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+}
+
+StaticPopupDialogs["ItemAuditor_Insufficient_COD"] = {
+	text = "The COD on this mail is less than the value of items attached. Are you sure you want to send this?|nTotal value (including postage): %s",
+	button1 = "Yes",
+	button2 = "No",
+	OnAccept = function()
+		skipCODCheck = true
 	end,
 	timeout = 0,
 	whileDead = true,
@@ -76,7 +91,7 @@ function SendMail(recipient, subject, body, ...)
 	
 	self.mailOutbox.COD = GetSendMailCOD()
 	
-	attachedItems = {}
+	wipe(attachedItems)
 	local totalStacks = 0
 	local link
 	for index = 1, ATTACHMENTS_MAX_SEND do
@@ -92,11 +107,31 @@ function SendMail(recipient, subject, body, ...)
 			attachedItems[newLink].price = 0 -- This is a placeholder for below.
 		end
 	end
+	local attachedValue = 0
 	for link, data in pairs(attachedItems) do
 		data.price = 30 * data.stacks
+		attachedValue = attachedValue + data.price + (select(2, ItemAuditor:GetItemCost(link)) * data.stacks)
 	end
 	
-	if self.mailOutbox.COD > 0 and skipCODTracking then
+	local cross_account_mail = true
+	for name, _ in pairs(DataStore:GetCharacters()) do
+		if recipient == name then
+			cross_account_mail = false
+			break
+		end
+	end
+	if cross_account_mail and attachedValue > self.mailOutbox.COD and not skipCODCheck then
+		self:GenerateBlankOutbox()
+		skipCODCheck = false;
+		local vararg = ...
+		StaticPopupDialogs["ItemAuditor_Insufficient_COD"].OnAccept = function()
+			skipCODCheck = true
+			SendMail(recipient, subject, body, vararg)
+			skipCODCheck = false
+		end
+		StaticPopup_Show ("ItemAuditor_Insufficient_COD", Utils.FormatMoney(attachedValue));
+		return
+	elseif self.mailOutbox.COD > 0 and skipCODTracking then
 		
 	elseif self.mailOutbox.COD > 0 then
 		if self:tcount(attachedItems) > 1 then
@@ -130,6 +165,8 @@ end
 
 function ItemAuditor:MAIL_SUCCESS(event)
 	skipCODTracking = false
+	skipCODCheck = false
+
 	for link, data in pairs(attachedItems) do
 		self:SaveValue(link, data.price, data.count)
 	end
@@ -139,8 +176,8 @@ function ItemAuditor:MAIL_SUCCESS(event)
 		self.mailOutbox.sent = time()
 		self.db.factionrealm.outbound_cod[self.mailOutbox.key] = self.mailOutbox
 	end
-	
-	
+
+	wipe(attachedItems)
 	self:GenerateBlankOutbox()
 end
 
