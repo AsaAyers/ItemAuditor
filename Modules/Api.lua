@@ -42,11 +42,38 @@ function IAapi.UnRegisterQueueDestination(name)
 	Crafting.UnRegisterQueueDestination(name)
 end
 
+local function registerLoadedAddons()
+	return ItemAuditor_RegisterAPI and ItemAuditor_RegisterAPI()
+end
+registerLoadedAddons()
+
+
+-- This is here so I have a second option in the menu and to serve as an example of
+-- how to register your addon with ItemAuditor.
 --@debug@
--- This is here so I have a second option in the menu and to serve as an example.
-local function testDestination(data)
-	ItemAuditor:Print('queue: '..data.recipeLink)
+local function RegisterWithItemAuditor()
+	local function testDestination(data)
+		-- Replace this with a call to the methods you need in your addon
+		ItemAuditor:Print('queue: '..data.recipeLink)
+	end
+	-- Replace Echo with the name of your addon so it can be selected from /ia options
+	IAapi.RegisterQueueDestination('Echo', testDestination)
 end
 
-IAapi.RegisterQueueDestination('Echo', testDestination)
+if IAapi then
+	RegisterWithItemAuditor()
+else
+	-- make sure to save any other addon's function
+	local original = ItemAuditor_RegisterAPI
+	-- this should not be local so it replaces (or creates) the global function
+	function ItemAuditor_RegisterAPI()
+		RegisterWithItemAuditor()
+		-- if original has a value (function), this will run it
+		return original and original()
+	end
+end
+
+
+
+
 --@end-debug@

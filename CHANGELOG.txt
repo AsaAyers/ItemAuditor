@@ -7,6 +7,7 @@
 - Fixed Enchanting. I was not getting the ItemID correctly, so enchants could not be mapped to the scrolls they were to created
 - Changed snatch to only add each item once and to only add a snatch for items you don't have
 - API: Added haveMaterials to the item and need to the reagents that get passed to queue destinations. This is in preparation for building a shopping list module.
+- API: Added a way for other addons to register with ItemAuditor once it loads if they were loaded first and updated the example at the end of Api.lua.
 
 2010-08-10  Asa Ayers  <Asa.Ayers@Gmail.com>
 

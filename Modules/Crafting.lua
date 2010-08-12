@@ -396,6 +396,7 @@ function ItemAuditor:UpdateCraftingTable()
 				end
 				local data = {
 					recipeLink = recipeLink,
+					recipeID = Utils.GetItemID(recipeLink),
 					link = itemLink,
 					name = itemName,
 					count = count,
