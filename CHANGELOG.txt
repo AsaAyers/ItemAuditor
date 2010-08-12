@@ -1,3 +1,7 @@
+2010-08-11  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed an issue where trading an item and gold in exchange for a different item was not considering the gold in the price of the new item.
+
 2010-08-10  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Changed the ArkInventory rule to consider items with no competition to be profitable.

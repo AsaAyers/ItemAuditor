@@ -290,6 +290,7 @@ function ItemAuditor:UpdateAudit()
 			
 			totalChange = totalChange + (itemCost * abs(change))
 		end
+		totalChange = totalChange - diff.money
 		
 		distributeValue(self, totalChange, positive)
 	else
