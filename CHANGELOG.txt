@@ -1,3 +1,7 @@
+2010-08-14  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Ticket 29 - Changed the Insufficient COD alert to use a case-insensitive comparison on character names. 
+
 2010-08-12  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - API: added IAapi.GetItemCost

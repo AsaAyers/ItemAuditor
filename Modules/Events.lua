@@ -115,7 +115,7 @@ function SendMail(recipient, subject, body, ...)
 	
 	local cross_account_mail = true
 	for name, _ in pairs(DataStore:GetCharacters()) do
-		if recipient == name then
+		if strlower(recipient) == strlower(name) then
 			cross_account_mail = false
 			break
 		end
