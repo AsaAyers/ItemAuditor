@@ -42,33 +42,14 @@ function Crafting.GetQueueDestination()
 	error('Unable to determine queue destination.')
 end
 
--- TODO: Convert this to a text field.
-local craftingThresholds = {5000, 10000, 50000}
-local craftingThresholdsDisplay = {}
-
-for key, value in pairs(craftingThresholds) do
-	craftingThresholdsDisplay[key] = ItemAuditor:FormatMoney(value, '', true)
-	-- craftingThresholdsDisplay[key] = value
-end
-
 function ItemAuditor:GetCraftingThreshold()
-	local key = ItemAuditor.db.char.crafting_threshold
-	return craftingThresholds[key]
+	return self.db.char.profitable_threshold
 end
 
 ItemAuditor.Options.args.crafting_options = {
 	name = "Crafting",
 	type = 'group',
 	args = {
-		crafting_threshold = {
-			type = "select",
-			name = "Crafting Threshold",
-			desc = "Don't create items that will make less than this amount of profit",
-			values = craftingThresholdsDisplay,
-			get = function() return ItemAuditor.db.char.crafting_threshold end,
-			set = function(info, value) ItemAuditor.db.char.crafting_threshold = value end,
-			order = 0,
-		},
 		queue_destination = {
 			type = "select",
 			name = "Queue Destination",
@@ -83,7 +64,6 @@ ItemAuditor.Options.args.crafting_options = {
 			name="Crafting Deciders",
 			order = 10,
 		},
-		
 	},
 }
 
@@ -372,7 +352,29 @@ local function isProfitable(data)
 	return -1, 'Not Profitable'
 end
 
-Crafting.RegisterCraftingDecider('Is Profitable', isProfitable)
+local isProfitableOptions = {
+	profitable_threshold = {
+		type = "input",
+		name = "Crafting Threshold",
+		desc = "Don't create items that will make less than this amount of profit",
+		get = function() return
+			Utils.FormatMoney(ItemAuditor:GetCraftingThreshold(), '', true)
+		end,
+		validate = function(info, value)
+			if not Utils.validateMoney(value) then
+				return "Invalid money format"
+			end
+			return true
+		end,
+		set = function(info, value)
+			ItemAuditor.db.char.profitable_threshold = Utils.parseMoney(value)
+		end,
+		usage = "###g ##s ##c",
+		order = 0,
+	},
+}
+
+Crafting.RegisterCraftingDecider('Is Profitable', isProfitable, isProfitableOptions)
 
 
 

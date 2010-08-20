@@ -46,7 +46,7 @@ ItemAuditor.DB_defaults = {
 	char = {
 		ah = 1,
 		use_quick_auctions = false,
-		crafting_threshold = 1,
+		profitable_threshold = 10000,
 		auction_threshold = 0.15,
 		qa_extra = 0,
 		output_chat_frame = nil,
@@ -84,6 +84,19 @@ function ItemAuditor:OnInitialize()
 	ItemAuditor:RegisterFrame(ItemAuditor_DebugFrame)
 	
 	LibStub("AceConsole-3.0"):RegisterChatCommand('rl', ReloadUI)
+
+	if self.db.char.crafting_threshold then
+		local threshold = self.db.char.crafting_threshold
+		if threshold == 1 then
+			self.db.char.profitable_threshold = 5000
+		elseif threshold == 2 then
+			self.db.char.profitable_threshold = 10000
+		elseif threshold == 3 then
+			self.db.char.profitable_threshold = 50000
+		end
+	
+		self.db.char.crafting_threshold = nil
+	end
 
 	--@debug@
 		-- ItemAuditor_DebugFrame:Show()

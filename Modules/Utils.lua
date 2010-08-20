@@ -4,6 +4,7 @@ local Utils = ItemAuditor:NewModule("Utils")
 function Utils.FormatMoney(copper, color, textOnly)
 	color = color or "|cFFFFFFFF"
 	local prefix = ""
+	copper = copper or 0
 	if copper < 0 then
 		prefix = "-"
 		copper = abs(copper)
