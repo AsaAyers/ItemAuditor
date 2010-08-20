@@ -423,16 +423,17 @@ function ItemAuditor:UpdateCraftingTable()
 				for reagentId = 1, GetTradeSkillNumReagents(i) do
 					local reagentName, _, reagentCount = GetTradeSkillReagentInfo(i, reagentId);
 					local reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
+					local reagentTotalCost = self:GetReagentCost(reagentLink, reagentCount)
 					
 					reagents[reagentId] = {
 						link = reagentLink,
 						name = reagentName,
 						count = reagentCount,
-						price = self:GetReagentCost(reagentLink, reagentCount),
+						price = reagentTotalCost / reagentCount,
 						need = 0, -- This will get populated after the decisions have been made. it can't
 						-- be done before that because highest profit items get priority on materials.
 					}
-					totalCost  = totalCost + self:GetReagentCost(reagentLink, reagentCount)
+					totalCost  = totalCost + reagentTotalCost
 				end
 				local data = {
 					recipeLink = recipeLink,
