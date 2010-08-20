@@ -9,14 +9,8 @@ if not DevTools_Dump then
 	end
 end
 
-local WHITE		= "|cFFFFFFFF"
-local RED		= "|cFFFF0000"
-local GREEN		= "|cFF00FF00"
-local YELLOW	= "|cFFFFFF00"
-local ORANGE	= "|cFFFF7F00"
-local TEAL		= "|cFF00FF9A"
-local GOLD		= "|cFFFFD700"
-
+local allMailboxes = {}
+local myMailbox = {}
 
 ItemAuditor.Options = {
 	handler = ItemAuditor,
@@ -72,10 +66,17 @@ function ItemAuditor:OnInitialize()
 			item_account = {},
 			items = {},
 			outbound_cod = {},
+			mailbox = {}
 		},
 	}
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
-	
+
+	allMailboxes = self.db.factionrealm.mailbox
+	if not allMailboxes[UnitName("player")] then
+		allMailboxes[UnitName("player")] = {}
+	end
+	myMailbox = allMailboxes[UnitName("player")]
+
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ItemAuditor", "ItemAuditor")
 	
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", ItemAuditor.Options, {"ia"})
@@ -329,7 +330,7 @@ function ItemAuditor:ScanMail()
 			results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
 			results[mailType][itemName].total = results[mailType][itemName].total + bid
 			
-			local count = select(3, GetInboxItem(1,1))
+			local count = select(3, GetInboxItem(mailIndex,1))
 			results[mailType][itemName].count = results[mailType][itemName].count + count
 		elseif mailType == "AHExpired" or mailType == "AHCancelled" or mailType == "AHOutbid" then
 			-- These should be handled when you pay the deposit at the AH
@@ -339,26 +340,35 @@ function ItemAuditor:ScanMail()
 		end
 
 	end
-	
+
+	wipe(myMailbox)
 	for mailType, collection in pairs(results) do
+		myMailbox[mailType] = {}
 		for item, data in pairs(collection) do
-			self:Debug(format("|cFF00FF00MailScan|r: %s - %s - %s x %s", mailType, item, data.total, data.count))
+			myMailbox[mailType][item] = {
+				total = data.total,
+				count = data.count,
+			}
+			-- self:Print(format("|cFF00FF00MailScan|r: %s - %s - %s x %s", mailType, item, data.total, data.count))
 		end
 	end
-	
 	return results   
 end
 
 function ItemAuditor:GetItemCount(searchID)
-	local itemCounts = {}
-	local count = 0
-	for _, character in pairs(DataStore:GetCharacters()) do
-		bags, bank = DataStore:GetContainerItemCount(character, searchID)
+	local count = Altoholic:GetItemCount(searchID)
+	local itemName = GetItemInfo(searchID)
+	for character, mailbox in pairs(allMailboxes) do
+		for type, items in pairs(mailbox) do
+			if type == 'AHWon' or type == 'COD' then
+				for name, data in pairs(items) do
+					if name == itemName then
+						count = count - data.count
 
-		count = count + bags + bank
-			+ (DataStore:GetAuctionHouseItemCount(character, searchID) or 0)
-			+ (DataStore:GetInventoryItemCount(character, searchID) or 0)
-			+ (DataStore:GetCurrencyItemCount(character, searchID) or 0)
+					end
+				end
+			end
+		end
 	end
 	return count
 end
