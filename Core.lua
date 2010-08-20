@@ -477,7 +477,7 @@ function ItemAuditor:SaveValue(link, value, countChange)
 	if abs(value) > 0 then
 		if  item.invested < 0 then
 			if self.db.profile.messages.cost_updates then
-				self:Print(format("Updated price of %s from %s to %s. %sYou just made a profit of %s.", itemName, self:FormatMoney(item.invested - value), self:FormatMoney(0), GREEN, self:FormatMoney(abs(item.invested))))
+				self:Print(format("Updated price of %s from %s to %s. |cFF00FF00You just made a profit of %s.", itemName, self:FormatMoney(item.invested - value), self:FormatMoney(0), self:FormatMoney(abs(item.invested))))
 			end
 			self:RemoveItem(link)
 		-- This doesn't work when you mail the only copy of an item you have to another character.
