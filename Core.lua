@@ -42,34 +42,35 @@ ItemAuditor.Options = {
 	},
 }
 
+ItemAuditor.DB_defaults = {
+	char = {
+		ah = 1,
+		use_quick_auctions = false,
+		crafting_threshold = 1,
+		auction_threshold = 0.15,
+		qa_extra = 0,
+		output_chat_frame = nil,
+	},
+	profile = {
+		messages = {
+			cost_updates = true,
+			queue_skip = false,
+		},
+		ItemAuditor_enabled = true,
+		queue_destination = nil,
+		disabled_deciders = {},
+		pricing_method = 'low',
+	},
+	factionrealm = {
+		item_account = {},
+		items = {},
+		outbound_cod = {},
+		mailbox = {},
+	},
+}
+
 function ItemAuditor:OnInitialize()
-	local DB_defaults = {
-		char = {
-			ah = 1,
-			use_quick_auctions = false,
-			crafting_threshold = 1,
-			auction_threshold = 0.15,
-			qa_extra = 0,
-			output_chat_frame = nil,
-		},
-		profile = {
-			messages = {
-				cost_updates = true,
-				queue_skip = false,
-			},
-			ItemAuditor_enabled = true,
-			queue_destination = nil,
-			disabled_deciders = {},
-			pricing_method = 'low',
-		},
-		factionrealm = {
-			item_account = {},
-			items = {},
-			outbound_cod = {},
-			mailbox = {}
-		},
-	}
-	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", DB_defaults, true)
+	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", ItemAuditor.DB_defaults, true)
 
 	allMailboxes = self.db.factionrealm.mailbox
 	if not allMailboxes[UnitName("player")] then
@@ -83,7 +84,7 @@ function ItemAuditor:OnInitialize()
 	ItemAuditor:RegisterFrame(ItemAuditor_DebugFrame)
 	
 	LibStub("AceConsole-3.0"):RegisterChatCommand('rl', ReloadUI)
-	
+
 	--@debug@
 		-- ItemAuditor_DebugFrame:Show()
 		-- self:CreateFrame('tab_crafting')

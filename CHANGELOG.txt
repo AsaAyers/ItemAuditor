@@ -2,6 +2,7 @@
 
 - Ticket 30 (related to #23) - ItemAuditor is back to counting items in the mailbox, but will subtract items purchased from the AH or COD mail from its item counts.
 - Added a menu to allow the user to see what is to be crafted, only what you hae mats for, or view everything so you can see why something isn't to be crafted.
+- Added a new Crafting Rules module to allow the user to set up custom rules based on item names.
 
 2010-08-14  Asa Ayers  <Asa.Ayers@Gmail.com>
 

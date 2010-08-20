@@ -22,6 +22,7 @@ Modules\Tooltip.lua
 Modules\Debug.lua
 Modules\DisplayInvested.lua
 Modules\Crafting.lua
+Modules\CraftingRules.lua
 Modules\QuickAuctions.lua
 Modules\Api.lua
 Modules\ArkInventoryRules.lua
