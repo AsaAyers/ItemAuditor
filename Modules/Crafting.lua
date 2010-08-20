@@ -114,10 +114,13 @@ local craftingCols = {
 	{ name= "Est Sale Each", width = 100, align = "RIGHT", 
 		['DoCellUpdate'] = displayMoney,
 	},
-	{ name= "Decided By", width = 100, align = "RIGHT", 
+	{ name= "Decided By", width = 125, align = "RIGHT",
 		
 	},
 	{ name= "craft", width = 50, align = "RIGHT", 
+		
+	},
+	{ name= "Have Mats", width = 60, align = "RIGHT", 
 		
 	},
 	{ name= "Total Profit", width = 100, align = "RIGHT", 
@@ -160,10 +163,18 @@ function Crafting.Export(destination)
 end
 
 -- ItemAuditor:GetModule('Crafting').filter_queued = false
-Crafting.filter_queued = true
+Crafting.filter_have_mats = false
+Crafting.filter_show_all = false
 local function tableFilter(self, row, ...)
+	if Crafting.filter_show_all then
+		return true
+	end
+
 	-- column 5 is how many should be crafted
-	if Crafting.filter_queued and row[5] <= 0 then
+	if Crafting.filter_have_mats and row[6] == 'n' then
+		return false
+	end
+	if strfind(row[4], 'VETO: .*') or row[5] == 0 then
 		return false
 	end
 	return true
@@ -204,7 +215,35 @@ local function ShowCrafting(container)
 			end,
 		});
 		
-		
+		local craftingView = CreateFrame("Button", nil, craftingContent, "UIPanelButtonTemplate")
+		craftingView:SetText("View")
+		craftingView:SetSize(50, 25)
+		craftingView:SetPoint("BOTTOMLEFT", craftingContent, 0, 0)
+
+		local menu = {
+			{ text = "View", isTitle = true},
+			{ text = "To be crafted", func = function()
+				Crafting.filter_have_mats = false
+				Crafting.filter_show_all = false
+				ItemAuditor:RefreshCraftingTable()
+			end },
+			{ text = "Have Mats", func = function()
+				Crafting.filter_have_mats = true
+				Crafting.filter_show_all = false
+				ItemAuditor:RefreshCraftingTable()
+			end },
+			{ text = "All", func = function()
+				Crafting.filter_have_mats = false
+				Crafting.filter_show_all = true
+				ItemAuditor:RefreshCraftingTable()
+			end },
+		}
+		local menuFrame = CreateFrame("Frame", "ExampleMenuFrame", UIParent, "UIDropDownMenuTemplate")
+		craftingView:SetScript("OnClick", function (self, button, down)
+			EasyMenu(menu, menuFrame, "cursor", 0 , 0, "MENU");
+		end)
+
+
 		btnProcess = CreateFrame("Button", nil, craftingContent, "UIPanelButtonTemplate")
 		btnProcess:SetText("Process")
 		btnProcess:SetSize(100, 25) 
@@ -237,8 +276,7 @@ local function ShowCrafting(container)
 		end)
 	
 		btnSkillet = CreateFrame("Button", nil, craftingContent, "UIPanelButtonTemplate")
-		
-		
+
 		btnSkillet:SetSize(125, 25) 
 		btnSkillet:SetPoint("BOTTOMRIGHT", btnProcess, 'BOTTOMLEFT', 0, 0)
 		btnSkillet:RegisterForClicks("LeftButtonUp");
@@ -331,7 +369,7 @@ local function isProfitable(data)
 	if data.profit > 0 and data.profit > ItemAuditor:GetCraftingThreshold() then
 		return 1
 	end
-	return -1
+	return -1, 'Not Profitable'
 end
 
 Crafting.RegisterCraftingDecider('Is Profitable', isProfitable)
@@ -411,7 +449,13 @@ function ItemAuditor:UpdateCraftingTable()
 				}
 				
 				data.winner, data.queue = Decide(data)
-				data.queue = data.queue - count
+				--[[
+					If it wasn't vetoed we need to reduce the number by how many are owned
+					but this should not go below 0
+				]]
+				if data.queue > 0 then
+					data.queue = max(0, data.queue - count)
+				end
 				
 				-- If a tradeskill makes 5 at a time and something asks for 9, we should only 
 				-- craft twice to get 10.
@@ -422,7 +466,7 @@ function ItemAuditor:UpdateCraftingTable()
 			end
 		end
 	end
-	table.sort(realData, function(a, b) return a.profit*a.queue > b.profit*b.queue end)
+	table.sort(realData, function(a, b) return a.profit*max(1, a.queue) > b.profit*max(1, b.queue) end)
 
 	local numOwned = {}
 	for key, data in pairs(realData) do
@@ -447,14 +491,20 @@ function ItemAuditor:UpdateCraftingTable()
 end
 
 function ItemAuditor:RefreshCraftingTable()
+	local displayMaterials
 	for key, data in pairs(realData) do
+		displayMaterials = 'n'
+		if data.haveMaterials then
+			displayMaterials = 'y'
+		end
 		tableData[key] = {
 			data.name,
 			data.cost,
 			data.price,
 			data.winner,
-			data.queue,
-			data.profit*data.queue,
+			abs(data.queue),
+			displayMaterials,
+			data.profit*abs(data.queue),
 		}
 	end
 	craftingTable:SetData(tableData, true)
