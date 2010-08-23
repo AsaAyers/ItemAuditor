@@ -4,7 +4,7 @@
 ## Author: Asa Ayers <Asa.Ayers@Gmail.com>
 ## Version: @project-version@
 ## SavedVariables: ItemAuditorDB
-## Dependencies: Altoholic
+## Dependencies: DataStore
 ## OptionalDeps: QuickAuctions, Skillet, LilSparkysWorkshop, Auctionator, Auctioneer, AuctionLite, AuctionMaster, ArkInventory, DevTools, WoWUnit
 
 

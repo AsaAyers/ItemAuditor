@@ -369,8 +369,18 @@ function ItemAuditor:ScanMail()
 	return results   
 end
 
+local realm = GetRealmName()
+local ds_account = 'Default'
 function ItemAuditor:GetItemCount(searchID)
-	local count = Altoholic:GetItemCount(searchID)
+	local count = 0
+	for _, character in pairs(DataStore:GetCharacters(realm, ds_account)) do
+		local bag, bank = DataStore:GetContainerItemCount(character, searchID)
+		count = count + (bag or 0) + (bank or 0)
+		count = count + (DataStore:GetAuctionHouseItemCount(character, searchID) or 0)
+		count = count + (DataStore:GetInventoryItemCount(character, searchID) or 0)
+		count = count + (DataStore:GetMailItemCount(character, searchID) or 0)
+		count = count + (DataStore:GetCurrencyItemCount(character, searchID) or 0)
+	end
 	local itemName = GetItemInfo(searchID)
 	for character, mailbox in pairs(allMailboxes) do
 		for type, items in pairs(mailbox) do
