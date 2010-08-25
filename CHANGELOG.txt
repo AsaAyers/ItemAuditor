@@ -1,3 +1,7 @@
+2010-08-24  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Ticket 20 - Added a Skip Singles option to the Crafting Rules.
+
 2010-08-23  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Ticket 32 - Based on the patch from lrdx, I have chaned ItemAuditor to depend on DataStore directly instead of going through Altoholic.

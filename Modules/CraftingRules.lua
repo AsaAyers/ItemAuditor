@@ -9,6 +9,19 @@ ItemAuditor.DB_defaults.char.rules = {
 	
 }
 
+local function mergeDefaultValues(rule)
+	if nil == rule.search then
+		rule.search = ""
+	end
+	if nil == rule.target then
+		rule.target = 0
+	end
+	if nil == rule.skip_singles then
+		rule.skip_singles = false
+	end
+	return rule
+end
+
 local print = function(message, ...)
 	ItemAuditor:Print(message, ...)
 end
@@ -84,6 +97,19 @@ local function generateRuleOptions(name)
 				disabled = function() return ItemAuditor.db.char.rules[name].target == -1 end,
 				order = 11,
 			},
+			skip_singles = {
+				type = "toggle",
+				name = "Skip Singles",
+				desc = "If only one of the item will be crafted, skip it",
+				disabled = function() return ItemAuditor.db.char.rules[name].target <= 1 end,
+				get = function()
+					return ItemAuditor.db.char.rules[name].skip_singles and (ItemAuditor.db.char.rules[name].target > 1)
+				end,
+				set = function(info, value)
+					ItemAuditor.db.char.rules[name].skip_singles = value
+				end,
+				order = 12,
+			},
 			header_delete = {
 				type = 'header',
 				name = '',
@@ -142,10 +168,10 @@ local function generateDefaultGroups()
 	}
 
 	for name, rule in pairs(defaultGroups) do
-		ItemAuditor.db.char.rules[name] = {
+		ItemAuditor.db.char.rules[name] = mergeDefaultValues({
 			search = rule.search,
 			target = rule.target,
-		}
+		})
 		Options['rule_'..name] = generateRuleOptions(name)
 	end
 end
@@ -154,7 +180,8 @@ local rules
 function CraftingRules:OnInitialize()
 	rules = ItemAuditor.db.char.rules
 	local count = 0
-	for name, _ in pairs(rules) do
+	for name, rule in pairs(rules) do
+		mergeDefaultValues(rule)
 		Options['rule_'..name] = generateRuleOptions(name)
 		count = count + 1
 	end
@@ -164,13 +191,16 @@ function CraftingRules:OnInitialize()
 	end
 end
 
-local function runRule(rule, itemName, itemID)
+local function runRule(rule, itemName, itemID, data)
 	local searches = {strsplit(',', rule.search:upper())}
 
 	for _, search in pairs(searches) do
 		search = search:trim()
 		
 		if string.find(itemName, search) ~= nil or itemID == search then
+			if rule.skip_singles and data.count+1 == rule.target then
+				return data.count
+			end
 			return rule.target
 		end
 	end
@@ -185,7 +215,7 @@ local function Decide(data)
 	local itemName = data.name:upper()
 	local itemID = tostring(Utils.GetItemID(data.link))
 	for name, rule in pairs(rules) do
-		local result = runRule(rule, itemName, itemID)
+		local result = runRule(rule, itemName, itemID, data)
 		if result == -1 then
 			return result, name
 		elseif result > match_num then
