@@ -19,6 +19,9 @@ local function mergeDefaultValues(rule)
 	if nil == rule.skip_singles then
 		rule.skip_singles = false
 	end
+	if nil == rule.bonus_queue then
+		rule.bonus_queue = 0
+	end
 	return rule
 end
 
@@ -110,6 +113,20 @@ local function generateRuleOptions(name)
 				end,
 				order = 12,
 			},
+			bonus_queue = {
+				type = "range",
+				name = "Bonus Queue",
+				desc = "If don't have any of an item, this number will be added to the number to craft.",
+				min = 0,
+				max = 1000,
+				softMax = 50,
+				step = 1,
+				get = function() return ItemAuditor.db.char.rules[name].bonus_queue end,
+				set = function(info, value)
+					ItemAuditor.db.char.rules[name].bonus_queue = value
+				end,
+				order = 13,
+			},
 			header_delete = {
 				type = 'header',
 				name = '',
@@ -193,6 +210,10 @@ end
 
 local function runRule(rule, itemName, itemID, data)
 	local searches = {strsplit(',', rule.search:upper())}
+	local bonus = 0
+	if data.count == 0 then
+		bonus = rule.bonus_queue
+	end
 
 	for _, search in pairs(searches) do
 		search = search:trim()
@@ -201,7 +222,7 @@ local function runRule(rule, itemName, itemID, data)
 			if rule.skip_singles and data.count+1 == rule.target then
 				return data.count
 			end
-			return rule.target
+			return rule.target + bonus
 		end
 	end
 	return 0

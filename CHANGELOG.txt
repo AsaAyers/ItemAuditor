@@ -1,6 +1,7 @@
 2010-08-24  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Ticket 20 - Added a Skip Singles option to the Crafting Rules.
+- Ticket 20 - Added a Bonus Queue to the Crafting Rules
 
 2010-08-23  Asa Ayers  <Asa.Ayers@Gmail.com>
 
