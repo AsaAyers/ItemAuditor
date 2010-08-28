@@ -120,7 +120,7 @@ function SendMail(recipient, subject, body, ...)
 			break
 		end
 	end
-	if cross_account_mail and attachedValue > self.mailOutbox.COD and not skipCODCheck then
+	if cross_account_mail and attachedValue > self.mailOutbox.COD and not skipCODCheck and ItemAuditor.db.char.cod_warnings then
 		self:GenerateBlankOutbox()
 		skipCODCheck = false;
 		local vararg = ...

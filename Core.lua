@@ -50,6 +50,7 @@ ItemAuditor.DB_defaults = {
 		auction_threshold = 0.15,
 		qa_extra = 0,
 		output_chat_frame = nil,
+		cod_warnings = true,
 	},
 	profile = {
 		messages = {

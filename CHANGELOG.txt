@@ -1,3 +1,7 @@
+2010-08-27  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Added an option to enable the COD warning under /ia options > Messages > COD Warning. This is on by default.
+
 2010-08-24  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Ticket 20 - Added a Skip Singles option to the Crafting Rules.

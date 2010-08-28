@@ -134,6 +134,15 @@ ItemAuditor.Options.args.messages = {
 			disabled = 'IsQADisabled',
 			order = 1,
 		},
+		cod_warning = {
+			type = "toggle",
+			name = "COD Warning",
+			desc = "This will warn you to attach the correct COD amount if you are mailing items to another account",
+			get = function() return ItemAuditor.db.char.cod_warnings end,
+			set = function(info, value) ItemAuditor.db.char.cod_warnings = value end,
+			disabled = 'IsQADisabled',
+			order = 1,
+		},
 		output = {
 			type = "select",
 			name = "Output",
