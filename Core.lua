@@ -48,6 +48,7 @@ ItemAuditor.DB_defaults = {
 		use_quick_auctions = false,
 		profitable_threshold = 10000,
 		auction_threshold = 0.15,
+		auction_threshold_value = 0,
 		qa_extra = 0,
 		output_chat_frame = nil,
 		cod_warnings = true,

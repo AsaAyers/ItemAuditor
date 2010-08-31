@@ -67,7 +67,9 @@ local function calculateQAThreshold(copper)
 	
 	-- add my minimum profit margin
 	-- GetAuctionThreshold returns a percent as a whole number. This will convert 25 to 1.25
-	copper = copper *  (1+ItemAuditor:GetAuctionThreshold())
+	local min_by_percent = copper *  (1+ItemAuditor:GetAuctionThreshold())
+	local min_by_value = copper + ItemAuditor.db.char.auction_threshold_value
+	copper = max(min_by_percent, min_by_value)
 	
 	-- add AH Cut
 	local keep = 1 - ItemAuditor:GetAHCut()
@@ -197,20 +199,67 @@ ItemAuditor.Options.args.qa_options = {
 			set = "SetQAEnabled",
 			order = 0,
 		},
+		enable_percent = {
+			type = "toggle",
+			name = "Use percent to calculate threshold.",
+			get = function() return ItemAuditor.db.char.auction_threshold > 0 end,
+			set = function(info, value)
+				value = value and 0.15 or 0
+				ItemAuditor.db.char.auction_threshold = value
+			end,
+			order = 1,
+		},
 		auction_threshold = {
 			type = "range",
 			name = "Auction Threshold",
-			desc = "Don't create items that will make less than this amount of profit",
+			desc = "Don't sell items for less than this amount of profit.",
 			min = 0.0,
 			max = 1.0,
 			isPercent = true,
+			hidden = function() return ItemAuditor.db.char.auction_threshold == 0 end,
 			get = function() return ItemAuditor.db.char.auction_threshold end,
 			set = function(info, value)
 				ItemAuditor.db.char.auction_threshold = value
 				-- ItemAuditor:RefreshQAGroups()
 			end,
 			disabled = 'IsQADisabled',
-			order = 1,
+			order = 2,
+		},
+		enable_absolute = {
+			type = "toggle",
+			name = "Use value to calculate threshold.",
+			get = function() return ItemAuditor.db.char.auction_threshold_value > 0 end,
+			set = function(info, value)
+				value = value and 100000 or 0
+				ItemAuditor.db.char.auction_threshold_value = value
+			end,
+			order = 3,
+		},
+		auction_threshold_absolute = {
+			type = "input",
+			name = "Auction Threshold",
+			desc = "Don't sell items for less than this amount of profit.",
+			hidden = function() return ItemAuditor.db.char.auction_threshold_value == 0 end,
+			get = function() return
+				Utils.FormatMoney(ItemAuditor.db.char.auction_threshold_value , '', true)
+			end,
+			validate = function(info, value)
+				if not Utils.validateMoney(value) then
+					return "Invalid money format"
+				end
+				return true
+			end,
+			set = function(info, value)
+				ItemAuditor.db.char.auction_threshold_value = Utils.parseMoney(value)
+			end,
+			usage = "###g ##s ##c",
+			disabled = 'IsQADisabled',
+			order = 4,
+		},
+		header = {
+			type = 'header',
+			name = '',
+			order = 9,
 		},
 		extra = {
 			type = "range",
@@ -225,7 +274,7 @@ ItemAuditor.Options.args.qa_options = {
 				ItemAuditor.db.char.qa_extra = value
 			end,
 			disabled = 'IsQADisabled',
-			order = 1,
+			order = 10,
 		},
 		refresh_qa = {
 			type = "execute",
@@ -233,7 +282,7 @@ ItemAuditor.Options.args.qa_options = {
 			desc = "Resets all Quick Auctions thresholds",
 			func = "RefreshQAGroups",
 			disabled = 'IsQADisabled',
-			order = 9,
+			order = 15,
 		},
 	}
 }

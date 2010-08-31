@@ -1,6 +1,7 @@
 2010-08-30  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Updated Total Cost in /ia crafting to include the AH cut based on the price column. This will also reduce the profit column to consider the additional cost.
+- Added an absolute Auction Threshold option. This will allow you to set your threshold at 10g (or whatever you choose) over your cost for all items.
 
 2010-08-27  Asa Ayers  <Asa.Ayers@Gmail.com>
 
