@@ -24,7 +24,7 @@ end
  
  function ItemAuditor:MAIL_SHOW()
 	self:Debug("MAIL_SHOW")
-	self:UnwatchBags()
+	self.mailOpen = true
 	ItemAuditor:UpdateCurrentInventory()
 	self.lastMailScan = self:ScanMail()
 	
@@ -187,7 +187,7 @@ function ItemAuditor:MAIL_CLOSED()
 	self:MAIL_INBOX_UPDATE()
 	self:UnregisterEvent("MAIL_INBOX_UPDATE")
 	self:RegisterEvent("MAIL_SHOW")
-	self:WatchBags()
+	self.mailOpen = nil
 end
 
 local storedCountDiff
@@ -310,7 +310,7 @@ function ItemAuditor:UpdateAudit()
 		]]
 	elseif diff.money > 0 and self:tcount(positive) > 0 and self:tcount(negative) == 0 then
 		self:Debug("loot")
-	elseif abs(diff.money) > 0 and self:tcount(diff.items) == 1 then
+	elseif abs(diff.money) > 0 and self:tcount(diff.items) == 1 and not self.mailOpen then
 		self:Debug("purchase or sale")
 		
 		for link, count in pairs(diff.items) do

@@ -1,6 +1,7 @@
 2010-09-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Made some changes to begin migrating some QA functionality to QAManager (http://www.wowace.com/addons/qa-manager/)
+- Ticket 35 - I found a better solution to prevent bag scanning from interfering with mailing, so both can be done at the same time now.
 
 2010-08-30  Asa Ayers  <Asa.Ayers@Gmail.com>
 
