@@ -1,3 +1,7 @@
+2010-09-01  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Made some changes to begin migrating some QA functionality to QAManager (http://www.wowace.com/addons/qa-manager/)
+
 2010-08-30  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Updated Total Cost in /ia crafting to include the AH cut based on the price column. This will also reduce the profit column to consider the additional cost.

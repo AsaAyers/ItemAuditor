@@ -100,6 +100,8 @@ function ItemAuditor:OnInitialize()
 		self.db.char.crafting_threshold = nil
 	end
 
+	ItemAuditor:IsQACompatible()
+
 	--@debug@
 		-- ItemAuditor_DebugFrame:Show()
 		-- self:CreateFrame('tab_crafting')
@@ -507,6 +509,7 @@ function ItemAuditor:SaveValue(link, value, countChange)
 	
 	if realLink ~= nil then
 		ItemAuditor:UpdateQAThreshold(realLink)
+		self:SendMessage("IA_COST_CHANGED", realLink, unpack({ItemAuditor:GetItemCost(realLink)}))
 	end
 	UpdateInvestedData()
 end

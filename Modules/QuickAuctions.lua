@@ -27,6 +27,25 @@ end
 
 
 function ItemAuditor:IsQACompatible()
+	local qam = GetAddOnInfo('QAManager')
+	if qam then
+		ItemAuditor.Options.args.qa_options.disabled = true
+		if ItemAuditor.db.char.use_quick_auctions then
+			ItemAuditor.db.char.use_quick_auctions = false
+			StaticPopupDialogs["ItemAuditor_QAOptionsReplaced"] = {
+				text = "The ability to have ItemAuditor adjust your QA thresholds is being moved to QAManager. If you have to use the options within ItemAuditor you can disable QAManager to restore them for now, but this option will change in the future.",
+				button1 = "OK",
+				timeout = 0,
+				whileDead = true,
+				hideOnEscape = true,
+				OnAccept = function()
+					-- StaticPopupDialogs["ItemAuditor_QAOptionsReplaced"] = nil
+				end,
+			}
+			StaticPopup_Show('ItemAuditor_QAOptionsReplaced')
+		end
+		return false
+	 end
 	return (QAAPI ~= nil and QAAPI.GetGroupConfig ~= nil)
 end
 
@@ -120,7 +139,27 @@ local function isProfitable(data)
 	end
 	return 0
 end
-Crafting.RegisterCraftingDecider('IA QuickAuctions', isProfitable)
+
+local QADeciderOptions = {
+	extra = {
+		type = "range",
+		name = "Create Extra",
+		desc = "This is the amount of an item that should be created above what you sell in one post in QuickAuctions."..
+			"If you sell 4 stacks of 5 of an item and your extra is 25%, it will queue enough for you to have 25 of that item.",
+		min = 0.0,
+		max = 1.0,
+		step = 0.01,
+		isPercent = true,
+		get = function() return ItemAuditor.db.char.qa_extra end,
+		set = function(info, value)
+			ItemAuditor.db.char.qa_extra = value
+		end,
+		handler = ItemAuditor,
+		disabled = 'IsQACompatible',
+		order = 10,
+	},
+}
+Crafting.RegisterCraftingDecider('IA QuickAuctions', isProfitable, QADeciderOptions)
 
 
 function ItemAuditor:Queue()
@@ -255,26 +294,6 @@ ItemAuditor.Options.args.qa_options = {
 			usage = "###g ##s ##c",
 			disabled = 'IsQADisabled',
 			order = 4,
-		},
-		header = {
-			type = 'header',
-			name = '',
-			order = 9,
-		},
-		extra = {
-			type = "range",
-			name = "Create Extra",
-			desc = "This is the amount of an item that should be created above what you sell in one post in QuickAuctions."..
-				"If you sell 4 stacks of 5 of an item and your extra is 25%, it will queue enough for you to have 25 of that item.",
-			min = 0.0,
-			max = 1.0,
-			isPercent = true,
-			get = function() return ItemAuditor.db.char.qa_extra end,
-			set = function(info, value)
-				ItemAuditor.db.char.qa_extra = value
-			end,
-			disabled = 'IsQADisabled',
-			order = 10,
 		},
 		refresh_qa = {
 			type = "execute",
