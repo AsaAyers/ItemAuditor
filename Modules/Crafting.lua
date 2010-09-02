@@ -435,6 +435,9 @@ function ItemAuditor:UpdateCraftingTable()
 					}
 					totalCost  = totalCost + reagentTotalCost
 				end
+
+				local price = (self:GetAuctionPrice(itemLink) or 0)
+				totalCost  = totalCost + (price * ItemAuditor:GetAHCut())
 				local data = {
 					recipeLink = recipeLink,
 					recipeID = Utils.GetItemID(recipeLink),
@@ -459,9 +462,6 @@ function ItemAuditor:UpdateCraftingTable()
 				if data.queue > 0 then
 					data.queue = max(0, data.queue - count)
 				end
-
-				local price = (self:GetAuctionPrice(itemLink) or 0)
-				totalCost  = totalCost + (price * ItemAuditor:GetAHCut())
 				
 				-- If a tradeskill makes 5 at a time and something asks for 9, we should only 
 				-- craft twice to get 10.

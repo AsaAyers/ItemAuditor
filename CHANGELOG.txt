@@ -1,3 +1,7 @@
+2010-09-02  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed a bug introduced in r110 (2010-08-30) where the price an item should sell for was not being calculated.
+
 2010-08-30  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Updated Total Cost in /ia crafting to include the AH cut based on the price column. This will also reduce the profit column to consider the additional cost.
