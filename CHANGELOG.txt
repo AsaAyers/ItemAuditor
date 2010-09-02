@@ -1,3 +1,7 @@
+2010-09-02  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Updated the ArkInventory rule and tooltip to work in QA is compatible instead of if its enabled in ItemAuditor.
+
 2010-09-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Made some changes to begin migrating some QA functionality to QAManager (http://www.wowace.com/addons/qa-manager/)

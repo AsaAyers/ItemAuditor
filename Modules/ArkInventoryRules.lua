@@ -53,7 +53,7 @@ function ArkInventory.Execute( ... )
 				end
 				return false
 			elseif string.lower( strtrim( arg ) ) == 'qa' then
-				if ItemAuditor:IsQAEnabled() then
+				if ItemAuditor:IsQACompatible() then
 					local groupName = QAAPI:GetItemGroup(link)
 					if groupName then
 						return true

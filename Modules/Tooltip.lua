@@ -33,7 +33,7 @@ local function ShowTipWithPricing(tip, link, num)
 		
 	end
 	
-	if ItemAuditor:IsQAEnabled() then
+	if ItemAuditor:IsQACompatible() then
 		local groupName = QAAPI:GetItemGroup(link)
 		if groupName then
 			local threshold = QAAPI:GetGroupConfig(groupName)
