@@ -107,7 +107,7 @@ function AuctionHouse.Snatch()
 
 	local snatchList = {}
 	local function Export(data)
-		if not data.haveMaterials then
+		if data.haveMaterials < data.queue then
 			for id, reagent in pairs(data.reagents) do
 				if reagent.need > 0 and not snatchList[reagent.link] then
 					snatchList[reagent.link] = true
