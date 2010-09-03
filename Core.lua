@@ -565,7 +565,7 @@ function ItemAuditor:GetItemCost(link, countModifier)
 		if count > 0 then 
 			return ceil(item.invested), ceil(item.invested/count), count
 		end
-		
+		return ceil(item.invested), 0, count
 	end
 	return 0, 0, ItemAuditor:GetItemCount(ItemAuditor:GetIDFromLink(link))
 end

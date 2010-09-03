@@ -2,6 +2,7 @@
 
 - Updated the ArkInventory rule and tooltip to work in QA is compatible instead of if its enabled in ItemAuditor.
 - Moved the check for QAManager so it doesn't interfere with the tooltip or ArkInventory rule.
+- Update GetItemCost to return the total invested even if you have none of that item left. If you sell all of an item but are waiting for the mail to arrive, you can still see how much you have invested even though you don't actually own any more of that item.
 
 2010-09-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 
