@@ -5,6 +5,7 @@
 - Update GetItemCost to return the total invested even if you have none of that item left. If you sell all of an item but are waiting for the mail to arrive, you can still see how much you have invested even though you don't actually own any more of that item.
 - Fixed the Have Mats column to consider the number queued. Previously it was only telling if you had materials to make one of the item.
 - Changed Total Profit to Profit Each to match the rest of the interface. Cost and Estimated Sale are both Each.
+- When using the process button for Enchanting, ItemAuditor will check which vellum is used and will use the vellum from your inventory. If the correct vellum is not found, it will upgrade to the next level (use vellum II instead of vellum I). This also means that you have to press process for each scroll to be created.
 
 2010-09-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 
