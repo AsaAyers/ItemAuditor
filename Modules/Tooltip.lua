@@ -1,9 +1,15 @@
 local ItemAuditor = select(2, ...)
 local Tooltip = ItemAuditor:NewModule("Tooltip")
 
+local Crafting
+local Utils = ItemAuditor:GetModule("Utils")
+
 local function ShowTipWithPricing(tip, link, num)
 	if (link == nil) then
 		return;
+	end
+	if not Crafting then
+		Crafting = ItemAuditor:GetModule("Crafting")
 	end
 
 	-- local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, _, _, _, _, itemVendorPrice = GetItemInfo (link);
@@ -40,6 +46,34 @@ local function ShowTipWithPricing(tip, link, num)
 			tip:AddDoubleLine("\124cffffffffIA: QA Threshold: ", ItemAuditor:FormatMoney(threshold))
 			show = true
 		end
+	end
+
+	
+	shoppingList = Crafting.GetShoppingList(Utils.GetItemID(link))
+	if shoppingList then
+		tip:AddDoubleLine("\124cffffffffIA Queue", "\124cffffffffhave/total")
+		for character, recipes in pairs(shoppingList.characters) do
+			local count = 0
+			local need = 0
+			local color = '\124cff00ff00' -- green
+			for link, data in pairs(recipes) do
+				need = need + data.need
+				count = count + data.count
+			end
+			if need > 0 then
+				color = '\124cffff0000' -- red
+			end
+			tip:AddDoubleLine("\124cffffffff"..character, format("%s%s/%s", color, count-need, count))
+			if true then -- show details
+				for link, data in pairs(recipes) do
+					if data.need > 0 then
+						tip:AddDoubleLine("\124cffffffff"..link, format("\124cffffffff%s/%s", data.count-data.need, data.count))
+					end
+				end
+			end
+
+		end
+		show = true
 	end
 	
 	if show then 

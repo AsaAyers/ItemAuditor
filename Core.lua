@@ -68,6 +68,7 @@ ItemAuditor.DB_defaults = {
 		items = {},
 		outbound_cod = {},
 		mailbox = {},
+		queue = {}
 	},
 }
 

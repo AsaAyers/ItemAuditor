@@ -10,6 +10,8 @@ local validateMoney = ItemAuditor.validateMoney
 local parseMoney = ItemAuditor.parseMoney
 
 local realData = {}
+local nameMap = nil
+local shoppingList = nil
 
 local vellumLevelMap = {
 	[38682] = 37602, -- Armor Vellum => Armor Vellum II
@@ -17,6 +19,45 @@ local vellumLevelMap = {
 	[39349] = 39350, -- Weapon Vellum => Weapon Vellum II
 	[39350] = 43146, -- Weapon Vellum II => Weapon Vellum III
 }
+
+function Crafting:OnInitialize()
+	local allQueues = ItemAuditor.db.factionrealm.queue
+	if not allQueues[UnitName("player")] then
+		allQueues[UnitName("player")] = {}
+	end
+	realData = allQueues[UnitName("player")]
+
+	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+end
+
+local function getQueueLocation(name)
+	if not nameMap then
+		nameMap = {}
+		for key, data in pairs(realData) do
+			nameMap[data.skillName] = key
+		end
+	end
+	return nameMap[name]
+end
+
+--@debug@
+Crafting.getQueueLocation = getQueueLocation
+function Crafting.getNameMap()
+	return nameMap
+end
+
+function Crafting.getRealData()
+	return realData
+end
+--@end-debug@
+
+function Crafting:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
+	if unit == "player" and getQueueLocation(spell) then
+		local data = realData[getQueueLocation(spell)]
+		data.queue = data.queue - 1
+		ItemAuditor:RefreshCraftingTable()
+	end
+end
 
 local queueDestinations = {}
 local displayCraftingDestinations = {}
@@ -152,6 +193,10 @@ end
 Crafting.filter_have_mats = false
 Crafting.filter_show_all = false
 local function tableFilter(self, row, ...)
+	if Crafting.nameFilter then
+		return string.find(row[1], Crafting.nameFilter) ~= nil
+	end
+
 	if Crafting.filter_show_all then
 		return true
 	end
@@ -189,11 +234,31 @@ local function ShowCrafting(container)
 		craftingTable:RegisterEvents({
 			["OnEnter"] = function (rowFrame, cellFrame, data, cols, row, realrow, column, scrollingTable, ...)
 				if realrow then
-					local data = realData[realrow]
-					
-					GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
-					GameTooltip:SetHyperlink(data.link)
-					GameTooltip:Show()
+					if column == 1 then
+						local data = realData[realrow]
+
+						GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
+						GameTooltip:SetHyperlink(data.link)
+						GameTooltip:Show()
+					elseif column == 2 then
+						local data = realData[realrow]
+						GameTooltip:SetOwner(rowFrame, "ANCHOR_CURSOR")
+						GameTooltip:SetText(format('Create %sx%s', data.link, data.queue))
+						for i, reagent in pairs(data.reagents) do
+							GameTooltip:AddDoubleLine("\124cffffffff"..reagent.link, format("\124cffffffff%s/%s", reagent.count-reagent.need, reagent.count))
+--[[
+							reagents[reagentId] = {
+								link = reagentLink,
+								itemID = vellumID,
+								name = reagentName,
+								count = 1,
+								price = self:GetReagentCost(reagentLink, 1),
+								need = 0, -- This will get populated after the decisions have been made. it can't
+								-- be done before that because highest profit items get priority on materials.
+							}]]
+						end
+						GameTooltip:Show()
+					end
 				end
 			end,
 			["OnLeave"] = function (rowFrame, cellFrame, data, cols, row, realrow, column, scrollingTable, ...)
@@ -274,6 +339,12 @@ local function ShowCrafting(container)
 		btnProcess:SetScript("OnClick", function (self, button, down)
 			local data = ItemAuditor:GetCraftingRow(1)
 			if data then
+				-- This will make sure the correct tradeskill window is open.
+				local tradeskillName = GetTradeSkillLine()
+				if data.tradeskillName ~= tradeskillName then
+					CastSpellByName(data.tradeskillName)
+				end
+			
 				local queue = data.queue
 				local vellumID = nil
 				_, _, _, _, altVerb = GetTradeSkillInfo(data.tradeSkillIndex)
@@ -287,8 +358,6 @@ local function ShowCrafting(container)
 					useVellum(vellumID)
 				end
 
-				data.queue = data.queue - queue
-				ItemAuditor:RefreshCraftingTable()
 				UpdateProcessTooltip()
 			end
 		end)
@@ -418,7 +487,17 @@ local isProfitableOptions = {
 
 Crafting.RegisterCraftingDecider('Is Profitable', isProfitable, isProfitableOptions)
 
+function Crafting.ClearProfession(tradeskillName)
+	-- This will initialize nameMap if it isn't already.
+	getQueueLocation('')
 
+	for key = #(realData), 1, -1 do
+		if realData[key].tradeskillName == tradeskillName then
+			nameMap[realData[key].tradeskillName] = nil
+			tremove(realData, key)
+		end
+	end
+end
 
 local tableData = {}
 function ItemAuditor:UpdateCraftingTable()
@@ -432,18 +511,27 @@ function ItemAuditor:UpdateCraftingTable()
 		self:Print("This feature requires Auctionator, Auctioneer, AuctionLite, or AuctionMaster.")
 		return
 	end
-	wipe(realData)
+	local tradeskillName = GetTradeSkillLine()
+	Crafting.ClearProfession(tradeskillName)
+	shoppingList = nil
+	
 	wipe(tableData)
 	
 	local profitableItems = {}
 	local profitableIndex = 1
 	local numChecked = 0
-	local row = 1
+	local row = #(realData)+1
+	local numTradeSkills = GetNumTradeSkills()
+	if tradeskillName == 'UNKNOWN' then
+		numTradeSkills  = 0
+	end
 	
-	for i = 1, GetNumTradeSkills() do
+	for i = 1, numTradeSkills do
 		local itemLink = GetTradeSkillItemLink(i)
 		local itemId = Utils.GetItemID(itemLink)
 		local vellumID = nil
+		
+		local spellName = itemName
 
 		--Figure out if its an enchant or not
 		_, _, _, _, altVerb = GetTradeSkillInfo(i)
@@ -503,6 +591,7 @@ function ItemAuditor:UpdateCraftingTable()
 					recipeID = Utils.GetItemID(recipeLink),
 					link = itemLink,
 					name = itemName,
+					skillName = skillName,
 					count = count,
 					price = price,
 					cost = totalCost,
@@ -512,6 +601,7 @@ function ItemAuditor:UpdateCraftingTable()
 					tradeSkillIndex = i,
 					queue = 0,
 					winner = "",
+					tradeskillName = tradeskillName,
 				}
 				
 				data.winner, data.queue = Decide(data)
@@ -526,8 +616,9 @@ function ItemAuditor:UpdateCraftingTable()
 				-- If a tradeskill makes 5 at a time and something asks for 9, we should only 
 				-- craft twice to get 10.
 				data.queue = ceil(data.queue / GetTradeSkillNumMade(i))
-				
+
 				realData[row] = data
+				nameMap[skillName] = row
 				row = row + 1
 			end
 		end
@@ -564,8 +655,79 @@ function ItemAuditor:UpdateCraftingTable()
 	end
 end
 
+
+local numOwned = {}
+
+local function BuildShoppingList(character, queue)
+	for key, data in pairs(queue) do
+		if data.queue > 0 then
+			for id, reagent in pairs(data.reagents) do
+				if not numOwned[reagent.link] then
+					numOwned[reagent.link] = ItemAuditor:GetItemCount(Utils.GetItemID(reagent.link))
+				end
+				numOwned[reagent.link] = numOwned[reagent.link] - reagent.count
+
+				shoppingList[reagent.itemID] = shoppingList[reagent.itemID] or {
+					total = 0,
+					need = 0,
+					characters = {}
+				}
+				local slItem = shoppingList[reagent.itemID]
+
+				
+				if numOwned[reagent.link] < 0 and not vellumLevelMap[reagent.itemID] then
+					reagent.need = min(reagent.count, abs(numOwned[reagent.link]))
+				elseif numOwned[reagent.link] >= 0 then
+					reagent.need = 0
+				end
+				shoppingList[reagent.itemID].total = shoppingList[reagent.itemID].total + reagent.count
+				shoppingList[reagent.itemID].need = shoppingList[reagent.itemID].need + reagent.need
+
+				slItem.characters[UnitName("player")] = slItem.characters[UnitName("player")] or {}
+				slItem.characters[UnitName("player")][data.recipeLink] = {
+					count = reagent.count,
+					need = reagent.need,
+				}
+			end
+		end
+	end
+end
+
+function Crafting.GetShoppingList(itemID)
+	if not shoppingList then
+		shoppingList = {}
+		wipe(numOwned)
+
+		-- This is done here instead of in the loop to make sure the current
+		-- character gets the first pick of materials.
+		local me = UnitName("player")
+		BuildShoppingList(me, realData)
+
+		for alt, queue in pairs(ItemAuditor.db.factionrealm.queue) do
+			if alt ~= me then
+				BuildShoppingList(alt, queue)
+			end
+		end
+	elseif shoppingList[itemID] then
+		local data = shoppingList[itemID]
+		if data.need ~= max(0, data.total - ItemAuditor:GetItemCount(itemID)) then
+			shoppingList = nil
+			-- I'm rebuilding the list instead of just the item because
+			-- it will be eaiser than tracking down the queued recipes that
+			-- need to change. If this becomes a problem, I may change it.
+			return Crafting.GetShoppingList(itemID)
+		end
+	end
+
+	return shoppingList[itemID]
+end
+
 function ItemAuditor:RefreshCraftingTable()
+	tableData = {}
+	nameMap = {}
 	for key, data in pairs(realData) do
+		nameMap[data.name] = key
+
 		tableData[key] = {
 			data.name,
 			data.cost,

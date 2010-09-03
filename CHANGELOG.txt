@@ -6,6 +6,7 @@
 - Changed Total Profit to Profit Each to match the rest of the interface. Cost and Estimated Sale are both Each.
 - When using the process button for Enchanting, ItemAuditor will check which vellum is used and will use the vellum from your inventory. If the correct vellum is not found, it will upgrade to the next level (use vellum II instead of vellum I). This also means that you have to press process for each scroll to be created.
 - Changed the Have Mats column to show the number of items you could create with the materials you have instead of just a y/n. The have mats filter simply checks that you can make at least 1.
+- Ticket 33 - Implemented a persistent queue. This allows the crafting queue to be seen even if your tradeskills aren't open and allows you to mix all of your tradeskills into a single queue.
 
 2010-09-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 
