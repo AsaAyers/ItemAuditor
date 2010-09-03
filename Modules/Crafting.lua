@@ -478,6 +478,8 @@ function ItemAuditor:UpdateCraftingTable()
 	for key, data in pairs(realData) do
 		data.haveMaterials = true
 		for id, reagent in pairs(data.reagents) do
+			reagent.count = reagent.count * data.queue
+
 			if not numOwned[reagent.link] then
 				numOwned[reagent.link] = ItemAuditor:GetItemCount(ItemAuditor:GetIDFromLink(reagent.link))
 			end
