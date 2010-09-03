@@ -1,5 +1,5 @@
 local ItemAuditor = select(2, ...)
-local Crafting = ItemAuditor:NewModule("Crafting")
+local Crafting = ItemAuditor:NewModule("Crafting", 'AceEvent-3.0')
 
 local Utils = ItemAuditor:GetModule("Utils")
 
@@ -11,6 +11,12 @@ local parseMoney = ItemAuditor.parseMoney
 
 local realData = {}
 
+local vellumLevelMap = {
+	[38682] = 37602, -- Armor Vellum => Armor Vellum II
+	[37602] = 43145, -- Armor Vellum II => Armor Vellum III
+	[39349] = 39350, -- Weapon Vellum => Weapon Vellum II
+	[39350] = 43146, -- Weapon Vellum II => Weapon Vellum III
+}
 
 local queueDestinations = {}
 local displayCraftingDestinations = {}
@@ -238,12 +244,50 @@ local function ShowCrafting(container)
 				GameTooltip:Show()
 			end
 		end
+
+		--[[
+			When enchanting UseContainerItem seems to be protected, so the enchants
+			have to be done one at a time.
+		]]
+		local function useVellum(vellumID, idealVellum)
+			for bagID = 0, NUM_BAG_SLOTS do
+				for slotID = 0, GetContainerNumSlots(bagID) do
+					local link = GetContainerItemLink(bagID, slotID)
+					local id = Utils.GetItemID(link);
+					if id == vellumID then
+						if idealVellum then
+							ItemAuditor:Print("Using %s instead of %s.",
+								select(2, GetItemInfo(vellumID)),
+								select(2, GetItemInfo(idealVellum))
+							)
+						end
+						UseContainerItem(bagID, slotID)
+						return
+					end
+				end
+			end
+			if vellumLevelMap[vellumID] then
+				return useVellum(vellumLevelMap[vellumID], idealVellum or vellumID)
+			end
+		end
+		
 		btnProcess:SetScript("OnClick", function (self, button, down)
 			local data = ItemAuditor:GetCraftingRow(1)
 			if data then
-				ItemAuditor:Print('Crafting %sx%s', data.link, data.queue)
-				DoTradeSkill(data.tradeSkillIndex, data.queue)
-				data.queue = 0
+				local queue = data.queue
+				local vellumID = nil
+				_, _, _, _, altVerb = GetTradeSkillInfo(data.tradeSkillIndex)
+				if altVerb == 'Enchant' and LSW.scrollData[data.recipeID] ~= nil then
+					vellumID = LSW.scrollData[data.recipeID]["vellumID"]
+					queue = 1
+				end
+				ItemAuditor:Print('Crafting %sx%s', data.link, queue)
+				DoTradeSkill(data.tradeSkillIndex, queue)
+				if vellumID then
+					useVellum(vellumID)
+				end
+
+				data.queue = data.queue - queue
 				ItemAuditor:RefreshCraftingTable()
 				UpdateProcessTooltip()
 			end
@@ -287,8 +331,6 @@ local function ShowCrafting(container)
 	
 	return craftingContent
 end
-
-
 
 ItemAuditor:RegisterTab('Crafting', 'tab_crafting', ShowCrafting)
 function ItemAuditor:DisplayCrafting()
@@ -401,12 +443,15 @@ function ItemAuditor:UpdateCraftingTable()
 	for i = 1, GetNumTradeSkills() do
 		local itemLink = GetTradeSkillItemLink(i)
 		local itemId = Utils.GetItemID(itemLink)
+		local vellumID = nil
 
 		--Figure out if its an enchant or not
 		_, _, _, _, altVerb = GetTradeSkillInfo(i)
 		if LSW.scrollData[itemId] ~= nil and altVerb == 'Enchant' then
 			-- Ask LSW for the correct scroll
-			itemId = LSW.scrollData[itemId]["scrollID"]
+			local sd = LSW.scrollData[itemId]
+			itemId = sd.scrollID
+			vellumID = sd.vellumID
 		end
 
 		local recipeLink = GetTradeSkillRecipeLink(i)
@@ -427,6 +472,7 @@ function ItemAuditor:UpdateCraftingTable()
 					
 					reagents[reagentId] = {
 						link = reagentLink,
+						itemID = Utils.GetItemID(reagentLink),
 						name = reagentName,
 						count = reagentCount,
 						price = reagentTotalCost / reagentCount,
@@ -434,6 +480,20 @@ function ItemAuditor:UpdateCraftingTable()
 						-- be done before that because highest profit items get priority on materials.
 					}
 					totalCost  = totalCost + reagentTotalCost
+				end
+				if vellumID then
+					reagentId = GetTradeSkillNumReagents(i) + 1
+					local reagentName, reagentLink = GetItemInfo(vellumID)
+					reagents[reagentId] = {
+						link = reagentLink,
+						itemID = vellumID,
+						name = reagentName,
+						count = 1,
+						price = self:GetReagentCost(reagentLink, 1),
+						need = 0, -- This will get populated after the decisions have been made. it can't
+						-- be done before that because highest profit items get priority on materials.
+					}
+					totalCost  = totalCost + self:GetReagentCost(reagentLink, 1)
 				end
 
 				local price = (self:GetAuctionPrice(itemLink) or 0)
@@ -475,6 +535,7 @@ function ItemAuditor:UpdateCraftingTable()
 	table.sort(realData, function(a, b) return a.profit*max(1, a.queue) > b.profit*max(1, b.queue) end)
 
 	local numOwned = {}
+
 	for key, data in pairs(realData) do
 		data.haveMaterials = true
 		for id, reagent in pairs(data.reagents) do
@@ -485,7 +546,10 @@ function ItemAuditor:UpdateCraftingTable()
 			end
 			numOwned[reagent.link] = numOwned[reagent.link] - reagent.count
 
-			if numOwned[reagent.link] < 0 then
+			-- Vellums count in cost, but not against whether or not you have the mats.
+			-- I chose to do it this way because you can use a higher level of vellum
+			-- and I'm not sure the best way to determine cost and materials in that situation.
+			if numOwned[reagent.link] < 0 and not vellumLevelMap[reagent.itemID] then
 				data.haveMaterials = false
 				reagent.need = min(reagent.count, abs(numOwned[reagent.link]))
 			end
