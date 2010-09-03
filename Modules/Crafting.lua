@@ -103,7 +103,7 @@ local craftingCols = {
 	{ name= "Have Mats", width = 60, align = "RIGHT", 
 		
 	},
-	{ name= "Total Profit", width = 100, align = "RIGHT", 
+	{ name= "Profit Each", width = 100, align = "RIGHT",
 		['DoCellUpdate'] = displayMoney,
 	},
 }
@@ -512,7 +512,7 @@ function ItemAuditor:RefreshCraftingTable()
 			data.winner,
 			abs(data.queue),
 			displayMaterials,
-			data.profit*abs(data.queue),
+			data.profit,
 		}
 	end
 	craftingTable:SetData(tableData, true)
