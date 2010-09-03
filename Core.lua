@@ -100,7 +100,7 @@ function ItemAuditor:OnInitialize()
 		self.db.char.crafting_threshold = nil
 	end
 
-	ItemAuditor:IsQACompatible()
+	ItemAuditor:IsQAEnabled()
 
 	--@debug@
 		-- ItemAuditor_DebugFrame:Show()

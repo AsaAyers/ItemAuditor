@@ -56,9 +56,11 @@ function ArkInventory.Execute( ... )
 				if ItemAuditor:IsQACompatible() then
 					local groupName = QAAPI:GetItemGroup(link)
 					if groupName then
+						DevTools_Dump({link, groupName})
 						return true
 					end
 				end
+				DevTools_Dump({link, false})
 				return false
 			end
 			

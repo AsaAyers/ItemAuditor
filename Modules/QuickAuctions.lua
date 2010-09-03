@@ -27,30 +27,33 @@ end
 
 
 function ItemAuditor:IsQACompatible()
-	local qam = GetAddOnInfo('QAManager')
-	if qam then
-		ItemAuditor.Options.args.qa_options.disabled = true
-		if ItemAuditor.db.char.use_quick_auctions then
-			ItemAuditor.db.char.use_quick_auctions = false
-			StaticPopupDialogs["ItemAuditor_QAOptionsReplaced"] = {
-				text = "The ability to have ItemAuditor adjust your QA thresholds is being moved to QAManager. If you have to use the options within ItemAuditor you can disable QAManager to restore them for now, but this option will change in the future.",
-				button1 = "OK",
-				timeout = 0,
-				whileDead = true,
-				hideOnEscape = true,
-				OnAccept = function()
-					-- StaticPopupDialogs["ItemAuditor_QAOptionsReplaced"] = nil
-				end,
-			}
-			StaticPopup_Show('ItemAuditor_QAOptionsReplaced')
-		end
-		return false
-	 end
 	return (QAAPI ~= nil and QAAPI.GetGroupConfig ~= nil)
 end
 
 function ItemAuditor:IsQAEnabled()
-	return ItemAuditor:IsQACompatible() and ItemAuditor.db.char.use_quick_auctions
+	if ItemAuditor:IsQACompatible() then
+		local qam = GetAddOnInfo('QAManager')
+		if qam then
+			ItemAuditor.Options.args.qa_options.disabled = true
+			if ItemAuditor.db.char.use_quick_auctions then
+				ItemAuditor.db.char.use_quick_auctions = false
+				StaticPopupDialogs["ItemAuditor_QAOptionsReplaced"] = {
+					text = "The ability to have ItemAuditor adjust your QA thresholds is being moved to QAManager. If you have to use the options within ItemAuditor you can disable QAManager to restore them for now, but this option will change in the future.",
+					button1 = "OK",
+					timeout = 0,
+					whileDead = true,
+					hideOnEscape = true,
+					OnAccept = function()
+						-- StaticPopupDialogs["ItemAuditor_QAOptionsReplaced"] = nil
+					end,
+				}
+				StaticPopup_Show('ItemAuditor_QAOptionsReplaced')
+			end
+			return false
+		end
+		return ItemAuditor.db.char.use_quick_auctions
+	end
+	return false
 end
 
 function ItemAuditor:IsQADisabled()
