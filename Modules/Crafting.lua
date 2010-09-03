@@ -157,7 +157,7 @@ local function tableFilter(self, row, ...)
 	end
 
 	-- column 5 is how many should be crafted
-	if Crafting.filter_have_mats and row[6] == 'n' then
+	if Crafting.filter_have_mats and row[6] == 0 then
 		return false
 	end
 	if strfind(row[4], 'VETO: .*') or row[5] == 0 then
@@ -537,23 +537,25 @@ function ItemAuditor:UpdateCraftingTable()
 	local numOwned = {}
 
 	for key, data in pairs(realData) do
-		data.haveMaterials = true
+		data.haveMaterials = data.queue
 		for id, reagent in pairs(data.reagents) do
+			local needEach = reagent.count
 			reagent.count = reagent.count * data.queue
 
 			if not numOwned[reagent.link] then
 				numOwned[reagent.link] = ItemAuditor:GetItemCount(ItemAuditor:GetIDFromLink(reagent.link))
 			end
+			data.haveMaterials = min(data.haveMaterials, floor(numOwned[reagent.link] / needEach))
 			numOwned[reagent.link] = numOwned[reagent.link] - reagent.count
 
 			-- Vellums count in cost, but not against whether or not you have the mats.
 			-- I chose to do it this way because you can use a higher level of vellum
 			-- and I'm not sure the best way to determine cost and materials in that situation.
 			if numOwned[reagent.link] < 0 and not vellumLevelMap[reagent.itemID] then
-				data.haveMaterials = false
 				reagent.need = min(reagent.count, abs(numOwned[reagent.link]))
 			end
 		end
+		data.haveMaterials = max(0, data.haveMaterials)
 	end
 
 	if craftingTable then
@@ -563,19 +565,14 @@ function ItemAuditor:UpdateCraftingTable()
 end
 
 function ItemAuditor:RefreshCraftingTable()
-	local displayMaterials
 	for key, data in pairs(realData) do
-		displayMaterials = 'n'
-		if data.haveMaterials then
-			displayMaterials = 'y'
-		end
 		tableData[key] = {
 			data.name,
 			data.cost,
 			data.price,
 			data.winner,
 			abs(data.queue),
-			displayMaterials,
+			data.haveMaterials,
 			data.profit,
 		}
 	end
