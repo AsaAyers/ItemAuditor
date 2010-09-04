@@ -1,6 +1,7 @@
 2010-09-03  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Re-enabled IA QuickAuctions decider. I unintentionally disabled it when working on the QAManager code.
+- Ticket 39 - Updated the ItemAuditor window to be pulled to the front when it opens.
 
 2010-09-02  Asa Ayers  <Asa.Ayers@Gmail.com>
 
