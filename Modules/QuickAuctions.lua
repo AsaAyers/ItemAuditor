@@ -118,7 +118,7 @@ function ItemAuditor:UpdateQAGroup(groupName)
 end
 
 local function isProfitable(data)
-	if ItemAuditor.IsQAEnabled() then
+	if ItemAuditor:IsQACompatible() then
 		local QAGroup = QAAPI:GetItemGroup(data.link)
 		if QAGroup ~= nil then
 			local currentInvested, _, currentCount = ItemAuditor:GetItemCost(data.link)
@@ -157,8 +157,7 @@ local QADeciderOptions = {
 		set = function(info, value)
 			ItemAuditor.db.char.qa_extra = value
 		end,
-		handler = ItemAuditor,
-		disabled = 'IsQACompatible',
+		disabled = function() return not ItemAuditor:IsQACompatible() end,
 		order = 10,
 	},
 }
