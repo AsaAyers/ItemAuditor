@@ -83,10 +83,10 @@ function ItemAuditor:OnInitialize()
 	myMailbox = allMailboxes[UnitName("player")]
 
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ItemAuditor", "ItemAuditor")
-	
+
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("ItemAuditor", ItemAuditor.Options, {"ia"})
 	ItemAuditor:RegisterFrame(ItemAuditor_DebugFrame)
-	
+
 	LibStub("AceConsole-3.0"):RegisterChatCommand('rl', ReloadUI)
 
 	if self.db.char.crafting_threshold then
@@ -98,7 +98,7 @@ function ItemAuditor:OnInitialize()
 		elseif threshold == 3 then
 			self.db.char.profitable_threshold = 50000
 		end
-	
+
 		self.db.char.crafting_threshold = nil
 	end
 
@@ -116,7 +116,7 @@ end
 
 
 local registeredEvents = {}
-local originalRegisterEvent = ItemAuditor.RegisterEvent 
+local originalRegisterEvent = ItemAuditor.RegisterEvent
 function ItemAuditor:RegisterEvent(event, callback, arg)
 	registeredEvents[event] = true
 	if arg ~= nil then
@@ -163,18 +163,18 @@ function ItemAuditor:ConvertItems()
 			self.db.factionrealm.item_account[itemName] = nil
 		end
 	end
-	
+
 	for link, data in pairs(self.db.factionrealm.items) do
 		if self:GetItem(link).count == 0 or self:GetItem(link).invested == 0 then
 			self:RemoveItem(link)
 		end
 	end
-	
+
 	self:RefreshQAGroups()
 end
 
--- Options doesn't exist when this file is created the first time, so getOptions will 
--- make one call to :GetModule and return the result and replace itself with a 
+-- Options doesn't exist when this file is created the first time, so getOptions will
+-- make one call to :GetModule and return the result and replace itself with a
 -- function that simply returns the same object. The permanent solution will probably be
 -- to move :Print to a different module.
 local function getOptions()
@@ -212,18 +212,18 @@ function ItemAuditor:GetCurrentInventory()
 	local i = {}
 	local bagID
 	local slotID
-	
+
 	for bagID = 0, NUM_BAG_SLOTS do
 		scanBag(bagID, i)
 	end
-	
+
 	if bankOpen then
 		scanBag(BANK_CONTAINER, i)
 		for bagID = NUM_BAG_SLOTS+1, NUM_BANKBAGSLOTS do
 			scanBag(bagID, i)
 		end
 	end
-	
+
 	return {items = i, money = GetMoney()}
 end
 
@@ -239,17 +239,17 @@ function ItemAuditor:GetInventoryDiff(pastInventory, current)
 			self:Debug("1 diff[" .. link .. "]=" .. diff[link])
 		elseif count - pastInventory.items[link] ~= 0 then
 			diff[link] = count - pastInventory.items[link]
-			self:Debug("2 diff[" .. link .. "]=" .. diff[link])        
-		end    
+			self:Debug("2 diff[" .. link .. "]=" .. diff[link])
+		end
 	end
 
 	for link, count in pairs(pastInventory.items) do
 		if current.items[link] == nil then
 			diff[link] = -count
-			self:Debug("3 diff[" .. link .. "]=" .. diff[link])                
+			self:Debug("3 diff[" .. link .. "]=" .. diff[link])
 		elseif current.items[link] - count ~= 0 then
 			diff[link] = current.items[link] - pastInventory.items[link]
-			self:Debug("4 diff[" .. link .. "]=" .. diff[link])        
+			self:Debug("4 diff[" .. link .. "]=" .. diff[link])
 		end
 	end
 
@@ -266,21 +266,21 @@ local skipMail = {}
 function ItemAuditor:ScanMail()
 	local results = {}
 	local CODPaymentRegex = gsub(COD_PAYMENT, "%%s", "(.*)")
-	
+
 	for mailIndex = 1, GetInboxNumItems() or 0 do
 		local sender, msgSubject, msgMoney, msgCOD, daysLeft, msgItem, _, _, msgText, _, isGM = select(3, GetInboxHeaderInfo(mailIndex))
 		local mailType = self:GetMailType(msgSubject)
-		
+
 		local mailSignature = msgSubject .. '-' .. msgMoney .. '-' .. msgCOD .. '-' .. daysLeft
-		
+
 		results[mailType] = (results[mailType] or {})
-		
+
 		if skipMail[mailSignature] ~= nil then
 			-- do nothing
 		elseif mailType == "NonAHMail" and msgCOD > 0 then
 			mailType = 'COD'
 			results[mailType] = (results[mailType] or {})
-			
+
 			local itemTypes = {}
 			for itemIndex = 1, ATTACHMENTS_MAX_RECEIVE do
 				local itemName, _, count, _, _= GetInboxItem(mailIndex, itemIndex)
@@ -288,25 +288,25 @@ function ItemAuditor:ScanMail()
 					itemTypes[itemName] = (itemTypes[itemName] or 0) + count
 				end
 			end
-			
+
 			if self:tcount(itemTypes) == 1 then
 				for itemName, count in pairs(itemTypes) do
 					results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
 					results[mailType][itemName].total = results[mailType][itemName].total + msgCOD
-					
+
 					if inboundCOD[mailSignature] == nil then
 						results[mailType][itemName].count = results[mailType][itemName].count + count
 						inboundCOD[mailSignature] = (inboundCOD[mailSignature] or 0) + count
 					else
 						results[mailType][itemName].count = inboundCOD[mailSignature]
 					end
-					
-					
+
+
 				end
 			else
 				self:Debug("Don't know what to do with more than one item type on COD mail.")
 			end
-		elseif mailType == "CODPayment" then	
+		elseif mailType == "CODPayment" then
 			-- /dump ItemAuditor.db.factionrealm.outbound_cod
 			self:Debug(msgSubject)
 			self:Debug(CODPaymentRegex)
@@ -315,7 +315,7 @@ function ItemAuditor:ScanMail()
 			if outboundSubject ~= nil then
 				self:Debug(outboundSubject)
 				trackID = select(3, outboundSubject:find('[[]IA: (%d*)[]]'))
-				
+
 				if trackID ~= nil then
 					trackID = tonumber(trackID)
 					self:Debug('COD ID: %s', trackID)
@@ -325,31 +325,31 @@ function ItemAuditor:ScanMail()
 						self:Print("WARNING: {%s} has an invalid ItemAuditor tracking number.", msgSubject)
 					else
 						itemName = trackID .. "|" .. cod['link']
-						
-						
+
+
 						results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
 						results[mailType][itemName].total = results[mailType][itemName].total - msgMoney
 						results[mailType][itemName].count = results[mailType][itemName].count - cod.count
 					end
 				end
 			end
-			
+
 			if trackID == nil then
 				skipMail[mailSignature] = true
 				self:Print("WARNING: {%s} is a COD payment but doesn't have an ItemAuditor tracking number.", msgSubject)
 			end
-			
+
 		elseif mailType == "AHSuccess" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
 			results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
 			results[mailType][itemName].total = results[mailType][itemName].total - deposit - buyout + consignment
-			
+
 
 		elseif mailType == "AHWon" then
 			local invoiceType, itemName, playerName, bid, buyout, deposit, consignment = GetInboxInvoiceInfo(mailIndex);
 			results[mailType][itemName] = (results[mailType][itemName] or {total=0,count=0})
 			results[mailType][itemName].total = results[mailType][itemName].total + bid
-			
+
 			local count = select(3, GetInboxItem(mailIndex,1))
 			results[mailType][itemName].count = results[mailType][itemName].count + count
 		elseif mailType == "AHExpired" or mailType == "AHCancelled" or mailType == "AHOutbid" then
@@ -372,7 +372,7 @@ function ItemAuditor:ScanMail()
 			-- self:Print(format("|cFF00FF00MailScan|r: %s - %s - %s x %s", mailType, item, data.total, data.count))
 		end
 	end
-	return results   
+	return results
 end
 
 local realm = GetRealmName()
@@ -411,7 +411,7 @@ function ItemAuditor:GetItem(link, viewOnly)
 	if viewOnly == nil then
 		viewOnly = false
 	end
-	
+
 	local itemName = nil
 	if self:GetSafeLink(link) == nil then
 		itemName = link
@@ -419,8 +419,8 @@ function ItemAuditor:GetItem(link, viewOnly)
 		link = self:GetSafeLink(link)
 		itemName = GetItemInfo(link)
 	end
-	
-	
+
+
 	if self.db.factionrealm.item_account[itemName] ~= nil then
 		self.db.factionrealm.items[link] = {
 			count = ItemAuditor:GetItemCount(self:GetIDFromLink(link)),
@@ -428,33 +428,33 @@ function ItemAuditor:GetItem(link, viewOnly)
 		}
 		self.db.factionrealm.item_account[itemName] = nil
 	end
-	
+
 	if viewOnly == false and self.db.factionrealm.items[link] == nil then
-		
+
 		self.db.factionrealm.items[link] = {
 			count =  ItemAuditor:GetItemCount(self:GetIDFromLink(link)),
 			invested = abs(self.db.factionrealm.item_account[itemName] or 0),
 		}
-		
+
 	end
-	
+
 	if self.db.factionrealm.items[link] ~= nil then
 		self.db.factionrealm.items[link].count =  ItemAuditor:GetItemCount(self:GetIDFromLink(link))
-		
+
 		if self.db.factionrealm.items[link].invested == nil then
 			self.db.factionrealm.items[link].invested = 0
 		end
 	end
-	
+
 	if viewOnly == true and self.db.factionrealm.items[link] == nil then
 		return {count = 0, invested = 0}
 	elseif viewOnly == true then
-		
+
 		return {count = self.db.factionrealm.items[link].count, invested = self.db.factionrealm.items[link].invested}
 	end
-	
-	
-	
+
+
+
 	return self.db.factionrealm.items[link]
 end
 
@@ -481,19 +481,19 @@ function ItemAuditor:SaveValue(link, value, countChange)
 		self.db.factionrealm.item_account[itemName] = (self.db.factionrealm.item_account[itemName] or 0) + value
 		item = {invested = self.db.factionrealm.item_account[itemName], count = 1}
 	else
-		
+
 		item = self:GetItem(realLink)
 		item.invested = item.invested + value
 		itemName = GetItemInfo(realLink)
 	end
-	
+
 	if value > 0 and countChange > 0 and item.invested == value and item.count ~= countChange then
 		local costPerItem = value / countChange
 		value = costPerItem * item.count
 		item.invested = value
 		self:Print("You already owned %s %s with an unknown price, so they have also been updated to %s each", (item.count - countChange), itemName, self:FormatMoney(costPerItem))
 	end
-	
+
 	if abs(value) > 0 then
 		if  item.invested < 0 then
 			if self.db.profile.messages.cost_updates then
@@ -502,7 +502,7 @@ function ItemAuditor:SaveValue(link, value, countChange)
 			self:RemoveItem(link)
 		-- This doesn't work when you mail the only copy of an item you have to another character.
 		--[[
-		elseif item.count == 0 and realLink and ItemAuditor:GetItemCount(self:GetIDFromLink(realLink)) then 
+		elseif item.count == 0 and realLink and ItemAuditor:GetItemCount(self:GetIDFromLink(realLink)) then
 			self:Print("You ran out of " .. itemName .. " and never recovered " .. self:FormatMoney(item.invested))
 			self:RemoveItem(link)
 		]]
@@ -512,7 +512,7 @@ function ItemAuditor:SaveValue(link, value, countChange)
 			end
 		end
 	end
-	
+
 	if realLink ~= nil then
 		ItemAuditor:UpdateQAThreshold(realLink)
 		self:SendMessage("IA_COST_CHANGED", realLink, unpack({ItemAuditor:GetItemCost(realLink)}))
@@ -564,11 +564,11 @@ function ItemAuditor:GetItemCost(link, countModifier)
 
 	if item.invested > 0 then
 		local count = item.count
-		
+
 		if countModifier ~= nil then
 			count = count - countModifier
 		end
-		if count > 0 then 
+		if count > 0 then
 			return ceil(item.invested), ceil(item.invested/count), count
 		end
 		return ceil(item.invested), 0, count
