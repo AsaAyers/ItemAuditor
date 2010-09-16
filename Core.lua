@@ -68,7 +68,8 @@ ItemAuditor.DB_defaults = {
 		items = {},
 		outbound_cod = {},
 		mailbox = {},
-		queue = {}
+		queue = {},
+		enabled_guilds = {},
 	},
 }
 
@@ -386,6 +387,10 @@ function ItemAuditor:GetItemCount(searchID)
 		count = count + (DataStore:GetMailItemCount(character, searchID) or 0)
 		count = count + (DataStore:GetCurrencyItemCount(character, searchID) or 0)
 	end
+	for guildName in pairs(self.db.factionrealm.enabled_guilds) do
+		count = count + DataStore:GetGuildBankItemCount(DataStore:GetGuilds()[guildName], searchID)
+	end
+
 	local itemName = GetItemInfo(searchID)
 	for character, mailbox in pairs(allMailboxes) do
 		for type, items in pairs(mailbox) do
@@ -569,4 +574,30 @@ function ItemAuditor:GetItemCost(link, countModifier)
 		return ceil(item.invested), 0, count
 	end
 	return 0, 0, ItemAuditor:GetItemCount(ItemAuditor:GetIDFromLink(link))
+end
+
+ItemAuditor.Options.args.misc= {
+	name = "Misc",
+	type = 'group',
+	args = {
+	},
+}
+local function GetGuild(info)
+	local guildName = info[#(info)]
+	return (ItemAuditor.db.factionrealm.enabled_guilds[guildName] == true)
+end
+
+local function SetGuild(info, value)
+	local guildName = info[#(info)]
+	ItemAuditor.db.factionrealm.enabled_guilds[guildName] = value or nil
+end
+
+for guildName in pairs(DataStore:GetGuilds()) do
+	ItemAuditor.Options.args.misc.args[guildName] = {
+		type = "toggle",
+		name = "Count "..guildName.." Guild Bank",
+		get = GetGuild,
+		set = SetGuild,
+		order = 11,
+	}
 end

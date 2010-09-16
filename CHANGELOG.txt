@@ -1,6 +1,7 @@
 2010-09-15  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Ticket 41 - Fixed a bug that occured if you created items without ever opening /ia crafting.
+- Ticket 40 - Added options to enable counting guild bank inventory.
 
 2010-09-03  Asa Ayers  <Asa.Ayers@Gmail.com>
 
