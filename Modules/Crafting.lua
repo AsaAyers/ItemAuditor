@@ -723,6 +723,11 @@ function Crafting.GetShoppingList(itemID)
 end
 
 function ItemAuditor:RefreshCraftingTable()
+	-- If the crafting table hasn't been created/displayed, there is no
+	-- reason to try to update it.
+	if not craftingTable then
+		return
+	end
 	tableData = {}
 	nameMap = {}
 	for key, data in pairs(realData) do

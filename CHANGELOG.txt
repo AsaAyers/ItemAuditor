@@ -1,3 +1,7 @@
+2010-09-15  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Ticket 41 - Fixed a bug that occured if you created items without ever opening /ia crafting.
+
 2010-09-03  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Re-enabled IA QuickAuctions decider. I unintentionally disabled it when working on the QAManager code.
