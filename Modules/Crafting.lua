@@ -10,6 +10,7 @@ local validateMoney = ItemAuditor.validateMoney
 local parseMoney = ItemAuditor.parseMoney
 
 local realData = {}
+local nameMap = nil
 
 local vellumLevelMap = {
 	[38682] = 37602, -- Armor Vellum => Armor Vellum II
@@ -17,6 +18,39 @@ local vellumLevelMap = {
 	[39349] = 39350, -- Weapon Vellum => Weapon Vellum II
 	[39350] = 43146, -- Weapon Vellum II => Weapon Vellum III
 }
+
+function Crafting:OnInitialize()
+	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+end
+
+local function getQueueLocation(name)
+	if not nameMap then
+		nameMap = {}
+		for key, data in pairs(realData) do
+			nameMap[data.skillName] = key
+		end
+	end
+	return nameMap[name]
+end
+
+--@debug@
+Crafting.getQueueLocation = getQueueLocation
+function Crafting.getNameMap()
+	return nameMap
+end
+
+function Crafting.getRealData()
+	return realData
+end
+--@end-debug@
+
+function Crafting:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
+	if unit == "player" and getQueueLocation(spell) then
+		local data = realData[getQueueLocation(spell)]
+		data.queue = data.queue - 1
+		ItemAuditor:RefreshCraftingTable()
+	end
+end
 
 local queueDestinations = {}
 local displayCraftingDestinations = {}
@@ -35,7 +69,7 @@ function Crafting.GetQueueDestination()
 	if dest and queueDestinations[dest] then
 		return queueDestinations[dest], dest
 	end
-	-- If there is none selected or the selected option has 
+	-- If there is none selected or the selected option has
 	-- dissapeared, choose the first one in the list
 	for name, func in pairs(queueDestinations) do
 		if dest then
@@ -44,7 +78,7 @@ function Crafting.GetQueueDestination()
 		ItemAuditor.db.profile.queue_destination = name
 		return func, name
 	end
-	
+
 	error('Unable to determine queue destination.')
 end
 
@@ -81,7 +115,7 @@ local function displayMoney(rowFrame, cellFrame, data, cols, row, realrow, colum
 		else
 			cellFrame.text:SetText("")
 		end
-		
+
 	end
 end
 
@@ -94,20 +128,20 @@ local craftingCols = {
 			end
 		end,
 	},
-	{ name= "Cost Each", width = 100, align = "RIGHT", 
+	{ name= "Cost Each", width = 100, align = "RIGHT",
 		['DoCellUpdate'] = displayMoney,
 	},
-	{ name= "Est Sale Each", width = 100, align = "RIGHT", 
+	{ name= "Est Sale Each", width = 100, align = "RIGHT",
 		['DoCellUpdate'] = displayMoney,
 	},
 	{ name= "Decided By", width = 125, align = "RIGHT",
-		
+
 	},
-	{ name= "craft", width = 50, align = "RIGHT", 
-		
+	{ name= "craft", width = 50, align = "RIGHT",
+
 	},
-	{ name= "Have Mats", width = 60, align = "RIGHT", 
-		
+	{ name= "Have Mats", width = 60, align = "RIGHT",
+
 	},
 	{ name= "Profit Each", width = 100, align = "RIGHT",
 		['DoCellUpdate'] = displayMoney,
@@ -117,7 +151,7 @@ local craftingCols = {
 function Crafting.ExportToSkillet(data)
 	local skillString = select(3, string.find(data.recipeLink, "^|%x+|H(.+)|h%[.+%]"))
 	local _, skillId = strsplit(":", skillString)
-	
+
 	ItemAuditor:AddToQueue(skillId,tradeSkillIndex, data.queue)
 end
 
@@ -135,7 +169,7 @@ function Crafting.Export(destination)
 	else
 		error('destination must be a function or a string')
 	end
-	
+
 	local index = 1
 	local data = ItemAuditor:GetCraftingRow(index)
 	while data do
@@ -144,7 +178,7 @@ function Crafting.Export(destination)
 		end
 		index = index + 1
 		data = ItemAuditor:GetCraftingRow(index)
-		
+
 	end
 end
 
@@ -152,6 +186,10 @@ end
 Crafting.filter_have_mats = false
 Crafting.filter_show_all = false
 local function tableFilter(self, row, ...)
+	if Crafting.nameFilter then
+		return string.find(row[1], Crafting.nameFilter) ~= nil
+	end
+
 	if Crafting.filter_show_all then
 		return true
 	end
@@ -173,19 +211,19 @@ local function ShowCrafting(container)
 	if craftingContent == false then
 		local window  = container.frame
 		craftingContent = CreateFrame("Frame",nil,window)
-		craftingContent:SetBackdropColor(0, 0, 1, 0.5) 
+		craftingContent:SetBackdropColor(0, 0, 1, 0.5)
 		craftingContent:SetBackdropBorderColor(1, 0, 0, 1)
-		
+
 		craftingContent:SetPoint("TOPLEFT", window, 10, -50)
 		craftingContent:SetPoint("BOTTOMRIGHT",window, -10, 10)
-		
+
 		craftingTable = ScrollingTable:CreateST(craftingCols, 22, nil, nil, craftingContent )
-		
-		IAcc = craftingContent 
+
+		IAcc = craftingContent
 		IAccWindow = window
 		craftingTable.frame:SetPoint("TOPLEFT",craftingContent, 0,0)
 		craftingTable.frame:SetPoint("BOTTOMRIGHT", craftingContent, 0, 30)
-		
+
 		craftingTable:RegisterEvents({
 			["OnEnter"] = function (rowFrame, cellFrame, data, cols, row, realrow, column, scrollingTable, ...)
 				if realrow then
@@ -200,7 +238,7 @@ local function ShowCrafting(container)
 				  GameTooltip:Hide()
 			end,
 		});
-		
+
 		local craftingView = CreateFrame("Button", nil, craftingContent, "UIPanelButtonTemplate")
 		craftingView:SetText("View")
 		craftingView:SetSize(50, 25)
@@ -232,10 +270,10 @@ local function ShowCrafting(container)
 
 		btnProcess = CreateFrame("Button", nil, craftingContent, "UIPanelButtonTemplate")
 		btnProcess:SetText("Process")
-		btnProcess:SetSize(100, 25) 
+		btnProcess:SetSize(100, 25)
 		btnProcess:SetPoint("BOTTOMRIGHT", craftingContent, 0, 0)
 		btnProcess:RegisterForClicks("LeftButtonUp");
-		
+
 		local function UpdateProcessTooltip(btn)
 			local data = ItemAuditor:GetCraftingRow(1)
 			if data then
@@ -270,10 +308,16 @@ local function ShowCrafting(container)
 				return useVellum(vellumLevelMap[vellumID], idealVellum or vellumID)
 			end
 		end
-		
+
 		btnProcess:SetScript("OnClick", function (self, button, down)
 			local data = ItemAuditor:GetCraftingRow(1)
 			if data then
+				-- This will make sure the correct tradeskill window is open.
+				local tradeskillName = GetTradeSkillLine()
+				if data.tradeskillName ~= tradeskillName then
+					CastSpellByName(data.tradeskillName)
+				end
+
 				local queue = data.queue
 				local vellumID = nil
 				_, _, _, _, altVerb = GetTradeSkillInfo(data.tradeSkillIndex)
@@ -287,8 +331,6 @@ local function ShowCrafting(container)
 					useVellum(vellumID)
 				end
 
-				data.queue = data.queue - queue
-				ItemAuditor:RefreshCraftingTable()
 				UpdateProcessTooltip()
 			end
 		end)
@@ -298,37 +340,37 @@ local function ShowCrafting(container)
 		btnProcess:SetScript("OnLeave", function()
 			GameTooltip:Hide()
 		end)
-	
+
 		btnSkillet = CreateFrame("Button", nil, craftingContent, "UIPanelButtonTemplate")
 
-		btnSkillet:SetSize(125, 25) 
+		btnSkillet:SetSize(125, 25)
 		btnSkillet:SetPoint("BOTTOMRIGHT", btnProcess, 'BOTTOMLEFT', 0, 0)
 		btnSkillet:RegisterForClicks("LeftButtonUp");
 		btnSkillet:SetScript("OnClick", function (self, button, down)
 			Crafting.Export()
 		end)
-		
+
 	end
 	local destination = select(2, Crafting.GetQueueDestination())
 	btnSkillet:SetText("Export to "..destination)
-	
+
 	craftingContent:Show()
-	
+
 	if container.parent then
 		local width = 80
-		for i, data in pairs(craftingCols) do 
+		for i, data in pairs(craftingCols) do
 			width = width + data.width
 		end
 		container.parent:SetWidth(width);
 	end
-	
+
 	ItemAuditor:RegisterEvent("TRADE_SKILL_SHOW", function()
 		if craftingContent and craftingContent:IsVisible() then
 			ItemAuditor:UpdateCraftingTable()
 		end
 	end)
 	ItemAuditor:UpdateCraftingTable()
-	
+
 	return craftingContent
 end
 
@@ -341,7 +383,7 @@ local craftingDeciders = {}
 
 function Crafting.RegisterCraftingDecider(name, decider, options)
 	craftingDeciders[name] = decider
-	
+
 	ItemAuditor.Options.args.crafting_options.args['chk'..name] = {
 		type = "toggle",
 		name = "Enable "..name,
@@ -349,7 +391,7 @@ function Crafting.RegisterCraftingDecider(name, decider, options)
 		set = function(info, value) ItemAuditor.db.profile.disabled_deciders[name] = not value end,
 		order = 11,
 	}
-	
+
 	if options then
 		ItemAuditor.Options.args.crafting_options.args['decider_'..name] = {
 			handler = {},
@@ -367,7 +409,7 @@ local function Decide(data)
 	for name, decider in pairs(craftingDeciders) do
 		if not ItemAuditor.db.profile.disabled_deciders[name] and name ~= lastWinner then
 			newDecision, reason = decider(data)
-			
+
 			if newDecision > data.queue then
 				data.queue = newDecision
 				lastWinner = (reason or name)
@@ -378,12 +420,12 @@ local function Decide(data)
 			end
 		end
 	end
-	
+
 	winner = lastWinner
 	lastWinner = ""
-	
+
 	data.queue = ceil(data.queue / GetTradeSkillNumMade(data.tradeSkillIndex))
-	
+
 	return winner, data.queue
 end
 
@@ -432,15 +474,21 @@ function ItemAuditor:UpdateCraftingTable()
 		self:Print("This feature requires Auctionator, Auctioneer, AuctionLite, or AuctionMaster.")
 		return
 	end
-	wipe(realData)
+	local tradeskillName = GetTradeSkillLine()
+
 	wipe(tableData)
-	
+
 	local profitableItems = {}
 	local profitableIndex = 1
 	local numChecked = 0
+	local numTradeSkills = GetNumTradeSkills()
+	if tradeskillName == 'UNKNOWN' then
+		numTradeSkills  = 0
+	end
+
 	local row = 1
 	
-	for i = 1, GetNumTradeSkills() do
+	for i = 1, numTradeSkills do
 		local itemLink = GetTradeSkillItemLink(i)
 		local itemId = Utils.GetItemID(itemLink)
 		local vellumID = nil
@@ -459,7 +507,7 @@ function ItemAuditor:UpdateCraftingTable()
 		if recipeLink ~= nil and itemId ~= nil then
 			local skillName, skillType, numAvailable, isExpanded, altVerb = GetTradeSkillInfo(i)
 			local itemName, itemLink= GetItemInfo(itemId)
-			
+
 			-- This check has to be here for things like Inscription Research that don't produce an item.
 			if itemLink then
 				local count = ItemAuditor:GetItemCount(itemId)
@@ -469,7 +517,7 @@ function ItemAuditor:UpdateCraftingTable()
 					local reagentName, _, reagentCount = GetTradeSkillReagentInfo(i, reagentId);
 					local reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
 					local reagentTotalCost = self:GetReagentCost(reagentLink, reagentCount)
-					
+
 					reagents[reagentId] = {
 						link = reagentLink,
 						itemID = Utils.GetItemID(reagentLink),
@@ -503,6 +551,7 @@ function ItemAuditor:UpdateCraftingTable()
 					recipeID = Utils.GetItemID(recipeLink),
 					link = itemLink,
 					name = itemName,
+					skillName = skillName,
 					count = count,
 					price = price,
 					cost = totalCost,
@@ -512,8 +561,9 @@ function ItemAuditor:UpdateCraftingTable()
 					tradeSkillIndex = i,
 					queue = 0,
 					winner = "",
+					tradeskillName = tradeskillName,
 				}
-				
+
 				data.winner, data.queue = Decide(data)
 				--[[
 					If it wasn't vetoed we need to reduce the number by how many are owned
@@ -522,12 +572,13 @@ function ItemAuditor:UpdateCraftingTable()
 				if data.queue > 0 then
 					data.queue = max(0, data.queue - count)
 				end
-				
-				-- If a tradeskill makes 5 at a time and something asks for 9, we should only 
+
+				-- If a tradeskill makes 5 at a time and something asks for 9, we should only
 				-- craft twice to get 10.
 				data.queue = ceil(data.queue / GetTradeSkillNumMade(i))
-				
+
 				realData[row] = data
+				nameMap[skillName] = row
 				row = row + 1
 			end
 		end
@@ -565,7 +616,16 @@ function ItemAuditor:UpdateCraftingTable()
 end
 
 function ItemAuditor:RefreshCraftingTable()
+	-- If the crafting table hasn't been created/displayed, there is no
+	-- reason to try to update it.
+	if not craftingTable then
+		return
+	end
+	tableData = {}
+	nameMap = {}
 	for key, data in pairs(realData) do
+		nameMap[data.name] = key
+
 		tableData[key] = {
 			data.name,
 			data.cost,
@@ -577,7 +637,7 @@ function ItemAuditor:RefreshCraftingTable()
 		}
 	end
 	craftingTable:SetData(tableData, true)
-	
+
 	if self:GetCraftingRow(1) then
 		btnProcess:Enable()
 	else

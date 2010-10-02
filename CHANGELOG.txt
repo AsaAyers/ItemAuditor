@@ -1,3 +1,17 @@
+2010-10-02  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- I removed the persistent queue (Ticket 33) It caused to many bugs and was blocking me from getting other things done. I think its something that will get implemented again once I figure out the best way to do it.
+
+2010-09-15  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Ticket 41 - Fixed a bug that occured if you created items without ever opening /ia crafting.
+- Ticket 40 - Added options to enable counting guild bank inventory.
+
+2010-09-03  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Re-enabled IA QuickAuctions decider. I unintentionally disabled it when working on the QAManager code.
+- Ticket 39 - Updated the ItemAuditor window to be pulled to the front when it opens.
+
 2010-09-02  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Updated the ArkInventory rule and tooltip to work in QA is compatible instead of if its enabled in ItemAuditor.
@@ -6,6 +20,7 @@
 - Changed Total Profit to Profit Each to match the rest of the interface. Cost and Estimated Sale are both Each.
 - When using the process button for Enchanting, ItemAuditor will check which vellum is used and will use the vellum from your inventory. If the correct vellum is not found, it will upgrade to the next level (use vellum II instead of vellum I). This also means that you have to press process for each scroll to be created.
 - Changed the Have Mats column to show the number of items you could create with the materials you have instead of just a y/n. The have mats filter simply checks that you can make at least 1.
+- Ticket 33 - Implemented a persistent queue. This allows the crafting queue to be seen even if your tradeskills aren't open and allows you to mix all of your tradeskills into a single queue.
 
 2010-09-01  Asa Ayers  <Asa.Ayers@Gmail.com>
 

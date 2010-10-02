@@ -64,6 +64,8 @@ function Frames.CreateFrame(selectedTab)
 		
 		displayFrame:AddChild(displayFrame.tab)
 	end
+
+	displayFrame.frame:Raise()
 	
 	if not selectedTab then
 		for key in pairs(tabs) do 
