@@ -1,6 +1,7 @@
 2010-10-02  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - I removed the persistent queue (Ticket 33) It caused to many bugs and was blocking me from getting other things done. I think its something that will get implemented again once I figure out the best way to do it.
+- Ticket 43 - Updated the way ItemAuditor counts how many of each item you own to only count your current faction.
 
 2010-09-15  Asa Ayers  <Asa.Ayers@Gmail.com>
 
