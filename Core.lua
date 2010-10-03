@@ -247,7 +247,7 @@ function ItemAuditor:GetInventoryDiff(pastInventory, current)
 	for itemID, count in pairs(pastInventory.items) do
 		if current.items[itemID] == nil then
 			diff[itemID] = -count
-			self:Debug("3 diff[" .. liitemIDnk .. "]=" .. diff[itemID])
+			self:Debug("3 diff[" .. itemID .. "]=" .. diff[itemID])
 		elseif current.items[itemID] - count ~= 0 then
 			diff[itemID] = current.items[itemID] - pastInventory.items[itemID]
 			self:Debug("4 diff[" .. itemID .. "]=" .. diff[itemID])
