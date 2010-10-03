@@ -268,21 +268,21 @@ local function distributeValue(self, totalValue, targetItems)
 	
 	local weights = {}
 	local totalWeight = 0
-	for link, change in pairs(targetItems) do
+	for itemID, change in pairs(targetItems) do
 		--[[ 
 			If something has never been seen on the AH, it must not be very valuable.
 			I'm using 1c so it doesn't have much weight and I can't get a devided by zero error.
 			The only time I know that this is a problem is when crafting a BOP item, and it 
 			is always crafted 1 at a time, so a weight of 1 will work.
 		]]
-		local ap = (ItemAuditor:GetAuctionPrice(link) or 1) * change
+		local ap = (ItemAuditor:GetAuctionPrice(itemID) or 1) * change
 		totalWeight = totalWeight + ap
-		weights[link] = ap
+		weights[itemID] = ap
 	end
 	
-	for link, change in pairs(targetItems) do
-		local value = totalValue * (weights[link]/totalWeight)
-		self:SaveValue(link, value, change)
+	for itemID, change in pairs(targetItems) do
+		local value = totalValue * (weights[itemID]/totalWeight)
+		self:SaveValue(itemID, value, change)
 	end
 end
 
@@ -293,12 +293,12 @@ function ItemAuditor:UpdateAudit()
 	
 	local positive, negative = {}, {}
 	local positiveCount, negativeCount = 0, 0
-	for item, count in pairs(diff.items) do
+	for itemID, count in pairs(diff.items) do
 		if count > 0 then
-			positive[item] = count
+			positive[itemID] = count
 			positiveCount = positiveCount + count
 		elseif count < 0 then
-			negative[item] = count
+			negative[itemID] = count
 			negativeCount = negativeCount + abs(count)
 		end
 	end
@@ -313,17 +313,17 @@ function ItemAuditor:UpdateAudit()
 	elseif abs(diff.money) > 0 and self:tcount(diff.items) == 1 and not self.mailOpen then
 		self:Debug("purchase or sale")
 		
-		for link, count in pairs(diff.items) do
-			self:SaveValue(link, 0 - diff.money, count)
+		for itemID, count in pairs(diff.items) do
+			self:SaveValue(link, 0 - diff.money, itemID)
 		end
 	elseif self:tcount(diff.items) > 1 and self:tcount(positive) > 0 and self:tcount(negative) > 0 then
 		-- we must have created/converted something
 		self:Debug("conversion")
 		
 		local totalChange = 0
-		for link, change in pairs(negative) do
-			local _, itemCost, count = self:GetItemCost(link, change)
-			self:SaveValue(link, itemCost * change, change)
+		for itemID, change in pairs(negative) do
+			local _, itemCost, count = self:GetItemCost(itemID, change)
+			self:SaveValue(itemID, itemCost * change, change)
 			
 			totalChange = totalChange + (itemCost * abs(change))
 		end

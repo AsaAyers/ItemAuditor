@@ -2,6 +2,7 @@
 
 - I removed the persistent queue (Ticket 33) It caused to many bugs and was blocking me from getting other things done. I think its something that will get implemented again once I figure out the best way to do it.
 - Ticket 43 - Updated the way ItemAuditor counts how many of each item you own to only count your current faction.
+- Ticket 42 - In order to fix an issue with having multiple items that are the same base item with different enchants, all costs are now tracked against the base item instead of the exact item.
 
 2010-09-15  Asa Ayers  <Asa.Ayers@Gmail.com>
 

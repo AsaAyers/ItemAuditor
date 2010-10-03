@@ -1,4 +1,5 @@
 local ItemAuditor = select(2, ...)
+local Utils
 ItemAuditor = LibStub("AceAddon-3.0"):NewAddon(ItemAuditor, "ItemAuditor", "AceEvent-3.0", "AceBucket-3.0")
 --@debug@
 	_G['ItemAuditor'] = ItemAuditor
@@ -73,6 +74,7 @@ ItemAuditor.DB_defaults = {
 }
 
 function ItemAuditor:OnInitialize()
+	Utils = self:GetModule("Utils")
 	self.db = LibStub("AceDB-3.0"):New("ItemAuditorDB", ItemAuditor.DB_defaults, true)
 
 	allMailboxes = self.db.factionrealm.mailbox
@@ -199,10 +201,10 @@ local function scanBag(bagID, i)
 	bagSize=GetContainerNumSlots(bagID)
 	for slotID = 0, bagSize do
 		local link= GetContainerItemLink(bagID, slotID);
-		link = link and ItemAuditor:GetSafeLink(link)
+		itemID = link and  Utils.GetItemID(link)
 
-		if link ~= nil and i[link] == nil then
-			i[link] = GetItemCount(link, bankOpen);
+		if link and itemID and i[itemID] == nil then
+			i[itemID] = GetItemCount(itemID, bankOpen);
 		end
 	end
 end
@@ -232,23 +234,23 @@ function ItemAuditor:GetInventoryDiff(pastInventory, current)
 	end
 	local diff = {}
 
-	for link, count in pairs(current.items) do
-		if pastInventory.items[link] == nil then
-			diff[link] = count
-			self:Debug("1 diff[" .. link .. "]=" .. diff[link])
-		elseif count - pastInventory.items[link] ~= 0 then
-			diff[link] = count - pastInventory.items[link]
-			self:Debug("2 diff[" .. link .. "]=" .. diff[link])
+	for itemID, count in pairs(current.items) do
+		if pastInventory.items[itemID] == nil then
+			diff[itemID] = count
+			self:Debug("1 diff[" .. itemID .. "]=" .. diff[itemID])
+		elseif count - pastInventory.items[itemID] ~= 0 then
+			diff[itemID] = count - pastInventory.items[itemID]
+			self:Debug("2 diff[" .. itemID .. "]=" .. diff[itemID])
 		end
 	end
 
-	for link, count in pairs(pastInventory.items) do
-		if current.items[link] == nil then
-			diff[link] = -count
-			self:Debug("3 diff[" .. link .. "]=" .. diff[link])
-		elseif current.items[link] - count ~= 0 then
-			diff[link] = current.items[link] - pastInventory.items[link]
-			self:Debug("4 diff[" .. link .. "]=" .. diff[link])
+	for itemID, count in pairs(pastInventory.items) do
+		if current.items[itemID] == nil then
+			diff[itemID] = -count
+			self:Debug("3 diff[" .. liitemIDnk .. "]=" .. diff[itemID])
+		elseif current.items[itemID] - count ~= 0 then
+			diff[itemID] = current.items[itemID] - pastInventory.items[itemID]
+			self:Debug("4 diff[" .. itemID .. "]=" .. diff[itemID])
 		end
 	end
 
