@@ -185,20 +185,20 @@ function UpdateInvestedData()
 					investedPerItem,
 					count,
 				}
-				
+
 				totalInvested = totalInvested + investedTotal
-				
+
 				i = i + 1
-				includedItems[safeLink] = true
+				includedItems[ItemAuditor:GetIDFromLink(safeLink)] = true
 			end
 		end
 		
 		local inventory = ItemAuditor:GetCurrentInventory()
 		
-		for link, count in pairs(inventory.items) do
-			if includedItems[link] == nil then
-				local count = ItemAuditor:GetItemCount(ItemAuditor:GetIDFromLink(link))
-				local itemName, link = GetItemInfo(link)
+		for itemID, count in pairs(inventory.items) do
+			if includedItems[itemID] == nil then
+				local itemName, link = GetItemInfo(itemID)
+				local count = ItemAuditor:GetItemCount(itemID)
 				tableData[i] = {
 					itemName.."|"..link,
 					0,
