@@ -314,7 +314,7 @@ function ItemAuditor:UpdateAudit()
 		self:Debug("purchase or sale")
 		
 		for itemID, count in pairs(diff.items) do
-			self:SaveValue(link, 0 - diff.money, itemID)
+			self:SaveValue(itemID, 0 - diff.money, itemID)
 		end
 	elseif self:tcount(diff.items) > 1 and self:tcount(positive) > 0 and self:tcount(negative) > 0 then
 		-- we must have created/converted something
