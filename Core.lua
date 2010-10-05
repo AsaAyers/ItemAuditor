@@ -379,6 +379,7 @@ end
 local realm = GetRealmName()
 local ds_account = 'Default'
 function ItemAuditor:GetItemCount(searchID)
+	self:Debug('ItemAuditor:GetItemCount(%s)', tostring(searchID))
 	local count = 0
 	for _, character in pairs(DataStore:GetCharacters(realm, ds_account)) do
 		if DataStore:GetCharacterFaction(character) == UnitFactionGroup("player") then
@@ -388,11 +389,15 @@ function ItemAuditor:GetItemCount(searchID)
 			count = count + (DataStore:GetInventoryItemCount(character, searchID) or 0)
 			count = count + (DataStore:GetMailItemCount(character, searchID) or 0)
 			count = count + (DataStore:GetCurrencyItemCount(character, searchID) or 0)
+		else
+			self:Debug('Skipping %s', character)
 		end
 	end
+	self:Debug('before guild count: %s', count)
 	for guildName in pairs(self.db.factionrealm.enabled_guilds) do
 		count = count + DataStore:GetGuildBankItemCount(DataStore:GetGuilds()[guildName], searchID)
 	end
+	self:Debug('after guild count: %s', count)
 
 	local itemName = GetItemInfo(searchID)
 	for character, mailbox in pairs(allMailboxes) do
@@ -401,7 +406,7 @@ function ItemAuditor:GetItemCount(searchID)
 				for name, data in pairs(items) do
 					if name == itemName then
 						count = count - data.count
-
+						self:Debug('removing mail %s %s %s', character, type, data.count)
 					end
 				end
 			end
