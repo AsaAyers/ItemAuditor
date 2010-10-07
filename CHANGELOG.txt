@@ -1,3 +1,7 @@
+2010-10-06  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Ticket 46 - Added DataStore_Characters to the list of dependencies. It should have been added with Ticket 43.
+
 2010-10-02  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - I removed the persistent queue (Ticket 33) It caused to many bugs and was blocking me from getting other things done. I think its something that will get implemented again once I figure out the best way to do it.
