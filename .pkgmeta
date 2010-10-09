@@ -29,6 +29,12 @@ externals:
     Libs/AceTimer-3.0:
         url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTimer-3.0
         tag: latest
+    Libs/AceSerializer-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceSerializer-3.0
+        tag: latest
+    Libs/AceTimer-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTimer-3.0
+        tag: latest
     Libs/lib-st: 
         url: svn://svn.wowace.com/wow/lib-st/mainline/trunk
         tag: latest
@@ -37,12 +43,26 @@ externals:
         tag: latest
 
 
-required-dependencies: Altoholic
+required-dependencies:
+    - datastore
+    - datastore_containers
+    - datastore_auctions
+    - datastore_inventory
+    - datastore_mails
+    - datastore_currencies
+    - datastore_characters
 
 optional-dependencies:
-    - QuickAuctions
-    - Skillet
-    - LilSparkysWorkshop
+    - quickauctions
+    - skillet
+    - lilsparkysworkshop
+    - auctionator
+    - auctioneer
+    - auctionlite
+    - auctionmaster
+    - arkinventory
+    - devtools
+    - wowunit
 
 manual-changelog: CHANGELOG.txt
 

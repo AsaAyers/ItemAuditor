@@ -1,3 +1,7 @@
+2010-10-08  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Ticket 45 - Added the ability suppress COD warnings when mailing to characters on other accounts in Altoholic/DataStore. Instead of sending COD, ItemAuditor will send tracking info in the message. Thanks to Zerotorescue for giving me the solution to detect whether or not Postal or MailOpener is processing. It was the last step holding this back from being released.
+
 2010-10-06  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Ticket 46 - Added DataStore_Characters to the list of dependencies. It should have been added with Ticket 43.

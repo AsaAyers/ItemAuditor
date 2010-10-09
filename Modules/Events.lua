@@ -105,22 +105,28 @@ function SendMail(recipient, subject, body, ...)
 			attachedItems[newLink].stacks = attachedItems[newLink].stacks + 1
 			attachedItems[newLink].count = attachedItems[newLink].count + itemCount
 			attachedItems[newLink].price = 0 -- This is a placeholder for below.
+			attachedItems[newLink].costEach = select(2, ItemAuditor:GetItemCost(newLink))
 		end
 	end
 	local attachedValue = 0
 	for link, data in pairs(attachedItems) do
 		data.price = 30 * data.stacks
-		attachedValue = attachedValue + data.price + (select(2, ItemAuditor:GetItemCost(link)) * data.stacks)
+		attachedValue = attachedValue + data.price + (data.costEach * data.count)
 	end
-	
-	local cross_account_mail = true
-	for name, _ in pairs(DataStore:GetCharacters()) do
-		if strlower(recipient) == strlower(name) then
-			cross_account_mail = false
-			break
+
+	local destinationType = 'unknown'
+	local realm = GetRealmName()
+	for account in pairs(DataStore:GetAccounts()) do
+		for character in pairs(DataStore:GetCharacters(realm, account)) do
+			if strlower(recipient) == strlower(character) then
+				destinationType = (account == 'Default') and 'same_account' or 'owned_account'
+				destinationType = 'owned_account'
+				break
+			end
 		end
 	end
-	if cross_account_mail and attachedValue > self.mailOutbox.COD and not skipCODCheck and ItemAuditor.db.char.cod_warnings then
+	self.mailOutbox.destinationType = destinationType
+	if destinationType == 'unknown' and attachedValue > self.mailOutbox.COD and not skipCODCheck and ItemAuditor.db.char.cod_warnings then
 		self:GenerateBlankOutbox()
 		skipCODCheck = false;
 		local vararg = ...
@@ -131,6 +137,14 @@ function SendMail(recipient, subject, body, ...)
 		end
 		StaticPopup_Show ("ItemAuditor_Insufficient_COD", Utils.FormatMoney(attachedValue));
 		return
+	elseif destinationType == 'owned_account' then
+		-- If we are mailing to an alt on a different account, a uniqueue tracking number
+		-- is generated and all of the needed data is attached to the message.
+		-- The tracking number is only used to make sure the other character doesn't count the
+		-- mail more than once.
+		local key = time()..":"..random(10000)
+		self.mailOutbox.attachedItems = attachedItems
+		body = body .. ItemAuditor.TRACKING_DATA_DIVIDER .. ItemAuditor:Serialize(key, attachedItems)
 	elseif self.mailOutbox.COD > 0 and skipCODTracking then
 		
 	elseif self.mailOutbox.COD > 0 then
@@ -168,6 +182,14 @@ function ItemAuditor:MAIL_SUCCESS(event)
 	skipCODCheck = false
 
 	for link, data in pairs(attachedItems) do
+		-- When mailing to an alt on a different account, we still
+		-- should add the price of postage, but need to subtract the
+		-- cost of the items. This will simulate CODing the mail and
+		-- getting the money back, except that postage is paid by the
+		-- sender
+		if self.mailOutbox.destinationType == 'owned_account' then
+			data.price = data.price - (data.costEach * data.count)
+		end
 		self:SaveValue(link, data.price, data.count)
 	end
 	if self.mailOutbox.COD > 0 then
@@ -190,10 +212,37 @@ function ItemAuditor:MAIL_CLOSED()
 	self.mailOpen = nil
 end
 
+local function CanMailBeDeleted(mailIndex)
+	local msgMoney, _, _, msgItem = select(5, GetInboxHeaderInfo(mailIndex))
+	local body = GetInboxText(mailIndex)
+	if msgMoney == 0 and msgItem == nil and body and body:find(ItemAuditor.TRACKING_DATA_DIVIDER) then
+		local serialized = body:gsub('.*'..ItemAuditor.TRACKING_DATA_DIVIDER, '')
+		local body = body:gsub(ItemAuditor.TRACKING_DATA_DIVIDER..'.*', '')
+		local success, trackingID, data = ItemAuditor:Deserialize(serialized)
+		if success and body == '' then
+			return true
+		end
+	end
+	return false
+end
+
+local Postal_L
+local function blockMailOperations()
+	if MailAddonBusy == 'ItemAuditor' then
+		return false
+	end
+	if Postal_L == nil then
+		local locale = LibStub("AceLocale-3.0", true)
+		Postal_L = locale and locale:GetLocale("Postal", true)
+	end
+	return MailAddonBusy or PostalOpenAllButton and Postal_L and PostalOpenAllButton:GetText() == Postal_L["In Progress"]
+end
+
 local storedCountDiff
 function ItemAuditor:MAIL_INBOX_UPDATE()
 	self:Debug("MAIL_INBOX_UPDATE")
-	local newScan = ItemAuditor:ScanMail()
+	self.deleteQueue = nil
+	local newScan = self:ScanMail()
 	local diff
 	
 	for mailType, collection in pairs(self.lastMailScan) do
@@ -226,6 +275,44 @@ function ItemAuditor:MAIL_INBOX_UPDATE()
 	end
 
 	self.lastMailScan = newScan
+
+	if self.deleteQueue and not self.deleteScheduled then
+		-- For some reason DeleteInboxItem will not trigger a MAIL_INBOX_UPDATE
+		-- if it is called from here, so I have to use a timer to get it
+		-- to run outside of this function.
+
+		-- If the mailbox is full of items to be deleted, this will speed up because
+		-- postal shouldn't be running at this point. Keeping at 0.1 breaks postal.
+		local delay = (GetInboxNumItems() > #(self.deleteQueue)) and 1 or 0.1
+		self:ScheduleTimer("ProcessDeleteQueue", delay)
+		self.deleteScheduled = true
+	elseif MailAddonBusy == 'ItemAuditor' then
+		MailAddonBusy = nil
+	end
+end
+
+function ItemAuditor:ProcessDeleteQueue()
+	if blockMailOperations() then
+		self:ScheduleTimer("ProcessDeleteQueue", 1)
+		return
+	end
+	self.deleteScheduled = false
+	if self.deleteQueue then
+		MailAddonBusy = 'ItemAuditor'
+		while  #(self.deleteQueue) > 0 do
+			local mailIndex = table.remove(self.deleteQueue)
+			if CanMailBeDeleted(mailIndex) then
+				DeleteInboxItem(mailIndex)
+				-- This returns after the first item because you can't delete
+				-- all mail at once and this is in a loop so that if for some
+				-- reason CanMailBeDeleted returns false, we can delete the next
+				-- mail in the queue instead.
+				return
+			end
+		end
+	else
+		MailAddonBusy = nil
+	end
 end
 
 function ItemAuditor:UNIT_SPELLCAST_START(event, target, spell)

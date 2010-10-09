@@ -1,6 +1,6 @@
 local ItemAuditor = select(2, ...)
 local Utils
-ItemAuditor = LibStub("AceAddon-3.0"):NewAddon(ItemAuditor, "ItemAuditor", "AceEvent-3.0", "AceBucket-3.0")
+ItemAuditor = LibStub("AceAddon-3.0"):NewAddon(ItemAuditor, "ItemAuditor", "AceEvent-3.0", "AceBucket-3.0", "AceSerializer-3.0", "AceTimer-3.0")
 --@debug@
 	_G['ItemAuditor'] = ItemAuditor
 --@end-debug@
@@ -9,6 +9,8 @@ if not DevTools_Dump then
 	function DevTools_Dump()
 	end
 end
+
+ItemAuditor.TRACKING_DATA_DIVIDER = "\n==ItemAuditor Tracking Data==\n"
 
 local allMailboxes = {}
 local myMailbox = {}
@@ -53,6 +55,7 @@ ItemAuditor.DB_defaults = {
 		qa_extra = 0,
 		output_chat_frame = nil,
 		cod_warnings = true,
+		incoming_tracking_ids = {}
 	},
 	profile = {
 		messages = {
@@ -267,6 +270,7 @@ local skipMail = {}
 function ItemAuditor:ScanMail()
 	local results = {}
 	local CODPaymentRegex = gsub(COD_PAYMENT, "%%s", "(.*)")
+	local ia_tracking = {}
 
 	for mailIndex = 1, GetInboxNumItems() or 0 do
 		local sender, msgSubject, msgMoney, msgCOD, daysLeft, msgItem, _, _, msgText, _, isGM = select(3, GetInboxHeaderInfo(mailIndex))
@@ -356,8 +360,29 @@ function ItemAuditor:ScanMail()
 		elseif mailType == "AHExpired" or mailType == "AHCancelled" or mailType == "AHOutbid" then
 			-- These should be handled when you pay the deposit at the AH
 		else
-			-- self:Debug("Unhandled mail type: " .. mailType)
-			-- self:Debug(msgSubject)
+			
+			local body = GetInboxText(mailIndex)
+			if body and body:find(ItemAuditor.TRACKING_DATA_DIVIDER) then
+				local serialized = body:gsub('.*'..ItemAuditor.TRACKING_DATA_DIVIDER, '')
+				local body = body:gsub(ItemAuditor.TRACKING_DATA_DIVIDER..'.*', '')
+				local success, trackingID, data = ItemAuditor:Deserialize(serialized)
+				if success then
+					if not self.db.char.incoming_tracking_ids[trackingID] then
+						for link, d in pairs(data) do
+							self:SaveValue(link, d.costEach * d.count, d.count)
+						end
+					end
+					if body == '' and msgItem == nil then
+						self.deleteQueue = self.deleteQueue or {}
+						local ni = #(self.deleteQueue)+1
+						print(deleteQueue, ni, mailIndex)
+						self.deleteQueue[ni] = mailIndex
+					end
+					ia_tracking[trackingID] = true
+					self.db.char.incoming_tracking_ids[trackingID] = true
+				end
+			end
+
 		end
 
 	end
@@ -373,6 +398,12 @@ function ItemAuditor:ScanMail()
 			-- self:Print(format("|cFF00FF00MailScan|r: %s - %s - %s x %s", mailType, item, data.total, data.count))
 		end
 	end
+	if self:tcount(ia_tracking) > 0 then
+		for id, _ in pairs(self.db.char.incoming_tracking_ids) do
+			self.db.char.incoming_tracking_ids[id] = ia_tracking[id]
+		end
+	end
+
 	return results
 end
 
