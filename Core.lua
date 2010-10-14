@@ -590,7 +590,7 @@ function ItemAuditor:GetSafeLink(link)
 			return self:GetSafeLink(newLink)
 		end
 	end
-	   return newLink and string.gsub(newLink, ":0:0:0:0:0:0", ""):gsub(":[0-9]+$", "")
+	   return newLink and string.gsub(newLink, ":0:0:0:0:0:0:[0-9]+", "")
 end
 
 function ItemAuditor:GetIDFromLink(link)
