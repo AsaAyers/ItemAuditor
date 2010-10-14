@@ -1,6 +1,7 @@
 2010-10-13  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Better solution for item links.
+- Updated TOC so it isn't considered out of date.
 
 2010-10-12  Asa Ayers  <Asa.Ayers@Gmail.com>
 

@@ -1,4 +1,4 @@
-## Interface: 30300
+## Interface: 40000
 ## Title: Item Auditor
 ## Notes: This will keep track of how much you have paid per item in your inventory. Only one of (Auctionator, Auctioneer, AuctionLite, AuctionMaster) is needed to determine which items are profitable to craft.
 ## Author: Asa Ayers <Asa.Ayers@Gmail.com>
