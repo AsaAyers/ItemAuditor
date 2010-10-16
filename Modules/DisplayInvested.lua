@@ -23,24 +23,21 @@ StaticPopupDialogs["ItemAuditor_NewPrice"] = {
 	OnAccept = function()
 		skipCODTracking = true
 	end,
-	EditBoxOnEnterPressed = function()
-		if ( getglobal(this:GetParent():GetName().."Button1"):IsEnabled() == 1 ) then
-			getglobal(this:GetParent():GetName().."Button1"):Click()
+	EditBoxOnEnterPressed = function(self)
+		if ( self:GetParent().button1:IsEnabled() == 1 ) then
+			self:GetParent().button1:Click()
 		end
 	end,
-	EditBoxOnTextChanged = function ()
-		local parentName = this:GetParent():GetName()
-		local editBox = getglobal( parentName.."EditBox");
-		local value = editBox:GetText()
-		if validateMoney(value) then
-			getglobal(parentName.."Button1"):Enable();
+	EditBoxOnTextChanged = function (self)
+		if validateMoney(self:GetText()) then
+			self:GetParent().button1:Enable()
 		else
-			getglobal(parentName.."Button1"):Disable();
+			self:GetParent().button1:Disable();
 		end
+
 	end,
-	EditBoxOnEscapePressed = function()
-		this:GetParent():Hide();
-		ClearCursor();
+	EditBoxOnEscapePressed = function(self)
+		self:GetParent().button2:Click()
 	end,
 	timeout = 0,
 	hideOnEscape = 1,
@@ -64,10 +61,8 @@ local function PromptForNewPrice(link, type)
 		self.editBox:SetText(ItemAuditor:FormatMoney(price, '', true))
 	end
 	
-	StaticPopupDialogs["ItemAuditor_NewPrice"].OnAccept = function()
-		local name = this:GetParent():GetName().."EditBox"
-		local button = getglobal(name)
-		local newValue = button:GetText()
+	StaticPopupDialogs["ItemAuditor_NewPrice"].OnAccept = function(self)
+		local newValue = self.editBox:GetText()
 		newValue = parseMoney(newValue)
 		
 		local investedTotal, investedPerItem, numOwned = ItemAuditor:GetItemCost(link)

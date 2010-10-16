@@ -1,3 +1,7 @@
+2010-10-16  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed references to 'this' which Blizzard removed in 4.0.1
+
 2010-10-13  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Better solution for item links.

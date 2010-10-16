@@ -274,10 +274,10 @@ local function ShowCrafting(container)
 		btnProcess:SetPoint("BOTTOMRIGHT", craftingContent, 0, 0)
 		btnProcess:RegisterForClicks("LeftButtonUp");
 
-		local function UpdateProcessTooltip(btn)
+		local function UpdateProcessTooltip()
 			local data = ItemAuditor:GetCraftingRow(1)
 			if data then
-				GameTooltip:SetOwner(this, "ANCHOR_CURSOR")
+				GameTooltip:SetOwner(btnProcess, "ANCHOR_CURSOR")
 				GameTooltip:SetText(format('Create %sx%s', data.link, data.queue))
 				GameTooltip:Show()
 			end
@@ -487,6 +487,7 @@ function ItemAuditor:UpdateCraftingTable()
 	end
 
 	local row = 1
+	getQueueLocation()
 	
 	for i = 1, numTradeSkills do
 		local itemLink = GetTradeSkillItemLink(i)
