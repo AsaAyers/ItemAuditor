@@ -120,7 +120,6 @@ function SendMail(recipient, subject, body, ...)
 		for character in pairs(DataStore:GetCharacters(realm, account)) do
 			if strlower(recipient) == strlower(character) then
 				destinationType = (account == 'Default') and 'same_account' or 'owned_account'
-				destinationType = 'owned_account'
 				break
 			end
 		end

@@ -29,3 +29,5 @@ Modules\ArkInventoryRules.lua
 
 Modules\UnitTests.lua
 
+QueueSupport\ATSW.lua
+QueueSupport\GnomeWorks.lua

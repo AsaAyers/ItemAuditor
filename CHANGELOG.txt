@@ -1,3 +1,8 @@
+2010-10-18  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Removed some debugging code that caused characters on your own account to use the cross-account mail.
+- Addes support GnomeWorks and ATSW queues.
+
 2010-10-16  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed references to 'this' which Blizzard removed in 4.0.1
