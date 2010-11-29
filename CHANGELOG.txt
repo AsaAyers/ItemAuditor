@@ -1,3 +1,7 @@
+2010-11-29  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Fixed a bug where your equipped items were not counted as items in your inventory. If you replaced an equipped item and one of them had a cost associated, it would transfer the value between the two.
+
 2010-10-18  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Removed some debugging code that caused characters on your own account to use the cross-account mail.

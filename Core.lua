@@ -200,18 +200,32 @@ function ItemAuditor:BankFrameChanged(event)
 	ItemAuditor:UpdateCurrentInventory()
 end
 
-local function scanBag(bagID, i)
-	bagSize=GetContainerNumSlots(bagID)
-	for slotID = 0, bagSize do
-		local link= GetContainerItemLink(bagID, slotID);
-		itemID = link and  Utils.GetItemID(link)
+local function getTotalFromBagsAndInventory(searchID)
+	local character = DataStore:GetCharacter()
+	local bags, bank = DataStore:GetContainerItemCount(character, searchID)
+	local count = (bags or 0)
+	if bankOpen then
+		count = count + bank
+	end
+	count = count + (DataStore:GetInventoryItemCount(character, searchID) or 0)
 
-		if link and itemID and i[itemID] == nil then
-			i[itemID] = GetItemCount(itemID, bankOpen);
+	return count
+end
+
+local function scanBag(bagID, i)
+	local bag = DataStore:GetContainer(DataStore:GetCharacter(), bagID)
+	if bag then
+		for slotID = 0, bag.size do
+			local itemID = DataStore:GetSlotInfo(bag, slotID);
+
+			if itemID and i[itemID] == nil then
+				i[itemID] = getTotalFromBagsAndInventory(itemID);
+			end
 		end
 	end
 end
 
+local NUM_EQUIPMENT_SLOTS = 19
 function ItemAuditor:GetCurrentInventory()
 	local i = {}
 	local bagID
@@ -225,6 +239,16 @@ function ItemAuditor:GetCurrentInventory()
 		scanBag(BANK_CONTAINER, i)
 		for bagID = NUM_BAG_SLOTS+1, NUM_BANKBAGSLOTS do
 			scanBag(bagID, i)
+		end
+	end
+
+	local character = DataStore:GetCharacter()
+	for slotID = 1, NUM_EQUIPMENT_SLOTS do
+		local link = DataStore:GetInventoryItem(character, slotID)
+		itemID = link and  Utils.GetItemID(link)
+
+		if link and itemID and i[itemID] == nil then
+			i[itemID] = getTotalFromBagsAndInventory(itemID);
 		end
 	end
 
@@ -563,7 +587,7 @@ end
 function ItemAuditor:WatchBags()
 	if self.watch_handle == nil then
 		ItemAuditor:UpdateCurrentInventory()
-		self.watch_handle = self:RegisterBucketEvent({"BAG_UPDATE", "PLAYER_MONEY"}, 0.3, "UpdateAudit")
+		self.watch_handle = self:RegisterBucketEvent({"BAG_UPDATE", "PLAYER_MONEY", "UNIT_INVENTORY_CHANGED"}, 0.3, "UpdateAudit")
 	end
 end
 
