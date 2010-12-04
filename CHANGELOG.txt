@@ -1,3 +1,8 @@
+2010-12-04  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- Ticket 45 - Fixed a bug that caused the crafting window to craft if you turn off all of the deciders.
+- Fixed an issue where the crafting window would crash if GetTradeSkillReagentItemLink() failed to return a link. This happened with my Wild Turkey
+
 2010-11-29  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed a bug where your equipped items were not counted as items in your inventory. If you replaced an equipped item and one of them had a cost associated, it would transfer the value between the two.

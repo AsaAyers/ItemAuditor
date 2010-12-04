@@ -181,7 +181,11 @@ end
 
 function ItemAuditor:GetReagentCost(link, total)
 	local totalCost = 0
-	
+
+	if not link then
+		return 99990000
+	end
+
 	if PT:ItemInSet(link,"Tradeskill.Mat.BySource.Vendor") then
 		local _, _, _, _, _, _, _, _, _, _, itemVendorPrice = GetItemInfo (link);
 		totalCost = itemVendorPrice * total

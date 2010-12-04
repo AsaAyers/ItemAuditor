@@ -198,7 +198,7 @@ local function tableFilter(self, row, ...)
 	if Crafting.filter_have_mats and row[6] == 0 then
 		return false
 	end
-	if strfind(row[4], 'VETO: .*') or row[5] == 0 then
+	if (row[4] and strfind(row[4], 'VETO: .*')) or row[5] == 0 then
 		return false
 	end
 	return true
