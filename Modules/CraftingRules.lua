@@ -211,7 +211,7 @@ end
 local function runRule(rule, itemName, itemID, data)
 	local searches = {strsplit(',', rule.search:upper())}
 	local bonus = 0
-	if data.count == 0 then
+	if data.count == 0 and rule.bonus_queue then
 		bonus = rule.bonus_queue
 	end
 

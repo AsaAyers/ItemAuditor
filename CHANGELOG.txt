@@ -1,5 +1,9 @@
 2010-12-04  Asa Ayers  <Asa.Ayers@Gmail.com>
 
+- Fixed a bug that caused an error if you had a crafting rule that doesn't include a bonus.
+
+2010-12-04  Asa Ayers  <Asa.Ayers@Gmail.com>
+
 - Ticket 45 - Fixed a bug that caused the crafting window to craft if you turn off all of the deciders.
 - Fixed an issue where the crafting window would crash if GetTradeSkillReagentItemLink() failed to return a link. This happened with my Wild Turkey
 
