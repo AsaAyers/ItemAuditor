@@ -1,3 +1,7 @@
+2010-12-10  Asa Ayers  <Asa.Ayers@Gmail.com>
+
+- I removed all of the vellums that were removed from the game. This also allowed me to make the one remaining vellum count toward the materials required to craft a scroll.
+
 2010-12-04  Asa Ayers  <Asa.Ayers@Gmail.com>
 
 - Fixed a bug that caused an error if you had a crafting rule that doesn't include a bonus.

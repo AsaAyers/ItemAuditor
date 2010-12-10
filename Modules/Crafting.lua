@@ -12,13 +12,6 @@ local parseMoney = ItemAuditor.parseMoney
 local realData = {}
 local nameMap = nil
 
-local vellumLevelMap = {
-	[38682] = 37602, -- Armor Vellum => Armor Vellum II
-	[37602] = 43145, -- Armor Vellum II => Armor Vellum III
-	[39349] = 39350, -- Weapon Vellum => Weapon Vellum II
-	[39350] = 43146, -- Weapon Vellum II => Weapon Vellum III
-}
-
 function Crafting:OnInitialize()
 	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 end
@@ -287,25 +280,16 @@ local function ShowCrafting(container)
 			When enchanting UseContainerItem seems to be protected, so the enchants
 			have to be done one at a time.
 		]]
-		local function useVellum(vellumID, idealVellum)
+		local function useVellum(vellumID)
 			for bagID = 0, NUM_BAG_SLOTS do
 				for slotID = 0, GetContainerNumSlots(bagID) do
 					local link = GetContainerItemLink(bagID, slotID)
 					local id = Utils.GetItemID(link);
 					if id == vellumID then
-						if idealVellum then
-							ItemAuditor:Print("Using %s instead of %s.",
-								select(2, GetItemInfo(vellumID)),
-								select(2, GetItemInfo(idealVellum))
-							)
-						end
 						UseContainerItem(bagID, slotID)
 						return
 					end
 				end
-			end
-			if vellumLevelMap[vellumID] then
-				return useVellum(vellumLevelMap[vellumID], idealVellum or vellumID)
 			end
 		end
 
@@ -320,9 +304,9 @@ local function ShowCrafting(container)
 
 				local queue = data.queue
 				local vellumID = nil
-				_, _, _, _, altVerb = GetTradeSkillInfo(data.tradeSkillIndex)
-				if altVerb == 'Enchant' and LSW.scrollData[data.recipeID] ~= nil then
-					vellumID = LSW.scrollData[data.recipeID]["vellumID"]
+				local altVerb = select(5, GetTradeSkillInfo(data.tradeSkillIndex))
+				if altVerb == 'Enchant' then
+					vellumID = 38682
 					queue = 1
 				end
 				ItemAuditor:Print('Crafting %sx%s', data.link, queue)
@@ -464,10 +448,6 @@ Crafting.RegisterCraftingDecider('Is Profitable', isProfitable, isProfitableOpti
 
 local tableData = {}
 function ItemAuditor:UpdateCraftingTable()
-	if LSW == nil then
-		self:Print("This feature requires LilSparky's Workshop.")
-		return
-	end
 	if GetAuctionBuyout ~= nil then
 	elseif AucAdvanced and AucAdvanced.Version then
 	else
@@ -495,12 +475,11 @@ function ItemAuditor:UpdateCraftingTable()
 		local vellumID = nil
 
 		--Figure out if its an enchant or not
-		_, _, _, _, altVerb = GetTradeSkillInfo(i)
-		if LSW.scrollData[itemId] ~= nil and altVerb == 'Enchant' then
+		local altVerb = select(5, GetTradeSkillInfo(i))
+		if LSW and LSW.scrollData[itemId] ~= nil and altVerb == 'Enchant' then
 			-- Ask LSW for the correct scroll
-			local sd = LSW.scrollData[itemId]
-			itemId = sd.scrollID
-			vellumID = sd.vellumID
+			itemId = LSW.scrollData[itemId]
+			vellumID = 38682
 		end
 
 		local recipeLink = GetTradeSkillRecipeLink(i)
@@ -600,10 +579,7 @@ function ItemAuditor:UpdateCraftingTable()
 			data.haveMaterials = min(data.haveMaterials, floor(numOwned[reagent.link] / needEach))
 			numOwned[reagent.link] = numOwned[reagent.link] - reagent.count
 
-			-- Vellums count in cost, but not against whether or not you have the mats.
-			-- I chose to do it this way because you can use a higher level of vellum
-			-- and I'm not sure the best way to determine cost and materials in that situation.
-			if numOwned[reagent.link] < 0 and not vellumLevelMap[reagent.itemID] then
+			if numOwned[reagent.link] < 0 then
 				reagent.need = min(reagent.count, abs(numOwned[reagent.link]))
 			end
 		end
