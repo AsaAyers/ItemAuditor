@@ -602,10 +602,10 @@ end
 function ItemAuditor:GetSafeLink(link)
 	local newLink = nil
 
-	if link and link == string.match(link, '.-:[-0-9]+[:0-9]*') then
+	if link and link == string.match(link, '.-:[-0-9]+[-:0-9]*') then
 		newLink = link
 	elseif link then
-		newLink = link and string.match(link, "|H(.-):([-0-9]+):([0-9]+)|h")
+		newLink = link and string.match(link, "|H(.-):([-0-9]+):([-0-9]+)|h")
 	end
 	if newLink == nil then
 		local itemID = self:GetItemID(link)
@@ -614,7 +614,7 @@ function ItemAuditor:GetSafeLink(link)
 			return self:GetSafeLink(newLink)
 		end
 	end
-	   return newLink and string.gsub(newLink, ":0:0:0:0:0:0:[0-9]+", "")
+	   return newLink and string.gsub(newLink, ":0:0:0:0:0:0:[-0-9]+", "")
 end
 
 function ItemAuditor:GetIDFromLink(link)
