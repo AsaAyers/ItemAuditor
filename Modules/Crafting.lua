@@ -14,12 +14,20 @@ local nameMap = nil
 
 function Crafting:OnInitialize()
 	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+	self:RegisterEvent("UNIT_SPELLCAST_FAILED")
 end
 
 local function getQueueLocation(name)
+	-- this is supposed to cache, but it isn't working. its easier to just
+	-- disable the cache for now.
+	nameMap = nil
 	if not nameMap then
 		nameMap = {}
 		for key, data in pairs(realData) do
+			-- TODO: Fix the cache and remove this.
+			if data.skillName == name then
+				return key
+			end
 			nameMap[data.skillName] = key
 		end
 	end
@@ -41,6 +49,17 @@ function Crafting:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
 	if unit == "player" and getQueueLocation(spell) then
 		local data = realData[getQueueLocation(spell)]
 		data.queue = data.queue - 1
+		ItemAuditor:RefreshCraftingTable()
+	end
+end
+
+--[[
+	If the craft failed, probably because you're missing an item, remove it and move on.
+]]
+function Crafting:UNIT_SPELLCAST_FAILED(event, unit, spell)
+	if unit == "player" and getQueueLocation(spell) then
+		local data = realData[getQueueLocation(spell)]
+		data.queue = 0
 		ItemAuditor:RefreshCraftingTable()
 	end
 end
@@ -497,6 +516,13 @@ function ItemAuditor:UpdateCraftingTable()
 					local reagentName, _, reagentCount = GetTradeSkillReagentInfo(i, reagentId);
 					local reagentLink = GetTradeSkillReagentItemLink(i, reagentId)
 					local reagentTotalCost = self:GetReagentCost(reagentLink, reagentCount)
+					if not reagentLink then
+						-- we can't continue without a link, but sometimes blizzard just fails to return one.z
+						self:Print("GetItemInfo failed to return an item link for %s. Retrying in 1 second.", tostring(reagentName))
+						return self:ScheduleTimer("UpdateCraftingTable", 1)
+					end
+
+					assert(reagentLink, format("GetItemInfo failed to return an item link for %s (skill: %s) (ReagentID: %s)", tostring(reagentName), tostring(i), tostring(reagentId)))
 
 					reagents[reagentId] = {
 						link = reagentLink,
@@ -512,6 +538,7 @@ function ItemAuditor:UpdateCraftingTable()
 				if vellumID then
 					reagentId = GetTradeSkillNumReagents(i) + 1
 					local reagentName, reagentLink = GetItemInfo(vellumID)
+					assert(reagentLink, format("GetItemInfo failed to return an item link %s:%s", tostring(vellumID), tostring(reagentName)))
 					reagents[reagentId] = {
 						link = reagentLink,
 						itemID = vellumID,

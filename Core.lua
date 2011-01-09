@@ -534,6 +534,7 @@ end
 
 function ItemAuditor:SaveValue(link, value, countChange)
 	self:Debug("SaveValue(%s, %s, %s)", tostring(link), value, (countChange or 'default'))
+	assert(link, "invalid link")
 	countChange = countChange or 0
 	local item = nil
 	local realLink = self:GetSafeLink(link)
@@ -623,6 +624,7 @@ function ItemAuditor:GetIDFromLink(link)
 end
 
 function ItemAuditor:GetItemCost(link, countModifier)
+	assert(link, format('invalid link: %s', tostring(link)))
 	local item = self:GetItem(link, true)
 
 	if item.invested > 0 then

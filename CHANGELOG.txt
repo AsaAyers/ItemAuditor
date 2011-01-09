@@ -2,6 +2,7 @@
 
 - Fixed a bug in calculating purchase/sale where the item ID was being used instead of the number of items that changed.
 - Fixed the way ItemLinks are extracted so that ItemAuditor can handle negative UniqeIDs. I had two of the same item, but one had a negative unique id and was being tracked as if it were a different item.
+- Added a work around for the fact that GetItemInfo doesn't always return item links.
 
 2010-12-10  Asa Ayers  <Asa.Ayers@Gmail.com>
 

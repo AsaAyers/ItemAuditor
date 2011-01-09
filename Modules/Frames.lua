@@ -27,6 +27,7 @@ local function switchTab(container, event, group)
 	end
 	
 	currentContent = cb(container)
+	assert(currentContent, format("The callback for %s must return a frame in order for tab switching to work.", tostring(group)))
 end
 
 function Frames.CreateFrame(selectedTab)

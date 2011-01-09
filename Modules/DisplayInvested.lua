@@ -192,7 +192,14 @@ function UpdateInvestedData()
 		
 		for itemID, count in pairs(inventory.items) do
 			if includedItems[itemID] == nil then
+				assert(itemID ~= 0, 'Invalid ItemID. Something may be wrong in the inventory scanner.')
 				local itemName, link = GetItemInfo(itemID)
+				if not link then
+					-- we can't continue without a link, but sometimes blizzard just fails to return one.
+					ItemAuditor:Print("GetItemInfo failed to return an item link for %s (ID: %s). Retrying in 1 second.", tostring(itemName), tostring(itemID))
+					return ItemAuditor:ScheduleTimer(UpdateInvestedData, 1)
+				end
+				assert(link, format("failed to get link for %s:%s", tostring(itemID), tostring(itemName)))
 				local count = ItemAuditor:GetItemCount(itemID)
 				tableData[i] = {
 					itemName.."|"..link,
